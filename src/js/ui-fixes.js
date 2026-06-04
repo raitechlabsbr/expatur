@@ -111,3 +111,75 @@ document.addEventListener('paste', function(e) {
     setTimeout(_wrap, 300); // safety net para patches que definem quotingSwitch tardiamente
   }
 })();
+
+// ── PAYOUT button — handler de segurança ─────────────────────────────────────
+// _bindPayoutButton() do app.js pode não ter executado corretamente.
+// Este handler via event delegation garante que o clique sempre funciona.
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('#qt-payout-btn');
+  if (!btn) return;
+
+  // Se o app.js já bindou o botão correctamente, deixa-o tratar
+  if (btn._payout86Bound) return;
+
+  // Fallback: executa o fluxo PAYOUT manualmente
+  e.stopPropagation();
+  const id = (() => { try { return localStorage.getItem('expatur_active_dossier') || null; } catch(_) { return null; } })();
+
+  if (!id) {
+    if (typeof window.toast === 'function') {
+      window.toast('Veuillez d\'abord ouvrir un dossier avant de cliquer sur PAYOUT.', 'error');
+    } else {
+      window.alert('Veuillez d\'abord ouvrir un dossier avant de cliquer sur PAYOUT.');
+    }
+    return;
+  }
+
+  // Marcar como reservado
+  try {
+    localStorage.setItem('expatur_booked_' + id, '1');
+    if (!localStorage.getItem('expatur_bookedAt_' + id)) {
+      localStorage.setItem('expatur_bookedAt_' + id, new Date().toISOString());
+    }
+  } catch(_) {}
+
+  // Desbloquear abas de reserva
+  if (typeof window._applyBookingTabState === 'function') {
+    try { window._applyBookingTabState(); } catch(_) {}
+  }
+  if (typeof window._dossierRenderTabs === 'function') {
+    try { window._dossierRenderTabs(); } catch(_) {}
+  }
+
+  // Forçar switch para Paiement (contornar o bloqueio qt-tab-locked)
+  const TABS = ['vols','client','couts','paiement','billet','docs','tasks','finance'];
+  TABS.forEach(function(t) {
+    const tb = document.getElementById('qt-tab-' + t);
+    const pn = document.getElementById('dv-panel-' + t);
+    if (tb) tb.classList.toggle('active', t === 'paiement');
+    if (pn) pn.classList.toggle('active', t === 'paiement');
+    // Remover o lock do paiement
+    if (t === 'paiement' && tb) tb.classList.remove('qt-tab-locked');
+  });
+  if (window._lastQuotingTab !== undefined) window._lastQuotingTab = 'paiement';
+
+  // Scroll topo
+  const host = document.getElementById('quoting-panels-host');
+  if (host) host.scrollTop = 0; else window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Abrir modal de emissão
+  setTimeout(function() {
+    if (typeof window.openEmissionModal === 'function') {
+      try { window.openEmissionModal(); } catch(_) {}
+    }
+  }, 250);
+
+  // Sincronizar visibilidade do botão
+  if (typeof window._syncPayoutButton === 'function') {
+    try { window._syncPayoutButton(); } catch(_) {}
+  }
+
+  if (typeof window.toast === 'function') {
+    window.toast('Réservation confirmée — passage en Paiement', 'success');
+  }
+}, true); // useCapture=true para apanhar antes de qualquer stopPropagation
