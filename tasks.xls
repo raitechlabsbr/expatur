@@ -1,0 +1,887 @@
+﻿
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8"/>
+
+<table border="1">
+	<thead>
+	<tr>
+
+		<th>ID</th>
+					<th>Task</th>
+					<th>Description</th>
+					<th>Active</th>
+					<th>Deadline</th>
+					<th>Created by</th>
+					<th>Assignee</th>
+					<th>Participants</th>
+					<th>Observers</th>
+					<th>Status</th>
+					<th>Project</th>
+					<th>Created on</th>
+					<th>Start date</th>
+					<th>Modified on</th>
+					<th>Completed on</th>
+					<th>Planned duration</th>
+					<th>Track time spent</th>
+					<th>Rating</th>
+					<th>Assignee can change deadline</th>
+					<th>Time spent</th>
+					<th>Tags</th>
+					<th>Lead</th>
+					<th>Contact</th>
+					<th>Company</th>
+					<th>Deal</th>
+					<th>CRM</th>
+					<th>Parent task ID</th>
+					<th>Parent task name</th>
+					<th>Planned start date</th>
+					<th>Due date</th>
+					<th>Flow</th>
+					
+		</tr>
+	</thead>
+
+	<tbody>
+	
+			<tr>
+			<td>4</td><td>CHECKIN TAP VGNZ5S</td><td></td><td>11/25/2025 16:40:10</td><td>11/26/2025 06:40:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>09/05/2025 14:18:05</td><td></td><td>11/25/2025 16:40:10</td><td>11/25/2025 16:40:10</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>20</td><td>AD UJMCSP GAUTHIER</td><td></td><td>11/25/2025 10:02:46</td><td>11/25/2025 11:25:00</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td>Erwan Tailleux</td><td></td><td>Completed</td><td>CHECKIN</td><td>09/05/2025 14:38:42</td><td></td><td>11/25/2025 10:02:46</td><td>11/25/2025 10:02:46</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>22</td><td>AFR BU7ZE6 LIMA SANTIN</td><td></td><td>12/08/2025 10:35:24</td><td>12/08/2025 12:00:00</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td>Completed</td><td>CHECKIN</td><td>09/05/2025 14:39:23</td><td></td><td>12/08/2025 10:35:24</td><td>12/08/2025 10:35:24</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>610</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE SAIDA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/09/2026 11:39:11</td><td>01/16/2026 20:25:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>QR CODE REP DOM</td><td>09/26/2025 14:27:30</td><td></td><td>01/09/2026 11:39:11</td><td>01/09/2026 11:39:11</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>ORY SDQ RT</td><td>Deal: ORY SDQ RT;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>612</td><td>CHECKIN 7ZBSNT</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: TX
+PNR: 7ZBSNT
+LAST NAME: GUTIERREZ MARINA</td><td>01/18/2026 15:34:46</td><td>01/18/2026 20:25:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>09/26/2025 14:27:30</td><td></td><td>01/18/2026 15:34:46</td><td>01/18/2026 15:34:46</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>ORY SDQ RT</td><td>Deal: ORY SDQ RT;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>636</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE SAIDA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/09/2026 11:27:28</td><td>01/16/2026 20:25:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>09/29/2025 13:31:29</td><td></td><td>01/09/2026 11:27:28</td><td>01/09/2026 11:27:28</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>ORY SDQ RT</td><td>Deal: ORY SDQ RT;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>638</td><td>CHECKIN 7ZMWPY</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: TX
+PNR: 7ZMWPY
+LAST NAME: HERRERA VARGAS</td><td>01/18/2026 15:34:50</td><td>01/18/2026 20:25:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>09/29/2025 13:31:29</td><td></td><td>01/18/2026 15:34:50</td><td>01/18/2026 15:34:50</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>ORY SDQ RT</td><td>Deal: ORY SDQ RT;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>772</td><td>CHECKIN BNSYIS</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: CM
+PNR: BNSYIS
+LAST NAME: ALDANA DE VARGAS</td><td>01/24/2026 11:27:22</td><td>01/24/2026 07:01:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>10/06/2025 14:42:58</td><td></td><td>01/24/2026 11:27:22</td><td>01/24/2026 11:27:22</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #498</td><td>Deal: Deal #498;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>814</td><td>CHECKIN AC98L9</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: AC98L9
+LAST NAME: FOURNIER</td><td>12/29/2025 10:02:37</td><td>12/29/2025 00:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>10/09/2025 23:41:59</td><td></td><td>12/29/2025 00:41:23</td><td>12/29/2025 00:41:23</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #512</td><td>Deal: Deal #512;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>826</td><td>CHECKIN AR269H</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: AR269H
+LAST NAME: BEAUDET</td><td>10/10/2025 21:00:26</td><td>07/16/2026 15:40:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>10/10/2025 21:00:26</td><td></td><td>10/10/2025 21:00:27</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #554</td><td>Deal: Deal #554;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>910</td><td>CHECKIN 9QKBFR</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: LH
+PNR: 9QKBFR
+LAST NAME: GIOVANNONI CHALAND</td><td>10/29/2025 15:41:39</td><td>06/14/2026 10:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>10/29/2025 15:41:38</td><td></td><td>10/29/2025 15:41:39</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #756</td><td>Deal: Deal #756;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>942</td><td>CHECKIN Z8ZH6L</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: TO
+PNR: Z8ZH6L
+LAST NAME: GESNOUIN</td><td>12/23/2025 11:00:59</td><td>12/23/2025 14:10:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>10/31/2025 14:21:50</td><td></td><td>12/23/2025 11:00:59</td><td>12/23/2025 11:00:59</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #788</td><td>Deal: Deal #788;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>978</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>12/31/2025 10:59:56</td><td>12/31/2025 10:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/11/2025 20:27:07</td><td></td><td>01/31/2026 14:27:40</td><td>12/31/2025 10:59:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #874</td><td>Deal: Deal #874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>980</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>12/10/2025 13:55:51</td><td>12/10/2025 16:41:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/11/2025 20:27:07</td><td></td><td>01/31/2026 14:27:42</td><td>12/10/2025 13:13:40</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #874</td><td>Deal: Deal #874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>990</td><td>QR CODE REP DOM</td><td>QR CODE ENTRADA</td><td>12/29/2025 12:15:41</td><td>12/29/2025 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>11/12/2025 11:10:04</td><td></td><td>12/29/2025 12:15:41</td><td>12/29/2025 12:15:41</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #894</td><td>Deal: Deal #894;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>992</td><td>QR CODE REP DOM</td><td>SAIDA</td><td>01/17/2026 13:24:00</td><td>01/19/2026 19:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>11/12/2025 11:10:28</td><td></td><td>01/17/2026 13:24:00</td><td>01/17/2026 13:24:00</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #894</td><td>Deal: Deal #894;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>998</td><td>CHECKIN TX 7QPUOH</td><td>TRINIDAD</td><td>01/31/2026 13:54:32</td><td>01/30/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/12/2025 11:12:46</td><td></td><td>01/31/2026 13:54:32</td><td>01/31/2026 13:54:32</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #894</td><td>Deal: Deal #894;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1000</td><td>CHECKIN AF XKYFBJ</td><td>TRINIDAD</td><td>01/21/2026 09:51:32</td><td>01/21/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/12/2025 11:14:16</td><td></td><td>01/21/2026 09:51:32</td><td>01/21/2026 09:51:32</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #894</td><td>Deal: Deal #894;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1018</td><td>CHECKIN UU 8QWLUU</td><td>AIR AUSTRAL
+SOBRENOME DURAND</td><td>12/08/2025 12:26:46</td><td>12/08/2025 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/14/2025 10:54:52</td><td></td><td>12/08/2025 12:17:42</td><td>12/08/2025 12:17:42</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #892</td><td>Deal: Deal #892;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1024</td><td>CHECKIN AF ZJ8CPL</td><td>AIR FRANCE
+SOBRENOME DURAND
+
+PNR ZJ8CPL / ETKT 0572338155626</td><td>03/11/2026 12:41:12</td><td>03/11/2026 10:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/14/2025 11:53:28</td><td></td><td>03/11/2026 12:41:11</td><td>03/11/2026 12:41:11</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #892</td><td>Deal: Deal #892;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1090</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>02/16/2026 13:04:56</td><td>02/19/2026 01:59:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/17/2025 11:29:12</td><td></td><td>02/16/2026 13:04:56</td><td>02/16/2026 13:04:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #896</td><td>Deal: Deal #896;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1092</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>02/02/2026 12:14:19</td><td>02/02/2026 09:35:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/17/2025 11:29:12</td><td></td><td>02/02/2026 12:14:19</td><td>02/02/2026 12:14:19</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #896</td><td>Deal: Deal #896;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1110</td><td>CHECKIN XC9Z8K</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: XC9Z8K
+LAST NAME: OVALLE</td><td>02/26/2026 11:08:22</td><td>02/26/2026 10:10:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/17/2025 21:24:38</td><td></td><td>02/26/2026 11:08:22</td><td>02/26/2026 11:08:22</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #994</td><td>Deal: Deal #994;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1150</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>02/16/2026 13:05:21</td><td>02/19/2026 01:59:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/18/2025 16:42:59</td><td></td><td>02/16/2026 13:05:21</td><td>02/16/2026 13:05:21</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #880</td><td>Deal: Deal #880;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1152</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>02/02/2026 13:01:32</td><td>02/02/2026 10:35:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>11/18/2025 16:43:00</td><td></td><td>02/02/2026 13:01:32</td><td>02/02/2026 13:01:32</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #880</td><td>Deal: Deal #880;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1154</td><td>CHECKIN ADFUHL</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: CM
+PNR: ADFUHL
+LAST NAME: DURAND</td><td>02/21/2026 11:11:57</td><td>02/21/2026 01:59:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/18/2025 16:43:00</td><td></td><td>02/21/2026 11:11:57</td><td>02/21/2026 11:11:57</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #880</td><td>Deal: Deal #880;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1170</td><td>CHECKIN UDQNGM</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: G3
+PNR: UDQNGM
+LAST NAME:</td><td>12/10/2025 10:15:04</td><td>12/10/2025 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/19/2025 12:40:58</td><td></td><td>12/10/2025 10:15:04</td><td>12/10/2025 10:15:04</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #992</td><td>Deal: Deal #992;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1184</td><td>CHECKIN DXAHNB</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: G3
+PNR: DXAHNB
+LAST NAME: TAOUMI</td><td>12/10/2025 10:20:13</td><td>12/10/2025 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/20/2025 14:32:47</td><td></td><td>12/10/2025 10:20:13</td><td>12/10/2025 10:20:13</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #992</td><td>Deal: Deal #992;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1212</td><td>CHECKIN UDGBRD</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: G3
+PNR: UDGBRD
+LAST NAME: KHAYYA</td><td>12/10/2025 10:24:56</td><td>12/10/2025 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/22/2025 19:55:10</td><td></td><td>12/10/2025 10:24:56</td><td>12/10/2025 10:24:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #992</td><td>Deal: Deal #992;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1236</td><td>CHECKIN C2NTOB</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: C2NTOB
+LAST NAME: CHEVALLEY</td><td>03/16/2026 10:43:10</td><td>03/14/2026 12:05:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>11/29/2025 18:54:06</td><td></td><td>03/16/2026 10:43:09</td><td>03/16/2026 10:43:07</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1273</td><td>Deal: Deal #1273;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1272</td><td>CHECKIN YARVBF</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: YARVBF
+LAST NAME: PIEMOE</td><td>12/30/2025 15:09:59</td><td>12/30/2025 18:35:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>12/07/2025 13:52:42</td><td></td><td>12/30/2025 15:09:59</td><td>12/30/2025 15:09:59</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1416</td><td>Deal: Deal #1416;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1282</td><td>CRM: SOLICITAÇÃO ESTORNO TAXA DE EMBRQUE</td><td>R$367,74</td><td>01/15/2026 19:02:25</td><td>01/15/2026 19:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Pending</td><td>PAGAMENTO PENDENTE</td><td>12/10/2025 11:29:41</td><td></td><td>01/30/2026 08:31:58</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #754</td><td>Deal: Deal #754;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1286</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: Luisa Yakosta Herrera Vargas
+Item: TX 7ZMWPY SERVIÇOS ADICIONAIS
+Valor: R$44.61</td><td>12/11/2025 11:26:38</td><td>12/11/2025 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>12/10/2025 11:52:08</td><td></td><td>12/11/2025 11:26:37</td><td>12/11/2025 11:26:37</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>BAG SUP 7ZMWPY</td><td>Deal: BAG SUP 7ZMWPY;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1292</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>12/13/2025 12:05:16</td><td>12/10/2025 22:41:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>QR CODE REP DOM</td><td>12/10/2025 22:00:56</td><td></td><td>12/13/2025 12:05:16</td><td>12/13/2025 12:05:16</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1444</td><td>Deal: Deal #1444;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1294</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>12/12/2025 10:02:22</td><td>12/10/2025 22:41:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>12/10/2025 22:00:56</td><td></td><td>01/31/2026 14:27:41</td><td>12/12/2025 10:02:22</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1444</td><td>Deal: Deal #1444;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1334</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/15/2025 12:58:03</td><td>12/16/2025 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/12/2025 19:42:58</td><td></td><td>12/15/2025 12:58:03</td><td>12/15/2025 12:58:03</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>CDG IAH RT COMPAGNE</td><td>Deal: CDG IAH RT COMPAGNE;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1342</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/15/2025 12:58:08</td><td>12/16/2025 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/12/2025 19:43:00</td><td></td><td>12/15/2025 12:58:08</td><td>12/15/2025 12:58:08</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>CDG IAH RT SENG</td><td>Deal: CDG IAH RT SENG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1420</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/17/2025 10:55:38</td><td>12/17/2025 12:36:23</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/15/2025 12:36:23</td><td></td><td>12/17/2025 10:55:38</td><td>12/17/2025 10:55:38</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1430</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/17/2025 10:55:34</td><td>12/17/2025 12:38:31</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/15/2025 12:38:31</td><td></td><td>12/17/2025 10:55:34</td><td>12/17/2025 10:55:34</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1520</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Brenda ESPINAL DE RODRIGUEZ
+ITEM: AF BJOFT3 AF  
+VALOR DA NOTA: R$483.49</td><td>12/20/2025 00:45:04</td><td>12/18/2025 16:22:45</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves, ERWAN TESTE</td><td>Completed</td><td>NFs</td><td>12/16/2025 16:22:45</td><td></td><td>12/20/2025 00:45:04</td><td>12/20/2025 00:45:04</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1508</td><td>Deal: Deal #1508;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1526</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/17/2025 10:55:30</td><td>12/18/2025 16:22:46</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/16/2025 16:22:46</td><td></td><td>12/17/2025 10:55:29</td><td>12/17/2025 10:55:29</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1508</td><td>Deal: Deal #1508;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1540</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Dominique Laporte-Marginean
+ITEM: DL UOMSBS DL  
+VALOR DA NOTA: R$1788.2</td><td>12/20/2025 00:45:39</td><td>12/19/2025 09:45:25</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves, ERWAN TESTE</td><td>Completed</td><td>NFs</td><td>12/17/2025 09:45:25</td><td></td><td>12/20/2025 00:45:39</td><td>12/20/2025 00:45:39</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1510</td><td>Deal: Deal #1510;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1608</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Seng Hour Neav 
+ITEM: AF CG9OFU AF  
+VALOR DA NOTA: R$1194.94</td><td>12/19/2025 11:39:20</td><td>12/20/2025 12:16:44</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td></td><td>Completed</td><td>NFs</td><td>12/18/2025 12:16:44</td><td></td><td>12/19/2025 11:39:20</td><td>12/19/2025 11:39:20</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>CDG IAH RT SENG</td><td>Deal: CDG IAH RT SENG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1610</td><td>CHECKIN CG9OFU</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: CG9OFU
+LAST NAME: NEAV</td><td>02/27/2026 14:21:14</td><td>02/27/2026 13:05:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>12/18/2025 12:16:44</td><td></td><td>02/27/2026 14:21:13</td><td>02/27/2026 14:21:13</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>CDG IAH RT SENG</td><td>Deal: CDG IAH RT SENG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1624</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Seng Hour Neav 
+ITEM: AF CK97F3 AF  
+VALOR DA NOTA: R$1192.65</td><td>12/20/2025 00:53:29</td><td>12/20/2025 12:18:27</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td></td><td>Completed</td><td>NFs</td><td>12/18/2025 12:18:27</td><td></td><td>12/20/2025 00:53:29</td><td>12/20/2025 00:53:29</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>CDG IAH RT COMPAGNE</td><td>Deal: CDG IAH RT COMPAGNE;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>1698</td><td>EMITIR N.F</td><td>NOME DO CLIENTE:  
+ITEM: TK  TK  
+VALOR DA NOTA: R$0</td><td>12/20/2025 00:46:38</td><td>12/20/2025 12:54:21</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td></td><td>Completed</td><td>NFs</td><td>12/18/2025 12:54:21</td><td></td><td>12/20/2025 00:46:38</td><td>12/20/2025 00:46:38</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2154</td><td>EMITIR N.F</td><td>NOME DO CLIENTE:  
+ITEM: AF ABCDEF AF ABCDEF 
+VALOR DA NOTA: R$0</td><td>12/20/2025 00:46:29</td><td>12/20/2025 22:12:04</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td></td><td>Completed</td><td>NFs</td><td>12/18/2025 22:12:04</td><td></td><td>12/20/2025 00:46:29</td><td>12/20/2025 00:46:29</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2156</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/20/2025 00:59:00</td><td>12/20/2025 22:12:05</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/18/2025 22:12:05</td><td></td><td>12/20/2025 00:59:00</td><td>12/20/2025 00:59:00</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2168</td><td>EMITIR N.F</td><td>NOME DO CLIENTE:  
+ITEM: DL    
+VALOR DA NOTA: R$0</td><td>12/20/2025 00:53:38</td><td>12/21/2025 11:28:48</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td>Moacyr Gonçalves</td><td></td><td>Completed</td><td>NFs</td><td>12/19/2025 11:28:48</td><td></td><td>12/20/2025 00:53:38</td><td>12/20/2025 00:53:38</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2174</td><td>CHECKIN</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: 
+LAST NAME: 
+
+[RETOUR][=PNR][24h] C.I UA/AA/DL/CM</td><td>12/20/2025 01:07:06</td><td></td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>12/19/2025 11:28:50</td><td></td><td>12/20/2025 01:07:06</td><td>12/20/2025 01:07:06</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2242</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Thibaut Chevalley
+ITEM: KL A3HLIL AF A3HLIL 
+VALOR DA NOTA: R$3114.16</td><td>12/20/2025 01:02:34</td><td>12/22/2025 00:23:29</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>12/20/2025 00:23:29</td><td></td><td>12/20/2025 01:02:34</td><td>12/20/2025 01:02:34</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1394</td><td>Deal: Deal #1394;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2246</td><td>APAGAR NÚMERO GOL SMILES</td><td>Ligar na Air France e solicitar para apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360</td><td>12/20/2025 11:07:45</td><td>12/22/2025 00:23:29</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/20/2025 00:23:29</td><td></td><td>12/20/2025 11:07:45</td><td>12/20/2025 11:07:45</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1394</td><td>Deal: Deal #1394;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2248</td><td>CHECKIN A3HLIL</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: KL
+PNR: A3HLIL
+LAST NAME: CHEVALLEY
+
+[RETOUR ex.IAH][=PNR][30h] C.I AF/KL</td><td>01/14/2026 11:48:20</td><td>06/07/2026 23:10:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>12/20/2025 00:23:30</td><td></td><td>01/14/2026 11:48:20</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1394</td><td>Deal: Deal #1394;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2250</td><td>ADD INF</td><td>LIGAR NA AIR FRANCE ADICIONAR BB:
+
+NOME: LOUISE
+SOBRENOME: CHEVALLEY
+DN: 01/12/2025
+
+Cotar a tarifa mais barata sem mala e a mais barata com mala despachada.  tarifa +/- 1000 reais.</td><td>02/24/2026 09:08:01</td><td>02/20/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/20/2025 00:27:34</td><td></td><td>02/24/2026 09:08:01</td><td>02/24/2026 09:08:01</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1394</td><td>Deal: Deal #1394;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2252</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: Ana Isabel Trinidad
+Item:  7QPUOH SERVIÇOS ADICIONAIS
+Valor: R$45.5</td><td>01/07/2026 12:50:13</td><td>01/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>12/30/2025 10:50:43</td><td></td><td>01/07/2026 12:50:13</td><td>01/07/2026 12:50:13</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>BAG SUP 7QPUOH</td><td>Deal: BAG SUP 7QPUOH;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2254</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Cedric Christin
+ITEM: KL A7WKSM   
+VALOR DA NOTA: R$6717.85</td><td>01/07/2026 12:49:07</td><td>01/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>12/31/2025 16:56:51</td><td></td><td>01/07/2026 12:49:07</td><td>01/07/2026 12:49:07</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Negócio #1640</td><td>Deal: Negócio #1640;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2262</td><td>CHECKIN FOOYXW</td><td>PNR: FOOYXW</td><td>12/31/2025 17:13:21</td><td>08/16/2026 18:15:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>12/31/2025 17:12:24</td><td></td><td>12/31/2025 17:13:21</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Negócio #1640</td><td>Deal: Negócio #1640;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2264</td><td>ADICIONAR INF</td><td>ADICIONAR INFANTE
+
+LIGAR NA AMERICAN AIRLINES</td><td>02/07/2026 12:27:48</td><td>02/13/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/31/2025 17:14:05</td><td>12/31/2025 17:15:07</td><td>02/07/2026 12:27:47</td><td>02/07/2026 12:27:47</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Negócio #1640</td><td>Deal: Negócio #1640;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2266</td><td>ADICIONAR INF</td><td>ADICIONAR BEBE DE COLO
+
+
+LIGAR NA AF/KLM</td><td>03/26/2026 11:33:21</td><td>03/27/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>12/31/2025 17:17:10</td><td></td><td>03/26/2026 11:33:21</td><td>03/26/2026 11:33:21</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Negócio #1640</td><td>Deal: Negócio #1640;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2268</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Aminata Hane  
+ITEM: AA LKKJUX
+VALOR DA NOTA: R$1518.7</td><td>01/07/2026 12:48:36</td><td>01/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>12/31/2025 19:20:12</td><td></td><td>01/07/2026 12:48:36</td><td>01/07/2026 12:48:36</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1676</td><td>Deal: Deal #1676;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2272</td><td>CHECKIN</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AA
+PNR: LKKJUX
+LAST NAME:  HANE
+
+&amp;#91;retour&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>01/29/2026 10:56:15</td><td>01/28/2026 15:39:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>12/31/2025 19:20:13</td><td></td><td>01/29/2026 10:56:14</td><td>01/29/2026 10:56:14</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1676</td><td>Deal: Deal #1676;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2278</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/05/2026 10:56:20</td><td>01/04/2026 19:05:02</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/02/2026 19:05:02</td><td></td><td>01/05/2026 10:56:20</td><td>01/05/2026 10:56:20</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1690</td><td>Deal: Deal #1690;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2280</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: Stéphane Durand
+Item:   SERVIÇOS ADICIONAIS
+Valor: R$1669.96</td><td>01/13/2026 13:38:26</td><td>01/16/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/02/2026 19:35:17</td><td></td><td>01/13/2026 13:38:26</td><td>01/13/2026 13:38:26</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>CHG/CNL </td><td>Deal: CHG/CNL ;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2288</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/05/2026 10:56:29</td><td>01/04/2026 19:44:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/02/2026 19:44:17</td><td></td><td>01/05/2026 10:56:29</td><td>01/05/2026 10:56:29</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1692</td><td>Deal: Deal #1692;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2292</td><td>ESCANEAR PASSAPORTES</td><td>ESCANEAR PASSAPORTES NA AIR FRANCE E NA DELTA (PELO APLICATIVO DA DELTA -&gt; INSERIR A RESERVA -&gt; TRIP REQUIREMENTS -&gt; ESCANEAR SELECIONANDO OS PASSAGEIROS)</td><td>01/05/2026 11:32:57</td><td>01/05/2026 15:12:32</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/03/2026 15:12:32</td><td></td><td>01/05/2026 11:32:57</td><td>01/05/2026 11:32:57</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] 2601031362</td><td>Deal: [MAINLP-FORM][FR] 2601031362;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2294</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Isabel FRIAS CRUZ
+ITEM: AF YVXXIN   
+VALOR DA NOTA: R$1164.94</td><td>01/12/2026 10:03:14</td><td>01/16/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td></td><td>01/07/2026 11:39:00</td><td></td><td>01/12/2026 10:03:14</td><td>01/12/2026 10:03:14</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1734</td><td>Deal: Deal #1734;</td><td></td><td> </td><td></td><td>01/16/2026 19:00:00</td><td></td>		</tr>
+			<tr>
+			<td>2298</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/09/2026 11:42:54</td><td>01/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/07/2026 11:39:01</td><td></td><td>01/09/2026 11:42:54</td><td>01/09/2026 11:42:54</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1734</td><td>Deal: Deal #1734;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2300</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Othman Alyounes
+ITEM: AF XI9CTJ   
+VALOR DA NOTA: R$1921.13</td><td>01/13/2026 13:33:34</td><td>01/16/2026 14:57:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/10/2026 14:57:09</td><td></td><td>01/13/2026 13:33:34</td><td>01/13/2026 13:33:34</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1770</td><td>Deal: Deal #1770;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2304</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/12/2026 09:23:47</td><td>01/12/2026 14:57:10</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/10/2026 14:57:10</td><td></td><td>01/12/2026 09:23:47</td><td>01/12/2026 09:23:47</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1770</td><td>Deal: Deal #1770;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2306</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Isabel FRIAS CRUZ
+ITEM: AF YVXXIN   
+VALOR DA NOTA: R$1164.94</td><td>01/13/2026 13:31:17</td><td>01/14/2026 10:03:22</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 10:03:22</td><td></td><td>01/13/2026 13:31:16</td><td>01/13/2026 13:31:16</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1734</td><td>Deal: Deal #1734;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2310</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 10:57:31</td><td>01/14/2026 10:03:23</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 10:03:23</td><td></td><td>01/14/2026 10:57:30</td><td>01/14/2026 10:57:30</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1734</td><td>Deal: Deal #1734;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2312</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Michelle Walton
+ITEM: AF A5ROEC DL  
+VALOR DA NOTA: R$2303.64</td><td>01/13/2026 13:29:07</td><td>01/14/2026 11:56:32</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 11:56:32</td><td></td><td>01/13/2026 13:29:07</td><td>01/13/2026 13:29:07</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1764</td><td>Deal: Deal #1764;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2316</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 11:21:36</td><td>01/14/2026 11:56:33</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 11:56:33</td><td></td><td>01/14/2026 11:21:36</td><td>01/14/2026 11:21:36</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1764</td><td>Deal: Deal #1764;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2318</td><td>CHECKIN HJZBJJ</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: DL
+PNR: HJZBJJ
+LAST NAME: WALTON</td><td>01/14/2026 11:45:17</td><td>04/19/2026 11:40:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/12/2026 11:58:22</td><td></td><td>01/26/2026 00:16:59</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1764</td><td>Deal: Deal #1764;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2320</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Marc Ducloz 
+ITEM: KL AA7WLN AF AADD2K 
+VALOR DA NOTA: R$1720.38</td><td>01/13/2026 13:35:25</td><td>01/14/2026 16:51:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 16:51:17</td><td></td><td>01/13/2026 13:35:25</td><td>01/13/2026 13:35:25</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1786</td><td>Deal: Deal #1786;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2324</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 11:05:18</td><td>01/14/2026 16:51:18</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 16:51:18</td><td></td><td>01/14/2026 11:05:18</td><td>01/14/2026 11:05:18</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1786</td><td>Deal: Deal #1786;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2326</td><td>CHECKIN AA7WLN</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: AF
+PNR: AADD2K
+LAST NAME: DUCLOZ
+
+&amp;#91;aller&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>01/20/2026 01:23:50</td><td></td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending review</td><td>CHECKIN</td><td>01/12/2026 16:52:06</td><td></td><td>01/20/2026 01:23:50</td><td>01/19/2026 09:50:41</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1786</td><td>Deal: Deal #1786;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2328</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Crisleiby ROGIER
+ITEM: AF AALO3W   
+VALOR DA NOTA: R$1741.71</td><td>01/14/2026 11:26:02</td><td>01/14/2026 17:04:36</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 17:04:36</td><td></td><td>01/14/2026 11:26:02</td><td>01/14/2026 11:26:02</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1664</td><td>Deal: Deal #1664;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2332</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 11:03:33</td><td>01/14/2026 17:04:37</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 17:04:37</td><td></td><td>01/14/2026 11:03:33</td><td>01/14/2026 11:03:33</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1664</td><td>Deal: Deal #1664;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2338</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Will Yougang
+ITEM: DL F93NLG AF BMNYWR 
+VALOR DA NOTA: R$5603.83</td><td>01/14/2026 11:28:56</td><td>01/14/2026 18:03:22</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 18:03:22</td><td></td><td>01/14/2026 11:28:56</td><td>01/14/2026 11:28:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] 2601031362</td><td>Deal: [MAINLP-FORM][FR] 2601031362;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2340</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 11:02:21</td><td>01/14/2026 18:03:22</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 18:03:22</td><td></td><td>01/14/2026 11:02:21</td><td>01/14/2026 11:02:21</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] 2601031362</td><td>Deal: [MAINLP-FORM][FR] 2601031362;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2342</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Othman Alyounes
+ITEM: AF YMQB28   
+VALOR DA NOTA: R$820.89</td><td>01/13/2026 13:36:55</td><td>01/14/2026 20:41:16</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/12/2026 20:41:16</td><td></td><td>01/13/2026 13:36:55</td><td>01/13/2026 13:36:55</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1792</td><td>Deal: Deal #1792;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2346</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 10:58:44</td><td>01/14/2026 20:41:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/12/2026 20:41:17</td><td></td><td>01/14/2026 10:58:44</td><td>01/14/2026 10:58:44</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1792</td><td>Deal: Deal #1792;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2348</td><td>QR CODE SAÍDA REP DOM</td><td>FAZER QR CODE REP DOM SAÍDA</td><td>01/13/2026 13:23:35</td><td>01/13/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/13/2026 11:25:29</td><td></td><td>01/13/2026 13:23:35</td><td>01/13/2026 13:23:35</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1664</td><td>Deal: Deal #1664;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2354</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Adnan Alyounes
+ITEM: AF ARHK6S   
+VALOR DA NOTA: R$1103.9</td><td>01/14/2026 10:53:28</td><td>01/15/2026 16:37:46</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/13/2026 16:37:46</td><td></td><td>01/14/2026 10:53:28</td><td>01/14/2026 10:53:28</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1794</td><td>Deal: Deal #1794;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2358</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/14/2026 11:07:10</td><td>01/15/2026 16:37:47</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/13/2026 16:37:47</td><td></td><td>01/14/2026 11:07:10</td><td>01/14/2026 11:07:10</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1794</td><td>Deal: Deal #1794;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2366</td><td>CHECKIN ZHH3YM</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: AF
+PNR: ZHH3YM
+LAST NAME: POURCHOT GRANDMOUGIN
+
+&amp;#91;aller&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>01/14/2026 12:55:21</td><td>04/24/2026 09:50:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/14/2026 12:55:21</td><td></td><td>01/26/2026 00:17:05</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1800</td><td>Deal: Deal #1800;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2368</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Jeannine POURCHOT GRANDMOUGIN
+ITEM: LA MTVBCZ LA YMIHDY 
+VALOR DA NOTA: R$1297.53</td><td>01/14/2026 13:28:46</td><td>01/16/2026 13:05:21</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/14/2026 13:05:21</td><td></td><td>01/14/2026 13:28:46</td><td>01/14/2026 13:28:46</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1798</td><td>Deal: Deal #1798;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2372</td><td>CHECK-IN YMIHDY</td><td>LATAM YMIHDY</td><td>01/14/2026 13:07:18</td><td>04/21/2026 13:40:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/14/2026 13:07:18</td><td></td><td>01/14/2026 13:07:18</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1798</td><td>Deal: Deal #1798;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2374</td><td>SOLICITAR ASSISTÊNCIA EM SOLO</td><td>CADEIRA DE RODA (WCH)
+
+PNR: MTVBCZ BELEM SANTIAGO
+
+PNR: YMIHDY LIMA BELEM
+
+
+https://www.latamairlines.com/br/pt/central-ajuda/perguntas/necessidades-especiais/atendimento-especial/cadeira-rodas-aeroporto</td><td>01/15/2026 11:55:27</td><td>01/15/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/14/2026 13:07:56</td><td></td><td>01/15/2026 11:55:27</td><td>01/15/2026 11:55:27</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1798</td><td>Deal: Deal #1798;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2376</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Laurent Meurisse
+ITEM: AF BOXIMK UA NRFS05 
+VALOR DA NOTA: R$9930.33</td><td>01/16/2026 10:13:33</td><td>01/17/2026 12:22:01</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/15/2026 12:22:01</td><td></td><td>01/16/2026 10:13:32</td><td>01/16/2026 10:13:32</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1768</td><td>Deal: Deal #1768;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2382</td><td>CHECKIN NRFS05</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: UA
+PNR: NRFS05
+LAST NAME: MEURISSE</td><td>01/15/2026 12:23:37</td><td>07/28/2026 13:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/15/2026 12:23:37</td><td></td><td>01/26/2026 00:17:24</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1768</td><td>Deal: Deal #1768;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2384</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Sylvain Vermeulen
+ITEM: TX 75KNHP   
+VALOR DA NOTA: R$3768.66</td><td>01/16/2026 10:11:56</td><td>01/17/2026 12:27:47</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/15/2026 12:27:47</td><td></td><td>01/16/2026 10:11:56</td><td>01/16/2026 10:11:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1750</td><td>Deal: Deal #1750;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2388</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE SAÍDA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/15/2026 12:29:46</td><td>04/24/2026 19:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>QR CODE REP DOM</td><td>01/15/2026 12:27:48</td><td></td><td>01/15/2026 12:29:46</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1750</td><td>Deal: Deal #1750;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2390</td><td>CHECK-IN 75KNHP</td><td>TX</td><td>01/15/2026 12:28:52</td><td>04/25/2026 20:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/15/2026 12:28:12</td><td></td><td>01/15/2026 12:28:52</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1750</td><td>Deal: Deal #1750;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2392</td><td>CHECK-IN 75KNHP</td><td>TX</td><td>01/15/2026 12:29:16</td><td>05/06/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>01/15/2026 12:29:16</td><td></td><td>01/15/2026 12:29:16</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1750</td><td>Deal: Deal #1750;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2394</td><td>VISTO TRÂNSITO DOS PASSAGEIROS</td><td>FAZER VISTO SURINAME. DATA DE ENTRADA DIA DA VIAGEM.</td><td>04/01/2026 16:07:08</td><td>04/01/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>01/15/2026 15:48:50</td><td></td><td>04/01/2026 16:07:08</td><td>04/01/2026 15:50:24</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1790</td><td>Deal: Deal #1790;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2396</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Othman Alyounes
+ITEM: AF XFRCGL   
+VALOR DA NOTA: R$865.75</td><td>01/16/2026 11:04:10</td><td>01/18/2026 10:44:08</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/16/2026 10:44:08</td><td></td><td>01/16/2026 11:04:09</td><td>01/16/2026 11:04:09</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1816</td><td>Deal: Deal #1816;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2402</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Nidian MATEO PEÑA
+ITEM: AV CEF87N G3 CEF87N 
+VALOR DA NOTA: R$7245.18</td><td>01/17/2026 11:52:27</td><td>01/18/2026 21:10:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/16/2026 21:10:17</td><td></td><td>01/17/2026 11:52:27</td><td>01/17/2026 11:52:27</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1818</td><td>Deal: Deal #1818;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2406</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/20/2026 11:01:01</td><td>01/20/2026 17:45:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/16/2026 21:10:18</td><td></td><td>01/20/2026 11:01:01</td><td>01/20/2026 11:01:01</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1818</td><td>Deal: Deal #1818;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+		
+																																																																
+	
+			<tr>
+			<td>2410</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: Albert Jesus Morel Beltran
+Item: TX BGHREF SERVIÇOS ADICIONAIS
+Valor: R$572.83</td><td>01/19/2026 13:32:16</td><td>01/20/2026 00:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/17/2026 21:34:47</td><td></td><td>01/19/2026 13:32:16</td><td>01/19/2026 13:32:16</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>CHG BGHREF</td><td>Deal: CHG BGHREF;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2412</td><td>CHECKIN BGHREF</td><td>FAZER CHECKIN TX</td><td>01/26/2026 00:15:03</td><td>01/24/2026 21:25:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>01/17/2026 21:34:57</td><td></td><td>01/26/2026 00:15:03</td><td>01/26/2026 00:15:03</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>CHG BGHREF</td><td>Deal: CHG BGHREF;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2414</td><td>QR CODE IMIGRACION SAÍDA</td><td>FAZER QR CODE DE SAÍDA</td><td>01/20/2026 11:09:35</td><td>01/20/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/17/2026 21:36:19</td><td></td><td>01/20/2026 11:09:35</td><td>01/20/2026 11:09:35</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>CHG BGHREF</td><td>Deal: CHG BGHREF;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2420</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Crisleiby ROGIER
+ITEM: AF CX8WIN   
+VALOR DA NOTA: R$521.66</td><td>01/19/2026 13:13:16</td><td>01/19/2026 23:09:57</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/17/2026 23:09:57</td><td></td><td>01/19/2026 13:13:16</td><td>01/19/2026 13:13:16</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>PUJCDG CHG</td><td>Deal: PUJCDG CHG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2424</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/19/2026 15:03:34</td><td>01/19/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/17/2026 23:09:58</td><td></td><td>01/19/2026 15:03:34</td><td>01/19/2026 15:03:34</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>PUJCDG CHG</td><td>Deal: PUJCDG CHG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2426</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>01/19/2026 13:28:58</td><td>01/19/2026 23:09:58</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/17/2026 23:09:58</td><td></td><td>01/19/2026 13:28:57</td><td>01/19/2026 13:28:57</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>PUJCDG CHG</td><td>Deal: PUJCDG CHG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2428</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: Ana Isabel Trinidad
+Item: DO YMHUNX SERVIÇOS ADICIONAIS
+Valor: R$68.19</td><td>01/20/2026 08:58:29</td><td>01/22/2026 00:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>01/19/2026 17:15:45</td><td></td><td>01/20/2026 08:58:29</td><td>01/20/2026 08:58:29</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>BAG SUP YMHUNX</td><td>Deal: BAG SUP YMHUNX;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2436</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Edilene Ferreira
+ITEM: AF XL4JQ8 AF  
+VALOR DA NOTA: R$1089.8</td><td>01/23/2026 11:33:24</td><td>01/24/2026 16:04:14</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/22/2026 16:04:14</td><td></td><td>01/23/2026 11:33:24</td><td>01/23/2026 11:33:24</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1876</td><td>Deal: Deal #1876;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2444</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Matt McBride
+ITEM: AF CFNIKG   
+VALOR DA NOTA: R$1981.16</td><td>01/23/2026 11:31:17</td><td>01/24/2026 21:48:09</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/22/2026 21:48:09</td><td></td><td>01/23/2026 11:31:17</td><td>01/23/2026 11:31:17</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1874</td><td>Deal: Deal #1874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2450</td><td>CHECKIN CW8FE3</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: AF
+PNR: CW8FE3
+LAST NAME: MCBRIDE
+
+&amp;#91;aller&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>02/11/2026 14:46:01</td><td></td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending review</td><td>CHECKIN</td><td>01/22/2026 21:49:24</td><td></td><td>02/11/2026 14:46:01</td><td>02/11/2026 14:45:45</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1874</td><td>Deal: Deal #1874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2452</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Othman Alyounes
+ITEM: AF XV2I79   
+VALOR DA NOTA: R$882.99</td><td>01/23/2026 11:28:45</td><td>01/25/2026 09:17:43</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/23/2026 09:17:43</td><td></td><td>01/23/2026 11:28:45</td><td>01/23/2026 11:28:45</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1882</td><td>Deal: Deal #1882;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2462</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Stéphanie Costa Sarmento
+ITEM: AF YL9QJ3   
+VALOR DA NOTA: R$3408.55</td><td>01/26/2026 12:55:37</td><td>01/26/2026 15:17:29</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/24/2026 15:17:29</td><td></td><td>01/26/2026 12:55:37</td><td>01/26/2026 12:55:37</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1908</td><td>Deal: Deal #1908;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2468</td><td>FAZER FATURA STRIPE</td><td>1 FATURA PARA CADA PASSAGEIRO (NOMES CONFORME PASSAPORTE):
+
+1x 599,99 euros - SDQPBM RT ADT CM/EXPATUR</td><td>01/27/2026 13:09:32</td><td>01/31/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>01/26/2026 22:01:24</td><td></td><td>01/27/2026 13:09:32</td><td>01/27/2026 13:09:32</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1924</td><td>Deal: Deal #1924;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2472</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: MARTIN RODRIGUEZ
+ITEM: CM A3OWFA   
+VALOR DA NOTA: R$2700.52</td><td>01/27/2026 11:27:03</td><td>01/28/2026 22:24:45</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/26/2026 22:24:45</td><td></td><td>01/27/2026 11:27:03</td><td>01/27/2026 11:27:03</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1924</td><td>Deal: Deal #1924;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2474</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>01/27/2026 12:40:56</td><td>01/30/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/26/2026 22:24:45</td><td></td><td>01/27/2026 12:40:56</td><td>01/27/2026 12:40:56</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1924</td><td>Deal: Deal #1924;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2476</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>01/28/2026 12:08:16</td><td>02/02/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>01/26/2026 22:24:46</td><td></td><td>01/31/2026 14:27:38</td><td>01/28/2026 12:08:16</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1924</td><td>Deal: Deal #1924;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2480</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Marina Capellan Gutierrez
+ITEM: AF Y2DSHN   
+VALOR DA NOTA: R$1206.74</td><td>01/29/2026 11:55:37</td><td>01/31/2026 10:52:45</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/29/2026 10:52:45</td><td></td><td>01/29/2026 11:55:36</td><td>01/29/2026 11:55:36</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1938</td><td>Deal: Deal #1938;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2488</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Nidian MATEO PEÑA
+ITEM: av CS4DVL G3  
+VALOR DA NOTA: R$3035.99</td><td>01/29/2026 12:34:41</td><td>01/31/2026 12:19:13</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/29/2026 12:19:13</td><td></td><td>01/29/2026 12:34:41</td><td>01/29/2026 12:34:41</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1898</td><td>Deal: Deal #1898;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2490</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE SAIDA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>02/03/2026 10:56:47</td><td>02/04/2026 12:45:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>01/29/2026 12:19:14</td><td></td><td>02/03/2026 10:56:46</td><td>02/03/2026 10:56:46</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1898</td><td>Deal: Deal #1898;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2494</td><td>CHECKIN</td><td>AVIANCA
+
+CS4DVL</td><td>02/05/2026 03:03:27</td><td>02/04/2026 18:45:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>01/29/2026 12:19:57</td><td></td><td>02/05/2026 03:03:26</td><td>02/05/2026 03:03:26</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1898</td><td>Deal: Deal #1898;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2496</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Éric Occo Weber
+ITEM: DL G26BFF DL G26BFF 
+VALOR DA NOTA: R$1826.52</td><td>01/29/2026 12:45:12</td><td>01/31/2026 12:35:43</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/29/2026 12:35:43</td><td></td><td>01/29/2026 12:45:12</td><td>01/29/2026 12:45:12</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1920</td><td>Deal: Deal #1920;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2500</td><td>CHECKIN G26BFF</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: G26BFF
+LAST NAME: weber
+
+&amp;#91;retour&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>02/07/2026 12:10:12</td><td>02/06/2026 22:45:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td></td><td>01/29/2026 12:36:23</td><td></td><td>02/07/2026 12:10:12</td><td>02/07/2026 12:10:12</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1920</td><td>Deal: Deal #1920;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2502</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: ANNE MAUREILH BRAMAUD DU BOUCHERON
+ITEM: DL HOKPX7 AF CQQSQL 
+VALOR DA NOTA: R$835.63</td><td>01/30/2026 10:48:45</td><td>01/31/2026 22:37:56</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>01/29/2026 22:37:56</td><td></td><td>01/30/2026 10:48:44</td><td>01/30/2026 10:48:44</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1922</td><td>Deal: Deal #1922;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2506</td><td>CHECKIN HOKPX7</td><td>DL
+
+HOKPX7
+
+SOBRENOME: BRAMAUDDUBOUCHERON</td><td>02/07/2026 09:26:46</td><td>02/06/2026 22:45:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>01/29/2026 22:39:00</td><td></td><td>02/07/2026 09:26:46</td><td>02/07/2026 09:26:46</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1922</td><td>Deal: Deal #1922;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2508</td><td>CHECKIN CQQSQL</td><td>AF
+
+CQQSQL
+
+SOBRENOME: BRAMAUDDUBOUCHERON</td><td>02/13/2026 09:40:37</td><td>02/13/2026 09:15:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>01/29/2026 22:40:32</td><td></td><td>02/13/2026 09:40:37</td><td>02/13/2026 09:40:37</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1922</td><td>Deal: Deal #1922;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2510</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Martinez de la Cruz Cristina yanerys  
+ITEM: AF ZLHS5O   
+VALOR DA NOTA: R$474.18</td><td>02/03/2026 01:33:17</td><td>02/04/2026 08:57:15</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/02/2026 08:57:15</td><td></td><td>02/03/2026 01:33:17</td><td>02/03/2026 01:33:17</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1946</td><td>Deal: Deal #1946;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2524</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Adnan Alyounes
+ITEM: KL BS7X6P   
+VALOR DA NOTA: R$1003.1</td><td>02/03/2026 01:32:55</td><td>02/04/2026 11:51:25</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/02/2026 11:51:25</td><td></td><td>02/03/2026 01:32:55</td><td>02/03/2026 01:32:55</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1948</td><td>Deal: Deal #1948;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2530</td><td>CHECK IN A3OWFA</td><td>FAZER CHECKIN</td><td>02/02/2026 14:16:37</td><td>02/02/2026 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>02/02/2026 13:18:25</td><td></td><td>02/02/2026 14:16:37</td><td>02/02/2026 14:16:37</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1924</td><td>Deal: Deal #1924;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2532</td><td>ESTORNO MILHAS + TAXA IDA</td><td>Protocolo de atendimento #23138300
+
+Protocolo do chamado
+#23140179</td><td>02/05/2026 19:00:02</td><td>02/05/2026 19:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Pending</td><td>PAGAMENTO PENDENTE</td><td>02/02/2026 17:39:01</td><td></td><td>02/04/2026 19:00:02</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>23138300, 23140179, crm</td><td></td><td></td><td></td><td>Deal #1874</td><td>Deal: Deal #1874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2534</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Gilles GARRE
+ITEM: G3 GGVNQU   
+VALOR DA NOTA: R$3265.44</td><td>02/03/2026 01:34:51</td><td>02/04/2026 21:13:49</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/02/2026 21:13:49</td><td></td><td>02/03/2026 01:34:51</td><td>02/03/2026 01:34:51</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1950</td><td>Deal: Deal #1950;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2536</td><td>CHECKIN GGVNQU</td><td>CHECKIN G3</td><td>02/02/2026 21:18:53</td><td>05/05/2026 03:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/02/2026 21:18:08</td><td></td><td>02/02/2026 21:18:53</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1950</td><td>Deal: Deal #1950;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2538</td><td>CHECKIN GGVNQU</td><td>CHECKIN G3</td><td>02/02/2026 21:19:06</td><td>05/10/2026 18:45:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/02/2026 21:19:06</td><td></td><td>02/02/2026 21:19:06</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1950</td><td>Deal: Deal #1950;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2542</td><td>ICF</td><td>FAZER ICF
+
+
+ENTRADA POR ALBINA, LA GABRIELLE, 10/02, SAÍDA POR NICKERIE (OUTRA FRONTEIRA - BARCO)</td><td>02/10/2026 11:13:06</td><td>02/08/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>02/06/2026 10:54:52</td><td></td><td>02/10/2026 11:13:06</td><td>02/10/2026 11:13:06</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>VISA TRANSIT SURINAME</td><td>Deal: VISA TRANSIT SURINAME;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2544</td><td>ICF</td><td>FAZER ICF
+
+
+ENTRADA POR NICKERIE, DE BARCO, 14/02, SAÍDA POR ALBINA (LA GABRIELLE)</td><td>02/10/2026 11:24:39</td><td>02/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>02/06/2026 10:58:10</td><td></td><td>02/10/2026 11:24:39</td><td>02/10/2026 11:24:39</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>VISA TRANSIT SURINAME</td><td>Deal: VISA TRANSIT SURINAME;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2546</td><td>EMITIR N.F</td><td>EMITIR NOTA FISCAL
+Cliente: RUTH ESTER PENA PINEDA
+Item:  TRANSIT VISA SERVIÇOS ADICIONAIS
+Valor: R$197.11</td><td>02/09/2026 13:21:33</td><td>02/08/2026 00:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>NFs</td><td>02/06/2026 10:59:32</td><td></td><td>02/09/2026 13:21:33</td><td>02/09/2026 13:21:33</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td></td><td></td><td></td><td></td><td>VISA TRANSIT SURINAME</td><td>Deal: VISA TRANSIT SURINAME;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2548</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: ANDREW WALTER
+ITEM: DL HSJ5RT DL  
+VALOR DA NOTA: R$975.48</td><td>02/09/2026 13:18:59</td><td>02/08/2026 21:00:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/06/2026 21:00:17</td><td></td><td>02/09/2026 13:18:59</td><td>02/09/2026 13:18:59</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1966</td><td>Deal: Deal #1966;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2550</td><td>CHECKIN HSJ5RT</td><td>CHECKIN DL</td><td>02/06/2026 21:12:31</td><td>05/03/2026 12:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/06/2026 21:11:06</td><td></td><td>02/06/2026 21:12:31</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1966</td><td>Deal: Deal #1966;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2554</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Michel Schwartz
+ITEM: AF ZMO2FP AF  
+VALOR DA NOTA: R$866.23</td><td>02/09/2026 13:28:55</td><td>02/09/2026 13:32:19</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/07/2026 13:32:19</td><td></td><td>02/09/2026 13:28:55</td><td>02/09/2026 13:28:55</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1748</td><td>Deal: Deal #1748;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2560</td><td>CHECKIN ZMO2FP</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: AF
+PNR: ZMO2FP
+LAST NAME: SCHWARTZ
+
+&amp;#91;aller&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL</td><td>02/07/2026 13:33:57</td><td>04/22/2026 12:50:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/07/2026 13:33:57</td><td></td><td>02/24/2026 09:12:35</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1748</td><td>Deal: Deal #1748;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2562</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Rosanna De Los Santos Sanchez
+ITEM: CM    
+VALOR DA NOTA: R$8651.16</td><td>02/09/2026 13:27:19</td><td>02/09/2026 16:24:52</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/07/2026 16:24:52</td><td></td><td>02/09/2026 13:27:19</td><td>02/09/2026 13:27:19</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1986</td><td>Deal: Deal #1986;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2564</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE SAÍDA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>02/09/2026 10:31:28</td><td>02/07/2026 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>02/07/2026 16:24:53</td><td></td><td>02/09/2026 10:31:28</td><td>02/09/2026 10:31:28</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1986</td><td>Deal: Deal #1986;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2566</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>02/09/2026 18:13:38</td><td>02/07/2026 06:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>02/07/2026 16:24:53</td><td></td><td>02/09/2026 18:13:38</td><td>02/09/2026 18:13:38</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1986</td><td>Deal: Deal #1986;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2572</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Eric  Le Bozec
+ITEM: AF BG7WKB   
+VALOR DA NOTA: R$4969.75</td><td>02/09/2026 13:25:36</td><td>02/09/2026 16:48:57</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/07/2026 16:48:57</td><td></td><td>02/09/2026 13:25:36</td><td>02/09/2026 13:25:36</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] Eric  Le Bozec</td><td>Deal: [MAINLP-FORM][FR] Eric  Le Bozec;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2584</td><td>LIGAR SAC AIR FRANCE</td><td>LIGAR NO SAC DA AIR FRANCE
+
+PERGUNTAR SE ESTÁ TUDO OK COM A RESERVA *B8ZHKE*
+
+PAX: MATTHEW MCBRIDE
+
+
+TRECHO DE VOLTA: PARIS (CDG) - ATLANTA (ATL) 12/02/2026.</td><td>02/09/2026 12:59:02</td><td>02/09/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>02/07/2026 18:18:33</td><td></td><td>02/09/2026 12:59:02</td><td>02/09/2026 12:59:02</td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1874</td><td>Deal: Deal #1874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2586</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: NICOLE PATRICE Manga Mbassa
+ITEM: DL GGMHNB DL GGMHNB 
+VALOR DA NOTA: R$1380.7</td><td>02/09/2026 13:24:05</td><td>02/09/2026 19:51:33</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/07/2026 19:51:33</td><td></td><td>02/09/2026 13:24:05</td><td>02/09/2026 13:24:05</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1990</td><td>Deal: Deal #1990;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2588</td><td>CHECKIN GGMHNB</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: GGMHNB
+LAST NAME: MANGA MBASSA
+
+[RETOUR ex.IAH][=PNR][30h] C.I AF/KL</td><td>02/07/2026 19:52:26</td><td>05/01/2026 12:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>02/07/2026 19:51:34</td><td></td><td>02/07/2026 19:52:26</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1990</td><td>Deal: Deal #1990;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2596</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Morgane Schwartz Zanetti
+ITEM: AF CD355R AF  
+VALOR DA NOTA: R$3077.73</td><td>02/09/2026 13:30:23</td><td>02/11/2026 12:03:54</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/09/2026 12:03:54</td><td></td><td>02/09/2026 13:30:23</td><td>02/09/2026 13:30:23</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1732</td><td>Deal: Deal #1732;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2600</td><td>ESCANEAR PASSAPORTES</td><td>escanear passaportes</td><td>02/09/2026 12:52:39</td><td>02/09/2026 12:03:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>02/09/2026 12:03:55</td><td></td><td>02/09/2026 12:52:38</td><td>02/09/2026 12:52:38</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1732</td><td>Deal: Deal #1732;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2604</td><td>INDENIZAÇAO CNL</td><td>600,00 euros
+
+C-10959585</td><td>03/03/2026 19:03:30</td><td>03/03/2026 19:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Pending</td><td>PAGAMENTO PENDENTE</td><td>02/12/2026 10:09:55</td><td></td><td>03/02/2026 19:00:02</td><td></td><td></td><td>N</td><td>None</td><td>N</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #1874</td><td>Deal: Deal #1874;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2612</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Jaicee Lynn Blair
+ITEM: AF AVPIIF AF AVPIIF 
+VALOR DA NOTA: R$1606.11</td><td>02/13/2026 09:45:15</td><td>02/14/2026 13:05:07</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/12/2026 13:05:07</td><td></td><td>02/13/2026 09:45:15</td><td>02/13/2026 09:45:15</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #2034</td><td>Deal: Deal #2034;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2618</td><td>CHECKIN AVPIIF</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: AF
+PNR: AVPIIF
+LAST NAME: BLAIR
+
+[RETOUR ex.IAH][=PNR][30h] C.I AF/KL</td><td>03/12/2026 09:39:53</td><td>03/12/2026 00:10:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td></td><td>02/12/2026 13:05:09</td><td></td><td>03/12/2026 09:39:53</td><td>03/12/2026 09:39:52</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #2034</td><td>Deal: Deal #2034;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2620</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Jean Philippe Gillardo
+ITEM: DL GGU3Y3 AF B3G2ES 
+VALOR DA NOTA: R$2726.71</td><td>02/13/2026 09:43:35</td><td>02/14/2026 23:19:07</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/12/2026 23:19:07</td><td></td><td>02/13/2026 09:43:35</td><td>02/13/2026 09:43:35</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #2014</td><td>Deal: Deal #2014;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2624</td><td>CHECKIN GGU3Y3</td><td>DELTA</td><td>02/12/2026 23:22:46</td><td>10/20/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/12/2026 23:22:07</td><td></td><td>02/12/2026 23:22:45</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #2014</td><td>Deal: Deal #2014;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2626</td><td>CHECKIN B3G2ES</td><td>AF</td><td>02/12/2026 23:23:19</td><td>11/04/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>02/12/2026 23:22:55</td><td></td><td>02/12/2026 23:23:19</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>Deal #2014</td><td>Deal: Deal #2014;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2634</td><td>CHECKIN HUDEYO</td><td>PROSSEGUIR COM O CHECKIN.
+AÉREA: DL
+PNR: HUDEYO
+LAST NAME: BERNARD
+
+&amp;#91;aller&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL&amp;#91;/30h&amp;#93;&amp;#91;/aller&amp;#93;</td><td>03/11/2026 11:38:17</td><td></td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending review</td><td>CHECKIN</td><td>02/14/2026 11:28:42</td><td></td><td>03/11/2026 11:38:17</td><td>03/05/2026 10:07:08</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #2046</td><td>Deal: Deal #2046;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2636</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: OUMAR ZIBER MAHAMAT
+ITEM: MS C2E63L   
+VALOR DA NOTA: R$5672.06</td><td>02/16/2026 13:09:09</td><td>02/16/2026 18:53:19</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/14/2026 18:53:19</td><td></td><td>02/16/2026 13:09:09</td><td>02/16/2026 13:09:09</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] NDJ CAI OW</td><td>Deal: [MAINLP-FORM][FR] NDJ CAI OW;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2638</td><td>CHECKIN C2E63L</td><td>EGYPTAIR</td><td>02/18/2026 09:58:54</td><td>02/17/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>02/14/2026 18:55:17</td><td></td><td>02/18/2026 09:58:54</td><td>02/18/2026 09:58:54</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>[MAINLP-FORM][FR] NDJ CAI OW</td><td>Deal: [MAINLP-FORM][FR] NDJ CAI OW;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2640</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Nelson Kuete
+ITEM: DL H89FVW DL H89FVW 
+VALOR DA NOTA: R$1896.26</td><td>02/18/2026 11:07:20</td><td>02/19/2026 11:19:02</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>02/17/2026 11:19:02</td><td></td><td>02/18/2026 11:07:20</td><td>02/18/2026 11:07:20</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>Deal #1982</td><td>Deal: Deal #1982;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2648</td><td>ESTORNO TAXA EMBARQUE</td><td>Valor: R$318,83
+
+
+PROTOCOLO SMILES 27JAN 23026537</td><td>02/27/2026 19:06:07</td><td>02/27/2026 19:00:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Pending</td><td>PAGAMENTO PENDENTE</td><td>02/18/2026 20:21:11</td><td></td><td>02/26/2026 19:00:06</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>PUJCDG CHG</td><td>Deal: PUJCDG CHG;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2658</td><td>CHECKIN UYFSEZ</td><td>TK</td><td>03/03/2026 12:09:28</td><td>04/23/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>03/03/2026 12:08:43</td><td></td><td>03/03/2026 12:09:28</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26035197</td><td>Deal: #26035197;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2662</td><td>CHECKIN MRWA6J</td><td>EK</td><td>03/03/2026 13:14:49</td><td>04/29/2026 11:55:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>03/03/2026 13:14:16</td><td></td><td>03/03/2026 13:14:49</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26038061</td><td>Deal: #26038061;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2666</td><td>CHECKIN BMNT6J</td><td>KE</td><td>03/03/2026 18:14:51</td><td>04/27/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>03/03/2026 18:13:22</td><td></td><td>03/03/2026 18:14:51</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26032599</td><td>Deal: #26032599;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2668</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Olivier Juston
+ITEM: AD SRTS2E AD  
+VALOR DA NOTA: R$879.78</td><td>03/12/2026 09:44:18</td><td>03/13/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/06/2026 16:05:06</td><td></td><td>03/12/2026 09:44:18</td><td>03/12/2026 09:44:18</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033771</td><td>Deal: #26033771;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2670</td><td>CHECKIN SRTS2E</td><td>AD</td><td>03/20/2026 12:10:21</td><td>03/20/2026 13:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>03/06/2026 16:05:56</td><td></td><td>03/20/2026 12:10:20</td><td>03/20/2026 12:10:18</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26033771</td><td>Deal: #26033771;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2672</td><td>CHECKIN SRTS2E</td><td>AD</td><td>03/24/2026 17:08:46</td><td>03/24/2026 15:05:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>03/06/2026 16:06:56</td><td></td><td>03/24/2026 17:08:46</td><td>03/24/2026 17:08:46</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26033771</td><td>Deal: #26033771;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2674</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Marina Capellan Gutierrez
+ITEM: AF YBR7AJ   
+VALOR DA NOTA: R$350.06</td><td>03/12/2026 12:33:03</td><td>03/14/2026 11:02:44</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/12/2026 11:02:44</td><td></td><td>03/12/2026 12:33:03</td><td>03/12/2026 12:33:03</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035717</td><td>Deal: #26035717;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2680</td><td>FATURA STRIPE</td><td></td><td>03/12/2026 12:19:28</td><td>03/12/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>03/12/2026 11:04:27</td><td></td><td>03/12/2026 12:19:28</td><td>03/12/2026 12:19:26</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26035717</td><td>Deal: #26035717;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2684</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Othman Alyounes
+ITEM: AT 8JASEW G3 YBJSGK 
+VALOR DA NOTA: R$1448.53</td><td>03/13/2026 12:17:42</td><td>03/14/2026 15:38:40</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/12/2026 15:38:40</td><td></td><td>03/13/2026 12:17:41</td><td>03/13/2026 12:17:41</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035861</td><td>Deal: #26035861;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2686</td><td>CHECKIN 8JPO9W</td><td>AT</td><td>04/14/2026 10:31:09</td><td>04/14/2026 06:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>03/12/2026 15:39:19</td><td></td><td>04/14/2026 10:31:09</td><td>04/14/2026 10:31:09</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26035861</td><td>Deal: #26035861;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2690</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Andre Larmet
+ITEM: DL G9W34O DL G9W34O 
+VALOR DA NOTA: R$3.921,73</td><td>03/16/2026 12:05:26</td><td>03/15/2026 15:18:31</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/13/2026 15:18:31</td><td></td><td>03/16/2026 12:05:26</td><td>03/16/2026 12:05:26</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26038618</td><td>Deal: #26038618;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2692</td><td>CHECKIN G9W34O</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: G9W34O
+LAST NAME: Larmet
+
+[RETOUR ex.IAH][=PNR][30h] C.I AF/KL</td><td>03/13/2026 15:20:32</td><td>09/02/2026 05:25:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/13/2026 15:18:32</td><td></td><td>03/13/2026 15:20:32</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26038618</td><td>Deal: #26038618;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2694</td><td>CHECKIN G9W34O</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: G9W34O
+LAST NAME: Larmet
+
+&amp;#91;retour ex.iah&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL&amp;#91;/30h&amp;#93;&amp;#91;/retour&amp;#93;</td><td>03/13/2026 15:19:38</td><td>08/09/2026 00:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/13/2026 15:19:25</td><td>03/13/2026 15:19:33</td><td>03/13/2026 15:19:38</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26038618</td><td>Deal: #26038618;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2696</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Rosa Delia Martinez Ramirez
+ITEM: CM APMDJB   
+VALOR DA NOTA: R$1829.91</td><td>03/16/2026 12:07:02</td><td>03/18/2026 07:55:58</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/16/2026 07:55:58</td><td></td><td>03/16/2026 12:07:02</td><td>03/16/2026 12:07:02</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#</td><td>Deal: #;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2698</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>03/16/2026 11:55:51</td><td>03/14/2026 17:37:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>03/16/2026 07:55:58</td><td></td><td>03/16/2026 11:55:50</td><td>03/16/2026 11:55:49</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#</td><td>Deal: #;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2700</td><td>ICF SURINAME</td><td>FAZER O ICF SURINAME. ENTRADA E SAIDA. 
+
+https://icf.sr/</td><td>03/16/2026 12:00:18</td><td>03/14/2026 17:37:00</td><td>Erwan Tailleux</td><td>Erwan Tailleux</td><td></td><td></td><td>Completed</td><td>ICF &amp;amp; VISAS</td><td>03/16/2026 07:55:59</td><td></td><td>03/16/2026 12:00:18</td><td>03/16/2026 12:00:17</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#</td><td>Deal: #;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2706</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: David Jeury Almonte Mordan
+ITEM: TX 9NLVQA   
+VALOR DA NOTA: R$448.97</td><td>03/19/2026 11:03:43</td><td>03/19/2026 16:45:18</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/17/2026 16:45:18</td><td></td><td>03/19/2026 11:03:43</td><td>03/19/2026 11:03:43</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033881</td><td>Deal: #26033881;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2708</td><td>FATURA</td><td>FAZER FATURA STRIPE
+
+ETKT CAYORY CHG19MAR26 ALMONTEMORDAN TX 
+
+260,00 euros</td><td>03/18/2026 10:46:26</td><td>03/24/2026 19:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>03/17/2026 17:03:07</td><td></td><td>03/18/2026 10:46:26</td><td>03/18/2026 10:46:26</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26033881</td><td>Deal: #26033881;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2712</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Marisol Hurtado Baez
+ITEM: AF XYVX4X   
+VALOR DA NOTA: R$2157.99</td><td>03/19/2026 11:01:29</td><td>03/19/2026 18:07:32</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/17/2026 18:07:32</td><td></td><td>03/19/2026 11:01:29</td><td>03/19/2026 11:01:29</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033037</td><td>Deal: #26033037;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2716</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>03/18/2026 10:49:37</td><td>03/19/2026 18:07:33</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>03/17/2026 18:07:33</td><td></td><td>03/18/2026 10:49:37</td><td>03/18/2026 10:49:37</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033037</td><td>Deal: #26033037;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2726</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Mireille Nedelec
+ITEM: DL HZXCM9 DL HZXCM9 
+VALOR DA NOTA: R$2024.63</td><td>03/27/2026 11:52:27</td><td>03/28/2026 18:29:37</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/26/2026 18:29:37</td><td></td><td>03/27/2026 11:52:27</td><td>03/27/2026 11:52:27</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26037069</td><td>Deal: #26037069;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2728</td><td>CHECKIN HZXCM9</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: HZXCM9
+LAST NAME: BARE
+
+&amp;#91;retour ex.iah&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL&amp;#91;/30h&amp;#93;&amp;#91;/retour&amp;#93;</td><td>03/26/2026 18:32:36</td><td>06/14/2026 06:15:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/26/2026 18:29:38</td><td></td><td>03/26/2026 18:32:36</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26037069</td><td>Deal: #26037069;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2730</td><td>CHECKIN HZXCM9</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: HZXCM9
+LAST NAME: BARE
+
+&amp;#91;retour ex.iah&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL&amp;#91;/30h&amp;#93;&amp;#91;/retour&amp;#93;</td><td>03/26/2026 18:33:02</td><td>07/10/2026 23:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/26/2026 18:32:12</td><td></td><td>03/26/2026 18:33:02</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26037069</td><td>Deal: #26037069;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2732</td><td>FATURA</td><td>Fazer fatura Stripe nome do pax
+899,99 euros
+mandar fatura + recibo em fr</td><td>03/27/2026 11:41:03</td><td>03/27/2026 10:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td></td><td>03/26/2026 19:20:19</td><td></td><td>03/27/2026 11:41:03</td><td>03/27/2026 11:41:03</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26037069</td><td>Deal: #26037069;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2734</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Mireille Nedelec
+ITEM: DL H3KW4B DL H3KW4B 
+VALOR DA NOTA: R$2024.63</td><td>03/27/2026 11:45:39</td><td>03/28/2026 19:41:02</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/26/2026 19:41:02</td><td></td><td>03/27/2026 11:45:39</td><td>03/27/2026 11:45:39</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035408</td><td>Deal: #26035408;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2736</td><td>CHECKIN H3KW4B</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: H3KW4B
+LAST NAME: NEDELEC
+
+[RETOUR ex.IAH][=PNR][30h] C.I AF/KL</td><td>03/26/2026 19:41:24</td><td>07/10/2026 23:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/26/2026 19:41:03</td><td></td><td>03/26/2026 19:41:24</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035408</td><td>Deal: #26035408;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2738</td><td>CHECKIN H3KW4B</td><td>PROSSEGUIR COM O CHECKIN DO CLIENTE.
+AÉREA: DL
+PNR: H3KW4B
+LAST NAME: NEDELEC
+
+&amp;#91;retour ex.iah&amp;#93;&amp;#91;=PNR&amp;#93;&amp;#91;30h&amp;#93; C.I AF/KL&amp;#91;/30h&amp;#93;&amp;#91;/retour&amp;#93;</td><td>03/26/2026 19:42:02</td><td>06/14/2026 06:15:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td></td><td>03/26/2026 19:41:45</td><td></td><td>03/26/2026 19:42:02</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035408</td><td>Deal: #26035408;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2740</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Jocelyn Lehacaut
+ITEM: AF BSZ4UN   
+VALOR DA NOTA: R$893.56</td><td>03/30/2026 11:55:49</td><td>03/29/2026 18:47:55</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>03/27/2026 18:47:55</td><td></td><td>03/30/2026 11:55:49</td><td>03/30/2026 11:55:49</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035186</td><td>Deal: #26035186;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2744</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>03/30/2026 12:09:28</td><td>03/29/2026 18:47:56</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>03/27/2026 18:47:56</td><td></td><td>03/30/2026 12:09:28</td><td>03/30/2026 12:09:28</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26035186</td><td>Deal: #26035186;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2746</td><td>FATURA</td><td>Fazer fatura para cliente já cadastrado na stripe
+
+ETKT CDGCAY ADT OW 2 VALISES AF/EXPATUR
+
+mandar fatura e recibo em francês</td><td>03/30/2026 12:07:22</td><td>03/30/2026 09:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>03/27/2026 18:50:51</td><td>03/30/2026 12:06:47</td><td>03/30/2026 12:07:22</td><td>03/30/2026 12:07:22</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26035186</td><td>Deal: #26035186;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2748</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Prisca Materanya
+ITEM: AF B7KBVC   
+VALOR DA NOTA: R$2843.43</td><td>04/07/2026 10:12:02</td><td>04/03/2026 12:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>04/01/2026 12:20:00</td><td></td><td>04/07/2026 10:12:02</td><td>04/07/2026 10:12:02</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26042268</td><td>Deal: #26042268;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2752</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>04/01/2026 12:32:40</td><td>04/03/2026 12:20:02</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>04/01/2026 12:20:02</td><td></td><td>04/01/2026 12:32:40</td><td>04/01/2026 12:32:40</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26042268</td><td>Deal: #26042268;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2754</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Abdelaaziz Lamgaizra
+ITEM: AT 9OQX9K LA GXXSFO 
+VALOR DA NOTA: R$1758.16</td><td>04/07/2026 10:10:07</td><td>04/03/2026 15:29:45</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>04/01/2026 15:29:45</td><td></td><td>04/07/2026 10:10:07</td><td>04/07/2026 10:10:07</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26041513</td><td>Deal: #26041513;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2756</td><td>CHECKIN 9OQX9K</td><td>CHECK-IN AT</td><td>04/01/2026 15:37:08</td><td>05/12/2026 13:50:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>04/01/2026 15:36:00</td><td></td><td>04/01/2026 15:37:07</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26041513</td><td>Deal: #26041513;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2758</td><td>CHECKIN GXXSFP</td><td>CHECK-IN LA</td><td>04/01/2026 15:37:45</td><td>05/13/2026 09:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>04/01/2026 15:37:45</td><td></td><td>04/01/2026 15:37:45</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26041513</td><td>Deal: #26041513;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2762</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: MATEO AQUINO SCARLE MASSIEL
+ITEM: DE X2DZI9   
+VALOR DA NOTA: R$1516.43</td><td>04/09/2026 10:38:17</td><td>04/10/2026 13:34:17</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>04/08/2026 13:34:18</td><td></td><td>04/09/2026 10:38:17</td><td>04/09/2026 10:38:17</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26049136</td><td>Deal: #26049136;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2764</td><td>QR CODE REPUBLICA DOMINICANA</td><td>FAZER QR CODE DE ENTRADA REPÚBLICA DOMINICANA.
+
+https://eticket.migracion.gob.do/</td><td>04/09/2026 11:10:14</td><td>04/12/2026 11:30:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>QR CODE REP DOM</td><td>04/08/2026 13:34:18</td><td></td><td>04/09/2026 11:10:14</td><td>04/09/2026 11:10:13</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26049136</td><td>Deal: #26049136;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2766</td><td>CHECKIN X2DZI9</td><td>Condor DE</td><td>04/14/2026 10:20:21</td><td>04/14/2026 07:30:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>CHECKIN</td><td>04/08/2026 13:34:47</td><td></td><td>04/14/2026 10:20:20</td><td>04/14/2026 10:20:20</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26049136</td><td>Deal: #26049136;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2768</td><td>FATURA</td><td>fazer fatura em EUR
+
+ETKT CDGSDQ OW ADT DE/EXPATUR</td><td>04/09/2026 10:32:48</td><td>04/09/2026 10:00:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>04/08/2026 14:06:30</td><td></td><td>04/09/2026 10:32:48</td><td>04/09/2026 10:32:47</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26049136</td><td>Deal: #26049136;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2770</td><td>EMITIR N.F</td><td>NOME DO CLIENTE: Stéphanie Costa Sarmento
+ITEM: AF YMATKV   
+VALOR DA NOTA: R$3904.17</td><td>04/13/2026 11:48:49</td><td>04/13/2026 16:49:39</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td>Moacyr Gonçalves</td><td>Completed</td><td>NFs</td><td>04/11/2026 16:49:39</td><td></td><td>04/13/2026 11:48:49</td><td>04/13/2026 11:48:49</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033137</td><td>Deal: #26033137;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2774</td><td>APAGAR NÚMERO GOL SMILES</td><td>Apagar o número Smiles indicado como viajante frequente.
+
++55 (11) 3878-8360 ou adicionar a reserva no aplicativo da Air France e fazer por lá.</td><td>04/13/2026 11:32:36</td><td>04/13/2026 16:49:40</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Completed</td><td>DIVERSOS</td><td>04/11/2026 16:49:40</td><td></td><td>04/13/2026 11:32:36</td><td>04/13/2026 11:32:36</td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td></td><td></td><td></td><td></td><td>#26033137</td><td>Deal: #26033137;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+		
+																																																																
+	
+			<tr>
+			<td>2780</td><td>CHECKIN AT</td><td>8SLEJZ</td><td>04/11/2026 17:22:36</td><td>05/12/2026 13:50:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>04/11/2026 17:21:24</td><td></td><td>04/11/2026 17:22:36</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26047998</td><td>Deal: #26047998;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			<tr>
+			<td>2782</td><td>CHECKIN LA</td><td>KXVNYT</td><td>04/11/2026 17:23:10</td><td>05/13/2026 09:20:00</td><td>Erwan Tailleux</td><td>Moacyr Gonçalves</td><td></td><td></td><td>Pending</td><td>CHECKIN</td><td>04/11/2026 17:23:10</td><td></td><td>04/11/2026 17:23:10</td><td></td><td></td><td>N</td><td>None</td><td>Y</td><td></td><td>crm</td><td></td><td></td><td></td><td>#26047998</td><td>Deal: #26047998;</td><td></td><td> </td><td></td><td></td><td></td>		</tr>
+			</tbody>
+</table>

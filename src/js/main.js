@@ -16,6 +16,7 @@ import './app.js';
 import './auth.js';
 import './ui-fixes.js';
 import { initI18n, currentLang } from './i18n.js';
+import './task-import.js';
 
 // Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
 initI18n();
