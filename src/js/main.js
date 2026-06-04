@@ -1,13 +1,15 @@
 /**
- * Expatur Backoffice — Entry Point
+ * main.js — Entry Point do Expatur Backoffice
  *
- * Ordem de inicialização:
- *  1. storage.js  — abstração localStorage ↔ Supabase
- *  2. app.js      — toda a lógica de negócios (extraída do index.html)
+ * Ordem de inicialização (importa em sequência):
+ *  1. storage.js  — intercepção do localStorage + sincronização Supabase
+ *  2. app.js      — toda a lógica de negócio (IIFE, extraída do index.html)
+ *  3. auth.js     — sobrescreve as funções de auth do app.js com Supabase
+ *
+ * auth.js corre DEPOIS de app.js porque precisa sobrescrever window.__loginSubmitReal,
+ * window._logout e window._checkServerSession que o app.js define.
  */
 
-// Storage abstraction (must come before app.js)
 import './storage.js';
-
-// All business logic (extracted verbatim from index.html)
 import './app.js';
+import './auth.js';
