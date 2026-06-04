@@ -213,7 +213,24 @@ document.addEventListener('click', function(e) {
   e.stopPropagation();
   e.preventDefault();
 
-  // Desbloquear TODAS as abas de reserva no DOM
+  // 1. Definir o flag de booking no localStorage para que _isBookingEnabled()
+  //    retorne true — necessário para que quotingSwitch deixe passar billet/docs/tasks
+  let dossierId = null;
+  try { dossierId = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
+  if (dossierId) {
+    try {
+      localStorage.setItem('expatur_booked_' + dossierId, '1');
+      if (!localStorage.getItem('expatur_bookedAt_' + dossierId)) {
+        localStorage.setItem('expatur_bookedAt_' + dossierId, new Date().toISOString());
+      }
+    } catch(_) {}
+  }
+
+  // 2. Chamar _applyBookingTabState para sincronizar o estado no app.js
+  try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
+  try { if (typeof window._dossierRenderTabs === 'function') window._dossierRenderTabs(); } catch(_) {}
+
+  // 3. Desbloquear TODAS as abas de reserva no DOM (visual + funcional)
   ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
     const tb = document.getElementById('qt-tab-' + t);
     if (tb) { tb.classList.remove('qt-tab-locked'); tb.disabled = false; }
