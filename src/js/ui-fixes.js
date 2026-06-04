@@ -112,30 +112,42 @@ document.addEventListener('paste', function(e) {
   }
 })();
 
-// ── PAYOUT button — handler de segurança ─────────────────────────────────────
-// _bindPayoutButton() do app.js pode não ter executado corretamente.
-// Este handler via event delegation garante que o clique sempre funciona.
+// ── PAYOUT button — handler que SEMPRE corre primeiro (capture phase) ──────────
+// Problema: quotingSwitch('paiement') tem um guard que retorna se
+// _isBookingEnabled() for false. O app.js handler seta o flag e tenta chamar
+// quotingSwitch, mas existem race conditions e wrappers que podem bloquear.
+//
+// Solução: corremos em capture (antes do app.js), fazemos tudo nós mesmos,
+// e chamamos stopPropagation para o handler do app.js não duplicar.
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('#qt-payout-btn');
   if (!btn) return;
 
-  // Se o app.js já bindou o botão correctamente, deixa-o tratar
-  if (btn._payout86Bound) return;
-
-  // Fallback: executa o fluxo PAYOUT manualmente
+  // Tomar controlo completo — stopPropagation evita execução dupla com app.js
   e.stopPropagation();
-  const id = (() => { try { return localStorage.getItem('expatur_active_dossier') || null; } catch(_) { return null; } })();
+  e.preventDefault();
+
+  // 1. Verificar/criar dossier activo
+  let id = null;
+  try { id = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
 
   if (!id) {
-    if (typeof window.toast === 'function') {
-      window.toast('Veuillez d\'abord ouvrir un dossier avant de cliquer sur PAYOUT.', 'error');
-    } else {
-      window.alert('Veuillez d\'abord ouvrir un dossier avant de cliquer sur PAYOUT.');
+    // Tentar criar dossier automaticamente
+    if (typeof window.createNewDossier === 'function') {
+      try { window.createNewDossier(); } catch(_) {}
+      try { id = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
     }
-    return;
+    if (!id) {
+      if (typeof window.toast === 'function') {
+        window.toast('Veuillez d\'abord ouvrir ou créer un dossier.', 'error');
+      } else {
+        window.alert('Veuillez d\'abord ouvrir un dossier avant de cliquer sur PAYOUT.');
+      }
+      return;
+    }
   }
 
-  // Marcar como reservado
+  // 2. Marcar como reservado (ANTES de chamar qualquer função que verifica booking)
   try {
     localStorage.setItem('expatur_booked_' + id, '1');
     if (!localStorage.getItem('expatur_bookedAt_' + id)) {
@@ -143,43 +155,54 @@ document.addEventListener('click', function(e) {
     }
   } catch(_) {}
 
-  // Desbloquear abas de reserva
-  if (typeof window._applyBookingTabState === 'function') {
-    try { window._applyBookingTabState(); } catch(_) {}
-  }
-  if (typeof window._dossierRenderTabs === 'function') {
-    try { window._dossierRenderTabs(); } catch(_) {}
-  }
+  // 3. Desbloquear abas de reserva no DOM
+  try {
+    ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
+      const tb = document.getElementById('qt-tab-' + t);
+      if (tb) tb.classList.remove('qt-tab-locked');
+    });
+  } catch(_) {}
 
-  // Forçar switch para Paiement (contornar o bloqueio qt-tab-locked)
-  const TABS = ['vols','client','couts','paiement','billet','docs','tasks','finance'];
-  TABS.forEach(function(t) {
-    const tb = document.getElementById('qt-tab-' + t);
-    const pn = document.getElementById('dv-panel-' + t);
-    if (tb) tb.classList.toggle('active', t === 'paiement');
-    if (pn) pn.classList.toggle('active', t === 'paiement');
-    // Remover o lock do paiement
-    if (t === 'paiement' && tb) tb.classList.remove('qt-tab-locked');
-  });
-  if (window._lastQuotingTab !== undefined) window._lastQuotingTab = 'paiement';
+  // 4. Chamar _applyBookingTabState para sincronizar estado
+  try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
+  try { if (typeof window._dossierRenderTabs === 'function') window._dossierRenderTabs(); } catch(_) {}
 
-  // Scroll topo
-  const host = document.getElementById('quoting-panels-host');
-  if (host) host.scrollTop = 0; else window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  // Abrir modal de emissão
-  setTimeout(function() {
-    if (typeof window.openEmissionModal === 'function') {
-      try { window.openEmissionModal(); } catch(_) {}
+  // 5. Tentar quotingSwitch (agora que _isBookingEnabled() retorna true)
+  let switched = false;
+  try {
+    if (typeof window.quotingSwitch === 'function') {
+      window.quotingSwitch('paiement');
+      switched = true;
     }
+  } catch(_) {}
+
+  // 6. Fallback DOM directo se quotingSwitch ainda falhar
+  if (!switched) {
+    const TABS = ['vols','client','couts','paiement','billet','docs','tasks','finance'];
+    TABS.forEach(function(t) {
+      const tb = document.getElementById('qt-tab-' + t);
+      const pn = document.getElementById('dv-panel-' + t);
+      if (tb) tb.classList.toggle('active', t === 'paiement');
+      if (pn) pn.classList.toggle('active', t === 'paiement');
+    });
+    try { window._lastQuotingTab = 'paiement'; } catch(_) {}
+  }
+
+  // 7. Scroll topo
+  try {
+    const host = document.getElementById('quoting-panels-host');
+    if (host) host.scrollTop = 0; else window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(_) {}
+
+  // 8. Abrir modal de emissão/paiement
+  setTimeout(function() {
+    try { if (typeof window.openEmissionModal === 'function') window.openEmissionModal(); } catch(_) {}
   }, 250);
 
-  // Sincronizar visibilidade do botão
-  if (typeof window._syncPayoutButton === 'function') {
-    try { window._syncPayoutButton(); } catch(_) {}
-  }
+  // 9. Ocultar o botão PAYOUT
+  try { if (typeof window._syncPayoutButton === 'function') window._syncPayoutButton(); } catch(_) {}
 
   if (typeof window.toast === 'function') {
     window.toast('Réservation confirmée — passage en Paiement', 'success');
   }
-}, true); // useCapture=true para apanhar antes de qualquer stopPropagation
+}, true); // useCapture=true → corre ANTES dos handlers do app.js
