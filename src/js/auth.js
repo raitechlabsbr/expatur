@@ -106,6 +106,11 @@ function applyRoleUI(role) {
   if (adminItem)  adminItem.style.display  = isAdmin ? 'flex'  : 'none';
 }
 
+// Expõe applyRoleUI para que ui-fixes.js possa re-aplicar quando necessário
+window._applyRoleUI = function() {
+  applyRoleUI(_currentRole);
+};
+
 // ── Obter role do perfil ──────────────────────────────────────────────────────
 async function fetchRole(userId) {
   if (!supabase) return 'agent';

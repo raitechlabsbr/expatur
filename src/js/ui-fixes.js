@@ -7,6 +7,51 @@
  */
 import './alert-modal.js';
 
+// ── Re-aplicar role UI quando o Ticketing é aberto ───────────────────────────
+// applyRoleUI() corre no login mas _initQuotingSection() ou outros inits podem
+// sobrescrever a visibilidade da aba Finance. Hookamos sidebarGo para re-aplicar.
+(function hookSidebarForRole() {
+  function _wrap() {
+    if (typeof window.sidebarGo !== 'function') return;
+    if (window.sidebarGo._roleHook) return;
+    const _orig = window.sidebarGo;
+    window.sidebarGo = function(section) {
+      _orig.apply(this, arguments);
+      if (section === 'quoting' || section === 'ticketing') {
+        // Re-aplicar role UI após a secção Ticketing abrir
+        setTimeout(function() {
+          if (typeof window._applyRoleUI === 'function') window._applyRoleUI();
+        }, 200);
+      }
+    };
+    window.sidebarGo._roleHook = true;
+  }
+  _wrap();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _wrap);
+  } else {
+    setTimeout(_wrap, 500);
+  }
+})();
+
+// ── Re-aplicar role UI quando _initQuotingSection corre ─────────────────────
+(function hookInitQuoting() {
+  function _wrap() {
+    if (typeof window._initQuotingSection !== 'function') return;
+    if (window._initQuotingSection._roleHook) return;
+    const _orig = window._initQuotingSection;
+    window._initQuotingSection = function() {
+      _orig.apply(this, arguments);
+      setTimeout(function() {
+        if (typeof window._applyRoleUI === 'function') window._applyRoleUI();
+      }, 100);
+    };
+    window._initQuotingSection._roleHook = true;
+  }
+  _wrap();
+  setTimeout(_wrap, 600);
+})();
+
 // ── Debounce ──────────────────────────────────────────────────────────────────
 const _timers = {};
 function debounce(key, fn, delay) {
@@ -112,15 +157,29 @@ function _moveBilletActionsToBottom() {
 }
 
 // ── Limpar inline styles dos painéis antes de qualquer troca de aba ──────────
-// O nosso PAYOUT fix usa style.display='none' para forçar ocultação durante a
-// transição para PAIEMENT. Mas quando o utilizador navega para outra aba
-// (TICKETS, DOCUMENTS, etc.), esses inline styles bloqueiam a navegação.
-// Esta função remove-os para devolver o controlo ao CSS (classe .active).
 function _clearPanelInlineStyles() {
   ['vols','client','couts','paiement','billet','docs','tasks','finance'].forEach(function(t) {
     const pn = document.getElementById('dv-panel-' + t);
     if (pn && pn.style.display !== undefined) pn.style.removeProperty('display');
   });
+}
+
+// ── Garantir que abas de reserva estão desbloqueadas se booking está activo ───
+// Quando o utilizador clica directamente em DOCUMENTS/TÂCHES/FINANCE, verifica
+// se o booking está activo e remove o lock se necessário.
+function _ensureTabsUnlockedIfBooked() {
+  let isBooked = false;
+  try {
+    const id = localStorage.getItem('expatur_active_dossier');
+    if (id) isBooked = localStorage.getItem('expatur_booked_' + id) === '1';
+  } catch(_) {}
+  if (!isBooked) return;
+  ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
+    const tb = document.getElementById('qt-tab-' + t);
+    if (tb) { tb.classList.remove('qt-tab-locked'); tb.disabled = false; }
+  });
+  // Re-aplicar visibilidade Finance para admin
+  if (typeof window._applyRoleUI === 'function') window._applyRoleUI();
 }
 
 // ── Acutaliza ao mudar de aba para Tarification ───────────────────────────────
@@ -177,12 +236,13 @@ function _clearPanelInlineStyles() {
   }
 })();
 
-// ── Limpar inline styles quando se clica directamente em qualquer tab ─────────
+// ── Limpar inline styles e desbloquear abas quando se clica em qualquer tab ───
 document.addEventListener('click', function(e) {
   const tab = e.target.closest('.dv-tab, .qt-tab, [id^="qt-tab-"], [id^="dv-tab-"]');
   if (!tab) return;
   if (tab.id === 'qt-payout-btn') return;
   _clearPanelInlineStyles();
+  _ensureTabsUnlockedIfBooked();
 }, true);
 
 // ── "ÉMETTRE LE BILLET →" — navegar para aba TICKETS via quotingSwitch ────────
