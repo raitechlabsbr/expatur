@@ -204,38 +204,73 @@ if (document.readyState === 'loading') {
   window.quotingSwitch._uiFixes = true;
 })();
 
-// ── Click handler do PAYOUT — apenas desbloqueia o booking, deixa app.js navegar
-// Estratégia:
-//   • Corremos em CAPTURE (antes do app.js) apenas para setar o flag de booking
-//   • NÃO chamamos stopPropagation — o handler do app.js corre normalmente depois
-//   • O handler do app.js tem toda a lógica de navegação para PAIEMENT + openEmissionModal
+// ── Click handler do PAYOUT ───────────────────────────────────────────────────
+// Estratégia definitiva:
+//   1. Capture phase: garante dossier + booking flag + desbloqueia abas
+//   2. stopPropagation: evita que o handler do app.js interfira
+//   3. Navegação DOM DIRECTA (sem quotingSwitch): só activa os elementos certos
+//   4. openEmissionModal() para preencher o formulário de pagamento
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('#qt-payout-btn');
   if (!btn || btn.disabled) return;
 
-  // NÃO fazer stopPropagation — o handler do app.js deve correr normalmente
+  e.stopPropagation();
+  e.preventDefault();
 
-  // 1. Setar flag de booking ANTES do guard em quotingSwitch verificar
+  // 1. Garantir dossier activo (criar se não existir)
   let dossierId = null;
   try { dossierId = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
+  if (!dossierId && typeof window.createNewDossier === 'function') {
+    try { window.createNewDossier(); } catch(_) {}
+    try { dossierId = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
+  }
+
+  // 2. Setar flag de booking
   if (dossierId) {
+    try { localStorage.setItem('expatur_booked_' + dossierId, '1'); } catch(_) {}
     try {
-      localStorage.setItem('expatur_booked_' + dossierId, '1');
       if (!localStorage.getItem('expatur_bookedAt_' + dossierId)) {
         localStorage.setItem('expatur_bookedAt_' + dossierId, new Date().toISOString());
       }
     } catch(_) {}
   }
 
-  // 2. Remover qt-tab-locked antes do handler do app.js tentar aceder às abas
+  // 3. Desbloquear abas no DOM
   ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
     const tb = document.getElementById('qt-tab-' + t);
-    if (tb) tb.classList.remove('qt-tab-locked');
+    if (tb) { tb.classList.remove('qt-tab-locked'); tb.disabled = false; }
   });
-
-  // 3. Sincronizar estado de booking no app.js
   try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
 
-  // O resto (quotingSwitch + openEmissionModal) é tratado pelo handler do app.js
-  // que corre logo a seguir no bubble phase
-}, true); // useCapture=true → corre antes do handler do app.js
+  // 4. Navegação DOM directa para PAIEMENT — sem quotingSwitch (que tem wrappers problemáticos)
+  //    Activa APENAS qt-tab-paiement e dv-panel-paiement
+  const ALL_TABS = ['vols','client','couts','paiement','billet','docs','tasks','finance'];
+  ALL_TABS.forEach(function(t) {
+    const tb = document.getElementById('qt-tab-' + t);
+    const pn = document.getElementById('dv-panel-' + t);
+    const isPaie = t === 'paiement';
+    if (tb) tb.classList.toggle('active', isPaie);
+    if (pn) {
+      pn.classList.toggle('active', isPaie);
+      // Garantir que só o panel paiement está visível
+      if (isPaie) { pn.style.display = ''; pn.style.removeProperty('display'); }
+      else         { pn.style.display = 'none'; }
+    }
+  });
+  try { window._lastQuotingTab = 'paiement'; } catch(_) {}
+
+  // 5. Scroll topo
+  try {
+    const host = document.getElementById('quoting-panels-host');
+    if (host) host.scrollTop = 0; else window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(_) {}
+
+  // 6. Preencher formulário de pagamento
+  setTimeout(function() {
+    try {
+      if (typeof window.openEmissionModal === 'function') window.openEmissionModal();
+    } catch(_) {}
+  }, 150);
+
+  if (typeof window.toast === 'function') window.toast('Passage en Paiement ✓', 'success');
+}, true);
