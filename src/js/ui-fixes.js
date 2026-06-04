@@ -82,6 +82,35 @@ document.addEventListener('paste', function(e) {
   document.execCommand('insertText', false, clean);
 }, true);
 
+// ── Mover botões de acção do billet para o FUNDO do card ─────────────────────
+// No HTML estático, os botões (Sauvegarder, Générer PDF, Émettre) estão acima
+// das tabs PASSAGERS/SCAN. Na produção aparecem ABAIXO do conteúdo.
+// Esta função move-os para depois dos tab panels, uma única vez.
+function _moveBilletActionsToBottom() {
+  const card = document.querySelector('#dv-panel-billet .card.full');
+  if (!card) return;
+  if (card._actionsMoved) return; // só mover uma vez
+
+  // Encontrar o div dos botões (contém bl-emettre-btn)
+  const billetBtn = document.getElementById('bl-emettre-btn');
+  if (!billetBtn) return;
+  const actionsBar = billetBtn.parentElement;
+  if (!actionsBar || actionsBar.parentElement !== card) return;
+
+  // Remover da posição actual
+  card.removeChild(actionsBar);
+
+  // Adicionar estilos de rodapé
+  actionsBar.style.borderTop = '1px solid var(--light, #EBEBED)';
+  actionsBar.style.paddingTop = '1rem';
+  actionsBar.style.marginTop  = '0.5rem';
+  actionsBar.style.justifyContent = 'flex-end';
+
+  // Inserir no fundo do card
+  card.appendChild(actionsBar);
+  card._actionsMoved = true;
+}
+
 // ── Limpar inline styles dos painéis antes de qualquer troca de aba ──────────
 // O nosso PAYOUT fix usa style.display='none' para forçar ocultação durante a
 // transição para PAIEMENT. Mas quando o utilizador navega para outra aba
@@ -204,7 +233,10 @@ document.addEventListener('click', function(e) {
     // Preencher conteúdo do billet
     setTimeout(function() {
       try { if (typeof window.openBilletModal === 'function') window.openBilletModal(); } catch(_) {}
-    }, 50);
+      // Mover botões de acção para o FUNDO do card (abaixo do conteúdo)
+      // No HTML estático estão acima das tabs — na produção aparecem em baixo
+      _moveBilletActionsToBottom();
+    }, 100);
 
     // Scroll topo
     try {
