@@ -949,9 +949,10 @@ body.pdf-generating #bl-staging #pdf-preview .middle-block .airline-logo-img{
 .fx-err-label{color:#dc2626;font-style:italic;font-size:0.72rem;font-weight:600;}
 .fx-err-orig{font-size:0.6rem;color:var(--navy-faint,#8a9ab5);font-style:italic;margin-top:1px;}
 .fx-err-badge{display:inline-block;background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.3);border-radius:3px;padding:0px 5px;font-size:0.52rem;font-weight:700;letter-spacing:0.04em;margin-top:2px;white-space:nowrap;}
-.qt-payout-btn{display:none;background:var(--red,#D80505);color:#fff;border:none;border-radius:5px;padding:0.42rem 1rem;font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;margin-right:2px;flex-shrink:0;align-items:center;}
+.qt-payout-btn{display:none;background:var(--red,#D80505);color:#fff;border:none;border-radius:5px;padding:0.42rem 1rem;font-size:0.68rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:opacity 0.2s,transform 0.15s;margin-right:2px;flex-shrink:0;align-items:center;}
 .qt-payout-btn.is-visible{display:inline-flex;}
-.qt-payout-btn:hover{opacity:0.85;}
+.qt-payout-btn:not(:disabled):hover{opacity:0.88;transform:translateY(-1px);}
+.qt-payout-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;filter:grayscale(30%);}
 /* BOOK CTA banner inside Tarification */
 #qt-book-cta{margin:1.5rem 0 0;padding:1.1rem 1.4rem;background:linear-gradient(135deg,var(--navy) 0%,#0e3560 100%);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
 #qt-book-cta-eyebrow{font-size:0.52rem;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.25rem;}
