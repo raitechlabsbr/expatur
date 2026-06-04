@@ -51,6 +51,36 @@ document.addEventListener('change', function(e) {
   debounce('pnl-change-' + id, refreshPnL, 50); // change é instantâneo (selects/dates)
 }, true);
 
+// ── Campos numéricos — aceitar apenas dígitos ─────────────────────────────────
+// Telefone, WhatsApp e CEP: remove qualquer carácter que não seja dígito
+const NUMERIC_ONLY_IDS = new Set(['cli-tel', 'cli-whatsapp', 'cli-cp']);
+
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if (!el || !el.id || !NUMERIC_ONLY_IDS.has(el.id)) return;
+
+  const pos   = el.selectionStart;           // guarda posição do cursor
+  const orig  = el.value;
+  const clean = orig.replace(/[^0-9]/g, ''); // remove tudo excepto dígitos
+
+  if (clean !== orig) {
+    el.value = clean;
+    // Repositiona o cursor corrigindo a diferença de caracteres removidos
+    const removed = orig.slice(0, pos).replace(/[^0-9]/g, '').length;
+    el.setSelectionRange(removed, removed);
+  }
+}, true);
+
+// Impede colagem de texto com letras
+document.addEventListener('paste', function(e) {
+  const el = e.target;
+  if (!el || !el.id || !NUMERIC_ONLY_IDS.has(el.id)) return;
+  e.preventDefault();
+  const text  = (e.clipboardData || window.clipboardData).getData('text');
+  const clean = text.replace(/[^0-9]/g, '');
+  document.execCommand('insertText', false, clean);
+}, true);
+
 // ── Acutaliza ao mudar de aba para Tarification ───────────────────────────────
 // (para quando o utilizador volta à aba e o preço já estava preenchido)
 (function hookQuotingSwitch() {
