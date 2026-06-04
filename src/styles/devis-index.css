@@ -1,0 +1,105 @@
+/* ═══════════════ DEVIS INDEX PAGE ═══════════════ */
+#devis-index-page{display:none;position:relative;z-index:1;background:var(--white);min-height:calc(100vh - 38px);}
+#devis-index-page.open{display:block;}
+.di-shell{width:100%;padding:2rem clamp(1rem,3vw,2.5rem);}
+.di-header{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.8rem;flex-wrap:wrap;}
+.di-title{font-family:'Outfit',sans-serif;font-size:1.45rem;font-weight:700;letter-spacing:-0.01em;color:var(--navy);}
+.di-title small{display:block;font-size:0.62rem;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:0.35rem;}
+.di-search-wrap{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+.di-search{background:var(--light);border:1px solid rgba(6,32,59,0.18);border-radius:6px;color:var(--navy);padding:0.52rem 0.85rem;font-size:0.84rem;font-family:inherit;font-weight:500;outline:none;width:240px;transition:border-color 0.2s;}
+.di-search:focus{border-color:var(--gold);background:#fff;}
+.di-stats{font-size:0.68rem;color:var(--navy-faint);font-weight:600;letter-spacing:0.06em;}
+/* Stats bar */
+.di-stats-bar{display:grid;grid-template-columns:repeat(2,1fr);gap:0.85rem;margin-bottom:1.8rem;animation:fadeSlideUp 0.45s 0.1s ease both;}
+.di-stat-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.25rem;position:relative;overflow:hidden;transition:box-shadow 0.18s,transform 0.18s;}
+.di-stat-card:nth-child(1){animation:fadeSlideUp 0.45s 0.15s ease both;}
+.di-stat-card:nth-child(2){animation:fadeSlideUp 0.45s 0.22s ease both;}
+.di-stat-card:nth-child(3){animation:fadeSlideUp 0.45s 0.29s ease both;}
+.di-stat-card:nth-child(4){animation:fadeSlideUp 0.45s 0.36s ease both;}
+.di-stat-card:hover{box-shadow:0 6px 24px rgba(6,32,59,0.1);transform:translateY(-2px);}
+.di-stat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gold);opacity:0.4;}
+.di-stat-card:hover{box-shadow:0 4px 18px rgba(6,32,59,0.09);}
+.di-stat-label{font-size:0.58rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--navy-faint);}
+.di-stat-value{font-family:'Outfit',sans-serif;font-size:1.75rem;font-weight:700;color:var(--navy);line-height:1;}
+.di-stat-sub{font-size:0.62rem;color:var(--navy-faint);margin-top:0.15rem;}
+.di-stat-card.accent .di-stat-value{color:var(--gold);}
+.di-stat-card.accent::before{opacity:1;}
+@media(max-width:640px){.di-stats-bar{grid-template-columns:1fr 1fr;}}
+.di-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(6,32,59,0.06);}
+.di-table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.di-table thead tr{background:var(--navy);}
+.di-table th{padding:10px 14px;text-align:left;font-size:0.58rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.7);white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);}
+.di-table th:last-child{border-right:none;}
+.di-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--navy);}
+.di-table tr:last-child td{border-bottom:none;}
+.di-table tbody tr{cursor:pointer;transition:background 0.13s;}
+.di-table tbody tr:hover td{background:rgba(216,5,5,0.04);}
+.di-ref{font-family:'Courier New',monospace;font-weight:700;font-size:0.78rem;letter-spacing:0.06em;color:var(--navy);}
+.di-name{font-weight:600;}
+.di-route{font-size:0.72rem;color:var(--navy-soft);letter-spacing:0.04em;}
+.di-type-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;}
+.di-type-oneway{background:rgba(216,5,5,0.10);color:var(--gold);}
+.di-type-return{background:rgba(6,32,59,0.08);color:var(--navy);}
+.di-type-multicity{background:rgba(216,5,5,0.09);color:var(--red);}
+.di-val{font-weight:700;white-space:nowrap;}
+.di-status-issued{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;background:rgba(22,101,52,0.1);color:#166534;}
+.di-status-pending{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;background:rgba(216,5,5,0.08);color:var(--red);}
+.di-actions{display:flex;gap:5px;align-items:center;}
+.di-act-btn{background:none;border:1px solid rgba(6,32,59,0.14);border-radius:5px;padding:4px 9px;font-size:0.62rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--navy-soft);transition:all 0.15s;white-space:nowrap;}
+.di-act-btn:hover{background:var(--gold10);border-color:var(--gold);color:var(--gold);}
+.di-act-btn.danger:hover{background:rgba(216,5,5,0.08);border-color:var(--red);color:var(--red);}
+.di-empty{text-align:center;padding:3.5rem 1rem;color:var(--navy-faint);font-size:0.88rem;}
+.di-empty-icon{font-size:2.5rem;margin-bottom:0.75rem;opacity:0.4;}
+#dossier-index-btn{flex:none;padding:0.6rem 1.1rem;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;background:transparent;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-soft);cursor:pointer;font-family:inherit;white-space:nowrap;transition:color 0.15s,border-color 0.15s,background 0.15s;border-right:1px solid var(--border);margin-right:0.75rem;padding-right:1.2rem;}
+#dossier-index-btn:hover{color:var(--navy);background:rgba(6,32,59,0.03);}
+@keyframes beaconPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.45;transform:scale(0.8);}}
+
+#dossier-index-btn.active{color:var(--navy);border-bottom-color:var(--gold);background:transparent;}
+
+/* ── Index inner tabs (Devis / Tâches) ── */
+.di-inner-tabs{display:flex;gap:3px;margin-bottom:1.6rem;border-bottom:2px solid var(--border);padding-bottom:0;}
+.di-inner-tab{padding:0.55rem 1.2rem;border:none;background:transparent;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--navy-soft);cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem;}
+.di-inner-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+.di-inner-tab:hover:not(.active){color:var(--navy);background:rgba(6,32,59,0.03);}
+.di-inner-tab .di-tab-count{background:rgba(6,32,59,0.09);color:var(--navy-soft);font-size:0.55rem;font-weight:700;padding:1px 6px;border-radius:99px;min-width:18px;text-align:center;}
+.di-inner-tab.active .di-tab-count{background:var(--gold);color:white;}
+.di-view{display:none;}
+.di-view.active{display:block;animation:fadeSlideUp 0.35s 0.05s ease both;}
+
+/* ── Tasks index ── */
+.di-cat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.2rem;align-items:center;}
+.di-cat-pill{padding:4px 12px;border-radius:999px;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;border:1px solid var(--border);background:var(--light);color:var(--navy-soft);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.di-cat-pill:hover{border-color:var(--gold);background:var(--gold10);color:var(--gold);}
+.di-cat-pill.active{background:var(--navy);color:white;border-color:var(--navy);}
+.di-cat-pill.active-cat{background:var(--gold);color:white;border-color:var(--gold);}
+.di-tasks-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
+.di-tasks-stats{font-size:0.68rem;color:var(--navy-faint);font-weight:600;letter-spacing:0.06em;}
+.di-done-toggle{display:flex;align-items:center;gap:0.5rem;font-size:0.68rem;font-weight:600;color:var(--navy-soft);cursor:pointer;user-select:none;}
+.di-done-toggle input{cursor:pointer;}
+.di-task-table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.di-task-table thead tr{background:var(--navy);}
+.di-task-table th{padding:10px 14px;text-align:left;font-size:0.58rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.7);white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);}
+.di-task-table th:last-child{border-right:none;}
+.di-task-table td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--navy);}
+.di-task-table tr:last-child td{border-bottom:none;}
+.di-task-table tbody tr.task-done td{opacity:0.45;}
+.di-task-table tbody tr.task-done .di-task-text{text-decoration:line-through;}
+.di-task-text{font-weight:500;font-size:0.8rem;}
+.di-cat-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:0.58rem;font-weight:700;letter-spacing:0.08em;background:var(--gold10);color:var(--gold);white-space:nowrap;}
+.di-prio-high{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.di-prio-med{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e07b00;flex-shrink:0;}
+.di-prio-low{display:inline-block;width:8px;height:8px;border-radius:50%;background:#aab8c2;flex-shrink:0;}
+.di-dossier-link{font-size:0.68rem;font-family:'Courier New',monospace;font-weight:700;color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap;}
+.di-dossier-link:hover{color:var(--navy);}
+.di-due-ok{font-size:0.68rem;color:var(--navy-faint);}
+.di-due-urgent{font-size:0.68rem;color:var(--red);font-weight:700;}
+.di-due-warn{font-size:0.68rem;color:#e07b00;font-weight:700;}
+.di-status-done{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:0.58rem;font-weight:700;background:rgba(22,101,52,0.1);color:#166534;}
+.di-status-todo{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:0.58rem;font-weight:700;background:rgba(216,5,5,0.07);color:var(--red);}
+
+/* ── São Paulo Clock ── */
+#sp-clock-widget{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:1px;padding:0.2rem 0.6rem;border-left:1px solid rgba(6,32,59,0.12);margin-left:0.5rem;}
+#sp-clock-widget .sp-label{font-size:0.52rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--navy);opacity:0.45;}
+#sp-clock-widget .sp-time{font-size:0.98rem;font-weight:700;color:var(--navy);letter-spacing:-0.01em;line-height:1;}
+#sp-clock-widget .sp-date{font-size:0.6rem;color:var(--navy-soft);font-weight:500;letter-spacing:0.02em;}
+@media(max-width:700px){#sp-clock-widget{display:none;}}

@@ -1,0 +1,19 @@
+/* Fonts loaded non-blocking via <link> in index-app.html */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#06203B;
+  --red:#D80505;
+  --white:#FFFFFF;
+  --light:#EBEBED;
+  --panel:#F6F7F8;
+  --border:rgba(6,32,59,0.12);
+  --border-strong:rgba(6,32,59,0.18);
+  --navy-soft:rgba(6,32,59,0.55);
+  --navy-faint:rgba(6,32,59,0.38);
+  --red10:rgba(216,5,5,0.10);
+  --gold:#D80505;
+  --gold10:rgba(216,5,5,0.10);
+  --gold20:rgba(216,5,5,0.20);
+  --success:#166534;
+}

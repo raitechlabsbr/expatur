@@ -1,0 +1,57 @@
+/* Welcome */
+.welcome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1.1rem;margin-bottom:2rem;}
+.welcome-stat-card{background:white;border:1px solid var(--border);border-radius:12px;padding:1.35rem 1.4rem;box-shadow:0 2px 12px rgba(6,32,59,0.06);border-left:4px solid var(--navy);transition:transform 0.18s,box-shadow 0.18s;}
+.welcome-stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(6,32,59,0.1);}
+.welcome-stat-card.accent-red{border-left-color:var(--red);}
+.welcome-stat-card.accent-green{border-left-color:#166534;}
+.welcome-stat-card.accent-amber{border-left-color:#d97706;}
+.welcome-stat-label{font-size:0.54rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.5rem;}
+.welcome-stat-value{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:700;color:var(--navy);line-height:1;margin-bottom:0.2rem;}
+.welcome-stat-sub{font-size:0.68rem;color:var(--navy-faint);}
+.welcome-section-title{font-size:0.6rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--navy);opacity:0.55;margin-bottom:0.9rem;margin-top:0.2rem;display:flex;align-items:center;gap:0.6rem;}
+.welcome-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.welcome-quick-actions{display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:2.5rem;}
+.welcome-action-btn{display:flex;flex-direction:column;align-items:center;gap:0.4rem;background:white;border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.4rem;cursor:pointer;font-family:inherit;transition:all 0.18s;color:var(--navy);min-width:105px;box-shadow:0 1px 6px rgba(6,32,59,0.05);}
+.welcome-action-btn:hover{border-color:var(--navy);background:rgba(6,32,59,0.03);transform:translateY(-1px);}
+.welcome-action-icon{font-size:1.45rem;}
+.welcome-action-label{font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+/* Disponibilidades */
+.disp-agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.1rem;margin-top:1rem;}
+.disp-agent-card{background:white;border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.3rem;box-shadow:0 2px 8px rgba(6,32,59,0.06);}
+.disp-agent-name{font-weight:700;font-size:0.95rem;color:var(--navy);margin-bottom:0.15rem;}
+.disp-agent-role{font-size:0.65rem;color:var(--navy-faint);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.9rem;}
+.disp-week-header{display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.35rem;}
+.disp-week-label{text-align:center;font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-faint);}
+.disp-week-days{display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;}
+.disp-day{border:1px solid var(--border);border-radius:5px;padding:0.45rem 0.2rem;text-align:center;font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--navy-soft);user-select:none;}
+.disp-day.on{background:rgba(22,101,52,0.1);border-color:rgba(22,101,52,0.3);color:#166534;}
+.disp-day.off{background:rgba(216,5,5,0.07);border-color:rgba(216,5,5,0.18);color:var(--red);}
+.disp-day:hover{transform:scale(1.06);}
+/* Tarefas */
+.tarefas-filter-bar{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center;}
+.tarefas-filter-pill{background:var(--light);border:1px solid var(--border);border-radius:999px;padding:0.32rem 0.8rem;font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;color:var(--navy-soft);transition:all 0.15s;}
+.tarefas-filter-pill.active{background:var(--navy);color:white;border-color:var(--navy);}
+.tarefas-filter-pill:hover:not(.active){background:rgba(6,32,59,0.08);}
+.tarefas-task-row{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-bottom:1px solid rgba(6,32,59,0.07);transition:background 0.15s;}
+.tarefas-task-row:hover{background:rgba(6,32,59,0.025);}
+.tarefas-task-row:last-child{border-bottom:none;}
+.tarefas-task-title{flex:1;font-size:0.82rem;font-weight:600;color:var(--navy);}
+.tarefas-task-title.done{text-decoration:line-through;color:var(--navy-faint);}
+.tarefas-task-dossier{font-size:0.6rem;font-family:monospace;font-weight:700;color:var(--red);background:rgba(216,5,5,0.07);padding:1px 6px;border-radius:3px;white-space:nowrap;}
+.tarefas-task-prio{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;}
+.tarefas-task-prio.haute{background:rgba(216,5,5,0.1);color:var(--red);}
+.tarefas-task-prio.normale{background:rgba(6,32,59,0.08);color:var(--navy);}
+.tarefas-task-prio.basse{background:rgba(156,163,175,0.2);color:#6b7280;}
+.tarefas-list-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(6,32,59,0.06);}
+@media(max-width:768px){.app-shell,.section-page.open{margin-left:0!important;}.section-page-body{padding:1.25rem 1rem;}}
+
+/* ── Financeiro password gate ── */
+#fin-pw-overlay{position:fixed;inset:0;background:rgba(6,32,59,0.72);backdrop-filter:blur(8px);z-index:3000;display:none;align-items:center;justify-content:center;}
+#fin-pw-overlay.open{display:flex;}
+.fin-pw-card{background:var(--white);border-radius:14px;padding:2.2rem 2rem;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(6,32,59,0.22);text-align:center;border:1px solid var(--border);}
+.fin-pw-icon{font-size:2.2rem;margin-bottom:0.8rem;}
+.fin-pw-title{font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;}
+.fin-pw-sub{font-size:0.75rem;color:var(--navy-soft);margin-bottom:1.5rem;}
+.fin-pw-input{width:100%;background:var(--light);border:2px solid var(--border);border-radius:7px;padding:0.7rem 1rem;font-size:1rem;font-family:monospace;letter-spacing:0.1em;text-align:center;outline:none;color:var(--navy);margin-bottom:0.85rem;transition:border-color 0.2s;}
+.fin-pw-input:focus{border-color:var(--red);background:white;}
+.fin-pw-error{font-size:0.72rem;color:var(--red);min-height:1.1rem;margin-bottom:0.5rem;}
