@@ -82,6 +82,18 @@ document.addEventListener('paste', function(e) {
   document.execCommand('insertText', false, clean);
 }, true);
 
+// ── Limpar inline styles dos painéis antes de qualquer troca de aba ──────────
+// O nosso PAYOUT fix usa style.display='none' para forçar ocultação durante a
+// transição para PAIEMENT. Mas quando o utilizador navega para outra aba
+// (TICKETS, DOCUMENTS, etc.), esses inline styles bloqueiam a navegação.
+// Esta função remove-os para devolver o controlo ao CSS (classe .active).
+function _clearPanelInlineStyles() {
+  ['vols','client','couts','paiement','billet','docs','tasks','finance'].forEach(function(t) {
+    const pn = document.getElementById('dv-panel-' + t);
+    if (pn && pn.style.display !== undefined) pn.style.removeProperty('display');
+  });
+}
+
 // ── Acutaliza ao mudar de aba para Tarification ───────────────────────────────
 // (para quando o utilizador volta à aba e o preço já estava preenchido)
 (function hookQuotingSwitch() {
@@ -91,6 +103,8 @@ document.addEventListener('paste', function(e) {
 
     const _orig = window.quotingSwitch;
     window.quotingSwitch = function(tab) {
+      // Limpar inline styles ANTES de switching — senão ficam bloqueados
+      _clearPanelInlineStyles();
       _orig.apply(this, arguments);
       if (tab === 'couts') {
         setTimeout(function() {
@@ -111,6 +125,37 @@ document.addEventListener('paste', function(e) {
     setTimeout(_wrap, 300); // safety net para patches que definem quotingSwitch tardiamente
   }
 })();
+
+// ── Wrap dvSwitch — usado por emGoToTickets() → limpa inline styles primeiro ──
+// dvSwitch('billet') é chamado pelo botão "ÉMETTRE LE BILLET →"
+// Sem este wrap, os style.display='none' do PAYOUT fix bloqueiam a navegação
+(function hookDvSwitch() {
+  function _wrap() {
+    if (typeof window.dvSwitch !== 'function') return;
+    if (window.dvSwitch._uiFixes) return;
+    const _orig = window.dvSwitch;
+    window.dvSwitch = function(tab) {
+      _clearPanelInlineStyles();
+      _orig.apply(this, arguments);
+    };
+    window.dvSwitch._uiFixes = true;
+  }
+  _wrap();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _wrap);
+  } else {
+    setTimeout(_wrap, 400);
+  }
+})();
+
+// ── Limpar inline styles quando se clica directamente em qualquer tab ─────────
+document.addEventListener('click', function(e) {
+  const tab = e.target.closest('.dv-tab, .qt-tab, [id^="qt-tab-"], [id^="dv-tab-"]');
+  if (!tab) return;
+  // Só limpa se não for o botão PAYOUT (que tem lógica própria)
+  if (tab.id === 'qt-payout-btn') return;
+  _clearPanelInlineStyles();
+}, true);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PAYOUT — Nova lógica simples:
