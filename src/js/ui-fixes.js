@@ -5,6 +5,7 @@
  * de quando/onde os elementos são adicionados ou movidos no DOM.
  * Não precisa de attachar listeners individuais nem de timing preciso.
  */
+import './alert-modal.js';
 
 // ── Debounce ──────────────────────────────────────────────────────────────────
 const _timers = {};
