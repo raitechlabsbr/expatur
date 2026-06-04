@@ -1,102 +1,82 @@
 /**
  * ui-fixes.js — Correcções de UX/comportamento dinâmico
  *
- * Adiciona listeners que faltam nos inputs do app.js original.
- * Carregado depois de app.js e auth.js — usa window.buildPreview, etc.
+ * Estratégia: event delegation no `document` — funciona independentemente
+ * de quando/onde os elementos são adicionados ou movidos no DOM.
+ * Não precisa de attachar listeners individuais nem de timing preciso.
  */
 
-// ── Debounce helper ───────────────────────────────────────────────────────────
-function debounce(fn, delay) {
-  let t;
-  return function(...args) {
-    clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), delay);
-  };
+// ── Debounce ──────────────────────────────────────────────────────────────────
+const _timers = {};
+function debounce(key, fn, delay) {
+  clearTimeout(_timers[key]);
+  _timers[key] = setTimeout(fn, delay);
 }
 
-// ── Dispara buildPreview + atualiza P&L ──────────────────────────────────────
-function triggerPreviewAndPnL() {
+// ── IDs de campos de preço que devem disparar buildPreview + blCalcPnL ────────
+const PRICE_IDS = new Set([
+  'price-adulte', 'price-enfant', 'price-bebe',
+  'discount-value', 'pax-adultes', 'pax-enfants', 'pax-bebes',
+  'bags-qty', 'bags-kg', 'recap-free-line', 'offer-name', 'price-note',
+  'travel-class', 'validity-date',
+]);
+
+// ── Dispara buildPreview → actualiza _quoteFinalPrice → blCalcPnL ─────────────
+function refreshPnL() {
+  // buildPreview() calcula o preço total e já chama blCalcPnL() internamente
   if (typeof window.buildPreview === 'function') {
-    window.buildPreview();
+    try {
+      window.buildPreview();
+    } catch(e) {
+      // buildPreview falhou (ex: sem passageiros) — tenta só blCalcPnL
+      if (typeof window.blCalcPnL === 'function') {
+        try { window.blCalcPnL(); } catch(_) {}
+      }
+    }
+  } else if (typeof window.blCalcPnL === 'function') {
+    try { window.blCalcPnL(); } catch(_) {}
   }
-  // dossFinRenderPanel relê _quoteFinalPrice logo após buildPreview
-  setTimeout(function() {
-    if (typeof window.dossFinRenderPanel === 'function') {
-      try { window.dossFinRenderPanel(); } catch(e) {}
-    }
-  }, 50);
 }
 
-const _debouncedPreview = debounce(triggerPreviewAndPnL, 400);
+// ── Event delegation: apanha todos os inputs/changes no documento ─────────────
+document.addEventListener('input', function(e) {
+  const id = e.target && e.target.id;
+  if (!id || !PRICE_IDS.has(id)) return;
+  debounce('pnl-' + id, refreshPnL, 350);
+}, true); // useCapture=true garante que apanha antes de qualquer handler do app
 
-// ── Campos da aba Tarification que devem disparar o preview em tempo real ─────
-const PRICE_FIELDS = [
-  'price-adulte',
-  'price-enfant',
-  'price-bebe',
-  'discount-value',
-  'pax-adultes',
-  'pax-enfants',
-  'pax-bebes',
-  'bags-qty',
-  'bags-kg',
-  'recap-free-line',
-  'offer-name',
-  'price-note',
-];
+document.addEventListener('change', function(e) {
+  const id = e.target && e.target.id;
+  if (!id || !PRICE_IDS.has(id)) return;
+  debounce('pnl-change-' + id, refreshPnL, 50); // change é instantâneo (selects/dates)
+}, true);
 
-function attachPriceListeners() {
-  PRICE_FIELDS.forEach(function(id) {
-    const el = document.getElementById(id);
-    if (!el || el._priceListenerAttached) return;
-    el.addEventListener('input', _debouncedPreview);
-    el.addEventListener('change', _debouncedPreview); // cobre selects e date pickers
-    el._priceListenerAttached = true;
-  });
+// ── Acutaliza ao mudar de aba para Tarification ───────────────────────────────
+// (para quando o utilizador volta à aba e o preço já estava preenchido)
+(function hookQuotingSwitch() {
+  function _wrap() {
+    if (typeof window.quotingSwitch !== 'function') return;
+    if (window.quotingSwitch._uiFixes) return; // já wrappado
 
-  // validity-date e travel-class também devem disparar (são selects/date)
-  ['validity-date', 'travel-class'].forEach(function(id) {
-    const el = document.getElementById(id);
-    if (!el || el._priceListenerAttached) return;
-    el.addEventListener('change', _debouncedPreview);
-    el._priceListenerAttached = true;
-  });
-}
-
-// ── Re-attach quando o painel de Tarification fica visível ───────────────────
-// (os painéis são movidos no DOM pelo quotingSwitch, por isso re-attach é seguro)
-function onQuotingSwitchToCouts() {
-  attachPriceListeners();
-}
-
-// Intercepta quotingSwitch para re-attach quando o user abre Tarification
-(function() {
-  const _origSwitch = window.quotingSwitch;
-  if (typeof _origSwitch !== 'function') return;
-  window.quotingSwitch = function(tab) {
-    _origSwitch.apply(this, arguments);
-    if (tab === 'couts') {
-      setTimeout(onQuotingSwitchToCouts, 100);
-    }
-  };
-})();
-
-// ── Init: attach assim que o DOM estiver pronto ───────────────────────────────
-function init() {
-  attachPriceListeners();
-
-  // Re-attach depois de cada switchDossier (os campos são re-renderizados)
-  const _origSwitchDossier = window.switchDossier;
-  if (typeof _origSwitchDossier === 'function') {
-    window.switchDossier = function() {
-      _origSwitchDossier.apply(this, arguments);
-      setTimeout(attachPriceListeners, 200);
+    const _orig = window.quotingSwitch;
+    window.quotingSwitch = function(tab) {
+      _orig.apply(this, arguments);
+      if (tab === 'couts') {
+        setTimeout(function() {
+          if (typeof window.blCalcPnL === 'function') {
+            try { window.blCalcPnL(); } catch(_) {}
+          }
+        }, 150);
+      }
     };
+    window.quotingSwitch._uiFixes = true;
   }
-}
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+  // Tenta imediatamente; se ainda não estiver definido, espera pelo DOM
+  _wrap();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _wrap);
+  } else {
+    setTimeout(_wrap, 300); // safety net para patches que definem quotingSwitch tardiamente
+  }
+})();
