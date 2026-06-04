@@ -122,6 +122,8 @@ async function fetchRole(userId) {
 }
 
 // ── Aplicar sessão ────────────────────────────────────────────────────────────
+// Aceita tanto o objeto session do SDK ({ user, access_token })
+// como a resposta directa da REST API ({ user, access_token, refresh_token })
 async function applySession(session) {
   if (!session) {
     _currentSession = null;
@@ -132,8 +134,17 @@ async function applySession(session) {
     return;
   }
 
+  // Normalizar: SDK devolve session.user, REST devolve session.user directamente
+  const user = session.user || session;
+  if (!user || !user.id) {
+    console.warn('[auth] applySession: sem user.id na sessão', session);
+    _supabaseResolved = true;
+    _showLogin();
+    return;
+  }
+
   _currentSession = session;
-  _currentRole    = await fetchRole(session.user.id);
+  _currentRole    = await fetchRole(user.id);
 
   const isAdmin = _currentRole === 'admin';
   window.__serverSession = { authenticated: true, isAdmin };
@@ -182,29 +193,43 @@ window.__loginSubmitReal = async function() {
   if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
 
   try {
-    console.log('[auth] Tentando login:', email, '| supabase URL:', supabase.supabaseUrl);
-    console.log('[auth] SUPABASE_ENABLED:', SUPABASE_ENABLED, '| supabase obj:', !!supabase);
+    // ── Usa fetch() directamente (mesmo protocolo que curl — sem overhead do SDK) ──
+    const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    const resp = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method:  'POST',
+      headers: {
+        'apikey':       SUPABASE_ANON,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password: pw }),
+    });
 
-    if (error) {
-      // Log completo para diagnóstico
-      console.error('[auth] signInWithPassword ERRO completo:', JSON.stringify({
-        message: error.message,
-        status:  error.status,
-        code:    error.code,
-        name:    error.name,
-      }));
+    const body = await resp.json();
+    console.log('[auth] login resp status:', resp.status, '| ok:', resp.ok);
+
+    if (!resp.ok || body.error) {
+      const msg = body.error_description || body.error || body.message || `HTTP ${resp.status}`;
+      console.error('[auth] login erro:', msg, body);
       if (errEl) {
-        // Em dev: mostra o erro real
-        errEl.textContent = `⚠️ ${error.message} [status:${error.status || '?'} code:${error.code || '?'}]`;
+        errEl.textContent = /Invalid login|invalid credentials/i.test(msg)
+          ? '❌ Identifiants invalides — vérifiez votre email et mot de passe.'
+          : '⚠️ ' + msg;
         errEl.style.display = 'block';
       }
       if (pwEl) { pwEl.value = ''; pwEl.focus(); }
       return;
     }
 
-    await applySession(data.session);
+    // Entrega a sessão ao SDK do Supabase para ele gerir o refresh token
+    if (supabase && body.access_token) {
+      await supabase.auth.setSession({
+        access_token:  body.access_token,
+        refresh_token: body.refresh_token,
+      });
+    }
+    await applySession(body);
 
   } catch (e) {
     if (errEl) {
