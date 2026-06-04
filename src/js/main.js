@@ -15,3 +15,21 @@ import './storage.js';
 import './app.js';
 import './auth.js';
 import './ui-fixes.js';
+import { initI18n, currentLang } from './i18n.js';
+
+// Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
+initI18n();
+
+// Sincronizar estado visual do selector com a língua guardada
+(function syncLangSelector() {
+  function _sync() {
+    document.querySelectorAll('.lang-selector-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.lang === currentLang);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _sync);
+  } else {
+    _sync();
+  }
+})();

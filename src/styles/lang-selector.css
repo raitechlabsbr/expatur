@@ -1,0 +1,51 @@
+/* ── Selector de idioma na sidebar ─────────────────────────────────────── */
+.lang-selector {
+  padding: 0.55rem 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 0.4rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.lang-selector-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 0.38rem 0.5rem;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  transition: all 0.18s;
+}
+
+.lang-selector-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.lang-selector-btn.active {
+  background: rgba(216,5,5,0.25);
+  border-color: rgba(216,5,5,0.5);
+  color: #fff;
+}
+
+.lang-selector-btn .lang-flag {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.lang-selector-btn .lang-code {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}

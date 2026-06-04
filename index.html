@@ -151,6 +151,17 @@
     <button class="sidebar-item" id="snav-admin-users" style="display:none" onclick="window.__openAdminPanel && window.__openAdminPanel(); if (window.innerWidth <= 768 && window.sidebarClose) sidebarClose();">Gestion utilisateurs</button>
   </nav>
   <div class="sidebar-footer" style="padding:0.6rem 0.75rem;">
+    <!-- Selector de idioma -->
+    <div class="lang-selector" id="lang-selector">
+      <button class="lang-selector-btn active" data-lang="fr" onclick="setLanguage('fr')" title="Français">
+        <span class="lang-flag">🇫🇷</span>
+        <span class="lang-code">FR</span>
+      </button>
+      <button class="lang-selector-btn" data-lang="pt" onclick="setLanguage('pt')" title="Português">
+        <span class="lang-flag">🇧🇷</span>
+        <span class="lang-code">PT</span>
+      </button>
+    </div>
     <button onclick="_logout()" style="width:100%;background:rgba(216,5,5,0.12);border:1px solid rgba(216,5,5,0.25);border-radius:6px;padding:0.55rem 1rem;cursor:pointer;font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.75);font-family:inherit;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.15s;" onmouseover="this.style.background='rgba(216,5,5,0.28)';this.style.color='white'" onmouseout="this.style.background='rgba(216,5,5,0.12)';this.style.color='rgba(255,255,255,0.75)'">Déconnexion</button>
     <div style="font-size:0.42rem;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-align:center;margin-top:0.5rem;">Expatur Backoffice · v2026</div>
   </div>
