@@ -149,6 +149,15 @@ async function applySession(session) {
 }
 
 // ── Override: login ───────────────────────────────────────────────────────────
+// app.js linha 298 faz: window._loginSubmit = __loginSubmitReal (cópia directa da fn PHP)
+// Isso significa que mesmo overridando __loginSubmitReal, o _loginSubmit ainda aponta para PHP.
+// Fix: substituir TAMBÉM window._loginSubmit para chamar a nossa versão dinamicamente.
+window._loginSubmit = function() {
+  if (typeof window.__loginSubmitReal === 'function') {
+    window.__loginSubmitReal();
+  }
+};
+
 window.__loginSubmitReal = async function() {
   if (!SUPABASE_ENABLED) {
     const errEl = document.getElementById('login-error');
@@ -173,18 +182,22 @@ window.__loginSubmitReal = async function() {
   if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
 
   try {
+    console.log('[auth] Tentando login:', email, '| supabase URL:', supabase.supabaseUrl);
+    console.log('[auth] SUPABASE_ENABLED:', SUPABASE_ENABLED, '| supabase obj:', !!supabase);
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
 
     if (error) {
-      console.error('[auth] signInWithPassword error:', error);
+      // Log completo para diagnóstico
+      console.error('[auth] signInWithPassword ERRO completo:', JSON.stringify({
+        message: error.message,
+        status:  error.status,
+        code:    error.code,
+        name:    error.name,
+      }));
       if (errEl) {
-        // Mostra sempre o erro real em dev + mensagem user-friendly
-        const isDev = import.meta.env.DEV;
-        if (/Invalid login|invalid credentials/i.test(error.message)) {
-          errEl.textContent = '❌ Identifiants invalides — vérifiez votre email et mot de passe.';
-        } else {
-          errEl.textContent = '⚠️ ' + error.message + (isDev ? ` [${error.status || error.code || ''}]` : '');
-        }
+        // Em dev: mostra o erro real
+        errEl.textContent = `⚠️ ${error.message} [status:${error.status || '?'} code:${error.code || '?'}]`;
         errEl.style.display = 'block';
       }
       if (pwEl) { pwEl.value = ''; pwEl.focus(); }
