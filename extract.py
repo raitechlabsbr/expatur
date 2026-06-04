@@ -102,8 +102,11 @@ called_via_window = set(re.findall(r'window\.([A-Za-z_$][A-Za-z0-9_$]*)\s*\(', j
 
 all_needs_window = (handler_funcs | patch_checked) & function_declared - js_builtins
 
+# SAFETY: usa typeof para evitar ReferenceError se a função não for uma declaração
+# hoistável (ex: definida só por window.xxx = function() em vez de function xxx() {})
+# Um erro aqui para a execução de TODO o IIFE, incluindo window._loginSubmit!
 early_exports = '\n'.join(
-    f'  window.{fn} = {fn};'
+    f'  if (typeof {fn} === \'function\') window.{fn} = {fn};'
     for fn in sorted(all_needs_window)
 )
 
