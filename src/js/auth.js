@@ -111,6 +111,42 @@ window._applyRoleUI = function() {
   applyRoleUI(_currentRole);
 };
 
+// ── Bypass do gate de senha do Financeiro para admin ─────────────────────────
+// app.js sidebarGo('financeiro') verifica _finIsUnlocked() → mostra modal de senha
+// Para admin: marcar sempre como desbloqueado (TTL de 4h) e suprimir o modal
+function _bypassFinGateForAdmin() {
+  if (_currentRole !== 'admin') return;
+  // Marcar como "desbloqueado agora" — _finIsUnlocked() verifica este timestamp
+  try { localStorage.setItem('_finAccessTs', String(Date.now())); } catch(_) {}
+  // Fechar o overlay de password se estiver aberto por engano
+  const ov = document.getElementById('fin-pw-overlay');
+  if (ov && ov.classList.contains('open')) ov.classList.remove('open');
+}
+
+// Interceptar sidebarGo para admin: antes de navegar para financeiro,
+// garantir que o timestamp está fresco para o gate deixar passar
+(function patchSidebarGoForAdmin() {
+  function _patch() {
+    if (typeof window.sidebarGo !== 'function') return;
+    if (window.sidebarGo._adminBypass) return;
+    const _orig = window.sidebarGo;
+    window.sidebarGo = function(section) {
+      if (section === 'financeiro' && _currentRole === 'admin') {
+        _bypassFinGateForAdmin();
+      }
+      return _orig.apply(this, arguments);
+    };
+    window.sidebarGo._adminBypass = true;
+  }
+  _patch();
+  // Safety net: sidebarGo pode ser definido mais tarde por patches
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _patch);
+  } else {
+    setTimeout(_patch, 500);
+  }
+})();
+
 // ── Obter role do perfil ──────────────────────────────────────────────────────
 async function fetchRole(userId) {
   // 1. Verificar user_metadata.role (disponível imediatamente no JWT, sem DB query)
