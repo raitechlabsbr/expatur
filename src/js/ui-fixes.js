@@ -204,17 +204,18 @@ if (document.readyState === 'loading') {
   window.quotingSwitch._uiFixes = true;
 })();
 
-// ── Click handler do PAYOUT — navegação directa para PAIEMENT ────────────────
+// ── Click handler do PAYOUT — apenas desbloqueia o booking, deixa app.js navegar
+// Estratégia:
+//   • Corremos em CAPTURE (antes do app.js) apenas para setar o flag de booking
+//   • NÃO chamamos stopPropagation — o handler do app.js corre normalmente depois
+//   • O handler do app.js tem toda a lógica de navegação para PAIEMENT + openEmissionModal
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('#qt-payout-btn');
   if (!btn || btn.disabled) return;
 
-  // Tomar controlo total — stopPropagation previne duplicação com app.js
-  e.stopPropagation();
-  e.preventDefault();
+  // NÃO fazer stopPropagation — o handler do app.js deve correr normalmente
 
-  // 1. Definir o flag de booking no localStorage para que _isBookingEnabled()
-  //    retorne true — necessário para que quotingSwitch deixe passar billet/docs/tasks
+  // 1. Setar flag de booking ANTES do guard em quotingSwitch verificar
   let dossierId = null;
   try { dossierId = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
   if (dossierId) {
@@ -226,36 +227,15 @@ document.addEventListener('click', function(e) {
     } catch(_) {}
   }
 
-  // 2. Chamar _applyBookingTabState para sincronizar o estado no app.js
-  try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
-  try { if (typeof window._dossierRenderTabs === 'function') window._dossierRenderTabs(); } catch(_) {}
-
-  // 3. Desbloquear TODAS as abas de reserva no DOM (visual + funcional)
+  // 2. Remover qt-tab-locked antes do handler do app.js tentar aceder às abas
   ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
     const tb = document.getElementById('qt-tab-' + t);
-    if (tb) { tb.classList.remove('qt-tab-locked'); tb.disabled = false; }
+    if (tb) tb.classList.remove('qt-tab-locked');
   });
 
-  // Navegar directamente para PAIEMENT via DOM (sem passar pelo guard do app.js)
-  const TABS = ['vols','client','couts','paiement','billet','docs','tasks','finance'];
-  TABS.forEach(function(t) {
-    const tb = document.getElementById('qt-tab-' + t);
-    const pn = document.getElementById('dv-panel-' + t);
-    if (tb) tb.classList.toggle('active', t === 'paiement');
-    if (pn) pn.classList.toggle('active', t === 'paiement');
-  });
-  try { window._lastQuotingTab = 'paiement'; } catch(_) {}
+  // 3. Sincronizar estado de booking no app.js
+  try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
 
-  // Scroll para o topo
-  const host = document.getElementById('quoting-panels-host');
-  if (host) host.scrollTop = 0; else window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  // Abrir painel de emissão
-  setTimeout(function() {
-    try { if (typeof window.openEmissionModal === 'function') window.openEmissionModal(); } catch(_) {}
-  }, 200);
-
-  if (typeof window.toast === 'function') {
-    window.toast('Passage en Paiement ✓', 'success');
-  }
-}, true);
+  // O resto (quotingSwitch + openEmissionModal) é tratado pelo handler do app.js
+  // que corre logo a seguir no bubble phase
+}, true); // useCapture=true → corre antes do handler do app.js
