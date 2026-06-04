@@ -176,10 +176,15 @@ window.__loginSubmitReal = async function() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
 
     if (error) {
+      console.error('[auth] signInWithPassword error:', error);
       if (errEl) {
-        errEl.textContent = /Invalid login|invalid credentials/i.test(error.message)
-          ? '❌ Identifiants invalides — vérifiez votre email et mot de passe.'
-          : '⚠️ ' + error.message;
+        // Mostra sempre o erro real em dev + mensagem user-friendly
+        const isDev = import.meta.env.DEV;
+        if (/Invalid login|invalid credentials/i.test(error.message)) {
+          errEl.textContent = '❌ Identifiants invalides — vérifiez votre email et mot de passe.';
+        } else {
+          errEl.textContent = '⚠️ ' + error.message + (isDev ? ` [${error.status || error.code || ''}]` : '');
+        }
         errEl.style.display = 'block';
       }
       if (pwEl) { pwEl.value = ''; pwEl.focus(); }
