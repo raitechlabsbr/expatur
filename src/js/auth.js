@@ -51,32 +51,39 @@ if (SUPABASE_ENABLED) {
   };
 }
 
-// 3. GUARDA CRÍTICA: MutationObserver no #login-overlay
-//    Causa raiz: pm2 serve --spa retorna HTTP 200 para /finance/api.php
-//    O app.js interpreta como "autenticado" e chama _hideLoginOverlay() (função LOCAL,
-//    não o window.xxx). O observer apanha essa ocultação e reverte imediatamente
-//    se o Supabase ainda não confirmou sessão.
+// 3. GUARDA PERMANENTE: MutationObserver no #login-overlay
+//
+//    PROBLEMA RAIZ: pm2 serve --spa retorna HTTP 200 para /finance/api.php.
+//    O app.js chama _hideLoginOverlay() (função LOCAL, ignora window.xxx) que:
+//      a) adiciona classe 'hidden' → overlay escondido imediatamente
+//      b) setTimeout 420ms → overlay.style.display='none' (segunda ocultação)
+//
+//    O guard corre PERMANENTEMENTE e verifica _currentSession:
+//      - _currentSession = null  → overlay NUNCA pode ser escondido (mantém login)
+//      - _currentSession = set   → overlay PODE ser escondido (utilizador autenticado)
+//
+//    SEM disconnect() pois o setTimeout de 420ms dispararia depois de parar o guard.
 if (SUPABASE_ENABLED && _loginOverlay) {
   const _overlayGuard = new MutationObserver(function() {
-    if (_supabaseResolved && _currentSession) return; // Auth confirmada — deixar passar
-    // Supabase ainda não resolveu OU não há sessão → manter overlay visível
+    // Só reverte se Supabase ainda não confirmou sessão válida
+    if (_supabaseResolved && _currentSession) return;
+
     const isHidden = _loginOverlay.classList.contains('hidden')
                    || _loginOverlay.style.display === 'none'
                    || _loginOverlay.style.visibility === 'hidden';
     if (isHidden) {
       _loginOverlay.classList.remove('hidden');
-      _loginOverlay.style.removeProperty('display');
+      _loginOverlay.style.display = 'flex';
       _loginOverlay.style.removeProperty('visibility');
+      _restoreLoginCard(); // garantir que o card é visível
     }
   });
   _overlayGuard.observe(_loginOverlay, {
     attributes: true,
     attributeFilter: ['class', 'style']
   });
-  // Parar o guard assim que Supabase resolver (evita interferência posterior)
-  const _stopGuard = function() { _overlayGuard.disconnect(); };
-  // Será chamado em applySession após resolução
-  window.__stopOverlayGuard = _stopGuard;
+  // NÃO desligar o guard — o setTimeout de 420ms em _hideLoginOverlay
+  // dispararia depois e re-esconderia o overlay se desligassemos aqui.
 }
 
 function _restoreLoginCard() {
@@ -232,12 +239,6 @@ async function fetchRole(userId) {
 // Aceita tanto o objeto session do SDK ({ user, access_token })
 // como a resposta directa da REST API ({ user, access_token, refresh_token })
 async function applySession(session) {
-  // Parar o guard assim que Supabase resolver (seja com sessão ou sem)
-  if (typeof window.__stopOverlayGuard === 'function') {
-    window.__stopOverlayGuard();
-    window.__stopOverlayGuard = null;
-  }
-
   if (!session) {
     _currentSession = null;
     _currentRole    = 'agent';
@@ -356,10 +357,27 @@ window.__loginSubmitReal = async function() {
 
 // ── Override: logout ──────────────────────────────────────────────────────────
 window._logout = async function() {
-  if (supabase) await supabase.auth.signOut().catch(() => {});
-  _currentSession  = null;
+  // 1. Sinalizar logout imediatamente (antes de qualquer async)
+  _currentSession   = null;
   _supabaseResolved = false;
   window.__serverSession = { authenticated: false, isAdmin: false };
+
+  // 2. Signout no Supabase (invalida o token no servidor)
+  if (supabase) {
+    try { await supabase.auth.signOut(); } catch(e) {}
+  }
+
+  // 3. Limpar TODOS os tokens Supabase do localStorage manualmente
+  //    (garante que getSession() retorna null na próxima carga)
+  try {
+    Object.keys(localStorage).forEach(function(k) {
+      if (k.startsWith('sb-') || k.includes('supabase') || k.includes('-auth-token')) {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch(e) {}
+
+  // 4. Recarregar página
   location.reload();
 };
 
