@@ -1,6 +1,11 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Carrega variáveis do .env para o lado do servidor (vite.config.js)
+  const env = loadEnv(mode, process.cwd(), '');
+  const apiTarget = env.VITE_API_TARGET || 'http://localhost:8080';
+
+  return {
   root: '.',
   publicDir: 'public',
 
@@ -50,9 +55,14 @@ export default defineConfig({
     open: '/index-app.html',
     proxy: {
       '/finance': {
-        target: 'http://localhost:8080',
+        // Opção A: backend PHP local    → 'http://localhost:8080'
+        // Opção B: servidor de produção → 'https://workspace.expaturtravel.com'
+        // Opção C: desativar proxy       → remova este bloco e use VITE_API_URL no .env
+        target: apiTarget,
         changeOrigin: true,
+        secure: false,
       }
     }
   }
+  };
 });
