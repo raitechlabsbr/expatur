@@ -470,3 +470,308 @@ document.addEventListener('click', function(e) {
 
   if (typeof window.toast === 'function') window.toast('Passage en Paiement ✓', 'success');
 }, true);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLIENTE — Implementação completa do modal cpmod-overlay
+// Funções cpmodClose, cpmodStartEdit, cpmodSaveEdit, cpmodCancelEdit,
+// cpmodSwitchTab e clientsViewProfile nunca foram implementadas no app.js.
+// ══════════════════════════════════════════════════════════════════════════════
+
+(function() {
+  // ── Estado ────────────────────────────────────────────────────────────────
+  let _cpmodCurrentId = null;  // id do cliente em edição (null = novo)
+  let _cpmodIsNew     = false; // true quando a criar novo cliente
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function _cliLoad() {
+    try { return JSON.parse(localStorage.getItem('expatur_clients_db') || '[]'); } catch(_) { return []; }
+  }
+  function _cliSave(list) {
+    localStorage.setItem('expatur_clients_db', JSON.stringify(list));
+    if (typeof window.clientsRender === 'function') window.clientsRender();
+  }
+  function _genId() { return 'cli_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+  function _fmtDate(s) {
+    if (!s) return '—';
+    try { return new Date(s).toLocaleDateString('pt-BR'); } catch(_) { return s; }
+  }
+
+  // ── Pill (view mode) ─────────────────────────────────────────────────────
+  function _pill(label, value) {
+    if (!value || value === '—') return '';
+    return '<div style="background:rgba(6,32,59,0.04);border:1px solid rgba(6,32,59,0.10);border-radius:7px;padding:0.55rem 0.8rem;">'
+      + '<div style="font-size:0.56rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(6,32,59,0.45);margin-bottom:0.25rem;">' + label + '</div>'
+      + '<div style="font-size:0.88rem;font-weight:600;color:#06203B;">' + String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+      + '</div>';
+  }
+
+  // ── Abrir modal (view mode) ───────────────────────────────────────────────
+  function _openModal(client, editMode) {
+    const overlay = document.getElementById('cpmod-overlay');
+    if (!overlay) return;
+
+    _cpmodCurrentId = client ? client.id : null;
+    _cpmodIsNew     = !client;
+
+    // Header
+    const nameEl = document.getElementById('cpmod-name');
+    if (nameEl) nameEl.textContent = client
+      ? [client.civilite ? client.civilite + '.' : '', client.prenom, client.nom].filter(Boolean).join(' ') || 'Nouveau client'
+      : 'Nouveau client';
+
+    // View mode: preencher pills
+    const personal = document.getElementById('cpmod-personal');
+    const docs     = document.getElementById('cpmod-docs');
+    if (personal) {
+      personal.innerHTML = [
+        _pill('Prénom',      client && client.prenom),
+        _pill('Nom',         client && client.nom),
+        _pill('Civilité',    client && client.civilite),
+        _pill('Naissance',   client && _fmtDate(client.naissance)),
+        _pill('Nationalité', client && client.nationalite),
+        _pill('Email',       client && client.email),
+        _pill('Téléphone',   client && client.tel),
+        _pill('WhatsApp',    client && client.whatsapp),
+        _pill('Adresse',     client && [client.adresse, client.cp, client.ville, client.pays].filter(Boolean).join(', ')),
+      ].filter(Boolean).join('') || '<div style="color:rgba(6,32,59,0.4);font-size:0.8rem;font-style:italic;">Nenhum dado pessoal.</div>';
+    }
+    if (docs) {
+      docs.innerHTML = [
+        _pill('Nº Passeport',  client && client.passport),
+        _pill('Expiration',    client && _fmtDate(client.passport_exp)),
+      ].filter(Boolean).join('') || '<div style="color:rgba(6,32,59,0.4);font-size:0.8rem;font-style:italic;">Sem documentos.</div>';
+    }
+    // Notes
+    const notesSection = document.getElementById('cpmod-notes-section');
+    const notesText    = document.getElementById('cpmod-notes-text');
+    if (client && client.notes) {
+      if (notesSection) notesSection.style.display = '';
+      if (notesText)    notesText.textContent = client.notes;
+    } else {
+      if (notesSection) notesSection.style.display = 'none';
+    }
+    // Files
+    const filesEmpty = document.getElementById('cpmod-files-empty');
+    const filesEl    = document.getElementById('cpmod-files');
+    if (filesEl) filesEl.innerHTML = '';
+    if (filesEmpty) filesEmpty.style.display = 'block';
+
+    // Modificar/hide o botão Modifier para clientes novos
+    const modBtn = document.getElementById('cpmod-modify-btn');
+    if (modBtn) modBtn.style.display = _cpmodIsNew ? 'none' : '';
+
+    // Mostrar
+    overlay.style.display = 'block';
+
+    // Ir para edit mode se for novo cliente ou se editMode=true
+    if (editMode || _cpmodIsNew) {
+      window.cpmodStartEdit();
+    } else {
+      window.cpmodSwitchTab('perfil');
+    }
+  }
+
+  // ── cpmodClose ────────────────────────────────────────────────────────────
+  window.cpmodClose = function() {
+    const overlay = document.getElementById('cpmod-overlay');
+    if (overlay) overlay.style.display = 'none';
+    _cpmodCurrentId = null;
+    _cpmodIsNew = false;
+    // Limpar campos do formulário de edição
+    ['civilite','prenom','nom','email','tel','whatsapp','naissance',
+     'nationalite','passport','passport-exp','adresse','cp','ville','pays','notes'].forEach(function(f) {
+      const el = document.getElementById('cpedit-' + f);
+      if (el) el.value = '';
+    });
+  };
+
+  // ── cpmodSwitchTab (base — v3.66 faz override posterior) ─────────────────
+  if (!window.cpmodSwitchTab) {
+    window.cpmodSwitchTab = function(tab) {
+      ['perfil','edit','reservas','tasks'].forEach(function(p) {
+        const el = document.getElementById('cpmod-panel-' + p);
+        if (el) el.style.display = (p === tab) ? (p === 'perfil' ? 'grid' : 'block') : 'none';
+      });
+      ['perfil','reservas','tasks'].forEach(function(t) {
+        const btn = document.getElementById('cpmod-tab-' + t);
+        if (!btn) return;
+        btn.style.color = t === tab ? 'var(--gold,#D80505)' : 'rgba(6,32,59,0.45)';
+        btn.style.borderBottomColor = t === tab ? 'var(--gold,#D80505)' : 'transparent';
+      });
+      const fDef  = document.getElementById('cpmod-footer-default');
+      const fEdit = document.getElementById('cpmod-footer-edit');
+      const tabs  = document.getElementById('cpmod-tabs');
+      if (tab === 'edit') {
+        if (fDef)  fDef.style.display  = 'none';
+        if (fEdit) fEdit.style.display = 'flex';
+        if (tabs)  tabs.style.display  = 'none';
+      } else {
+        if (fDef)  fDef.style.display  = 'flex';
+        if (fEdit) fEdit.style.display = 'none';
+        if (tabs)  tabs.style.display  = 'flex';
+      }
+    };
+  }
+
+  // ── cpmodStartEdit ────────────────────────────────────────────────────────
+  window.cpmodStartEdit = function() {
+    // Preencher campos com dados do cliente actual
+    const all = _cliLoad();
+    const c   = _cpmodCurrentId ? all.find(function(x) { return x.id === _cpmodCurrentId; }) : null;
+
+    function sv(f, val) {
+      const el = document.getElementById('cpedit-' + f);
+      if (el) el.value = val || '';
+    }
+    if (c) {
+      sv('civilite',    c.civilite);
+      sv('prenom',      c.prenom);
+      sv('nom',         c.nom);
+      sv('email',       c.email);
+      sv('tel',         c.tel);
+      sv('whatsapp',    c.whatsapp);
+      sv('naissance',   c.naissance);
+      sv('nationalite', c.nationalite);
+      sv('passport',    c.passport);
+      sv('passport-exp',c.passport_exp);
+      sv('adresse',     c.adresse);
+      sv('cp',          c.cp);
+      sv('ville',       c.ville);
+      sv('pays',        c.pays);
+      sv('notes',       c.notes);
+    }
+    window.cpmodSwitchTab('edit');
+  };
+
+  // ── cpmodSaveEdit ─────────────────────────────────────────────────────────
+  window.cpmodSaveEdit = function() {
+    function gv(f) {
+      const el = document.getElementById('cpedit-' + f);
+      return el ? el.value.trim() : '';
+    }
+    const now   = new Date().toISOString();
+    const prenom = gv('prenom');
+    const nom    = gv('nom');
+    if (!prenom && !nom) {
+      if (typeof window.xpAlert === 'function') window.xpAlert('Prénom ou Nom est requis.', 'warning');
+      else alert('Prénom ou Nom est requis.');
+      return;
+    }
+
+    const all = _cliLoad();
+    if (_cpmodIsNew || !_cpmodCurrentId) {
+      // Criar novo cliente
+      const newClient = {
+        id:           _genId(),
+        civilite:     gv('civilite'),
+        prenom:       prenom,
+        nom:          nom,
+        email:        gv('email'),
+        tel:          gv('tel'),
+        whatsapp:     gv('whatsapp'),
+        naissance:    gv('naissance'),
+        nationalite:  gv('nationalite'),
+        passport:     gv('passport'),
+        passport_exp: gv('passport-exp'),
+        adresse:      gv('adresse'),
+        cp:           gv('cp'),
+        ville:        gv('ville'),
+        pays:         gv('pays'),
+        notes:        gv('notes'),
+        createdAt:    now,
+        updatedAt:    now,
+      };
+      all.push(newClient);
+      _cpmodCurrentId = newClient.id;
+      _cpmodIsNew     = false;
+    } else {
+      // Actualizar cliente existente
+      const idx = all.findIndex(function(x) { return x.id === _cpmodCurrentId; });
+      if (idx >= 0) {
+        Object.assign(all[idx], {
+          civilite:     gv('civilite'),
+          prenom:       prenom,
+          nom:          nom,
+          email:        gv('email'),
+          tel:          gv('tel'),
+          whatsapp:     gv('whatsapp'),
+          naissance:    gv('naissance'),
+          nationalite:  gv('nationalite'),
+          passport:     gv('passport'),
+          passport_exp: gv('passport-exp'),
+          adresse:      gv('adresse'),
+          cp:           gv('cp'),
+          ville:        gv('ville'),
+          pays:         gv('pays'),
+          notes:        gv('notes'),
+          updatedAt:    now,
+        });
+      }
+    }
+
+    _cliSave(all);
+
+    if (typeof window.toast === 'function') {
+      window.toast('Client sauvegardé ✓', 'success');
+    }
+
+    // Voltar para view mode com os novos dados
+    const saved = all.find(function(x) { return x.id === _cpmodCurrentId; });
+    if (saved) {
+      _openModal(saved, false);
+    } else {
+      window.cpmodClose();
+    }
+
+    // Mostrar botão Modifier
+    const modBtn = document.getElementById('cpmod-modify-btn');
+    if (modBtn) modBtn.style.display = '';
+  };
+
+  // ── cpmodCancelEdit ───────────────────────────────────────────────────────
+  window.cpmodCancelEdit = function() {
+    if (_cpmodIsNew) {
+      // Era novo cliente e cancelou → fechar completamente
+      window.cpmodClose();
+    } else {
+      // Voltar para view mode
+      window.cpmodSwitchTab('perfil');
+    }
+  };
+
+  // ── cpmodPopulateBookings (stub) ──────────────────────────────────────────
+  if (!window.cpmodPopulateBookings) {
+    window.cpmodPopulateBookings = function() {
+      const tbody = document.getElementById('cpmod-bookings-tbody');
+      if (!tbody) return;
+      if (!_cpmodCurrentId) { tbody.innerHTML = '<tr><td colspan="3" style="padding:1rem;text-align:center;color:rgba(6,32,59,0.4);font-style:italic;">Nenhuma reserva.</td></tr>'; return; }
+      const all = _cliLoad();
+      const c   = all.find(function(x) { return x.id === _cpmodCurrentId; });
+      tbody.innerHTML = '<tr><td colspan="3" style="padding:1rem;text-align:center;color:rgba(6,32,59,0.4);font-style:italic;">Sem histórico de reservas.</td></tr>';
+    };
+  }
+
+  // ── clientsViewProfile — abre modal para cliente existente ou novo ────────
+  // Não sobrescrever se já foi definido pela lógica do app.js
+  const _existingCVP = window.clientsViewProfile;
+  window.clientsViewProfile = function(id) {
+    // Chamar override do app.js (v3.66) se existir
+    if (typeof _existingCVP === 'function' && _existingCVP !== window.clientsViewProfile) {
+      try { _existingCVP.call(this, id); } catch(_) {}
+    }
+
+    if (id === null || id === undefined) {
+      // Novo cliente
+      _openModal(null, true);
+      return;
+    }
+
+    // Cliente existente
+    const all = _cliLoad();
+    const c   = all.find(function(x) { return x.id === id; });
+    if (!c) { if (typeof window.toast === 'function') window.toast('Cliente não encontrado', 'error'); return; }
+    _openModal(c, false);
+  };
+
+  console.info('[ui-fixes] cpmod client modal implemented');
+})();
