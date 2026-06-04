@@ -2,45 +2,104 @@
  * auth.js — Autenticação Supabase
  *
  * Substitui o sistema PHP (/finance/login.php) por Supabase Auth.
- * Carregado DEPOIS de app.js para sobrescrever as funções de auth
- * que o app.js definiu.
+ * Carregado DEPOIS de app.js para sobrescrever as funções de auth.
  *
  * Roles:
  *   agent → acesso a tudo EXCETO Finance (Ticketing) e Financeiro (sidebar)
  *   admin → acesso total + gestão de utilizadores
+ *
+ * Fix de race condition (hard refresh):
+ *   app.js startup chama a função PHP _checkServerSession() local que
+ *   retorna {authenticated:false} e chama _showLoginOverlay(). Intercep-
+ *   tamos window._showLoginOverlay sincronamente antes disso acontecer,
+ *   para que só o Supabase controle quando o overlay é mostrado.
  */
 import { supabase, SUPABASE_ENABLED } from './supabase-client.js';
 import { sbHydrate, sbStartSync } from './storage.js';
 
-// ── Guarda a sessão ativa ─────────────────────────────────────────────────────
-let _currentSession = null;
-let _currentRole    = 'agent';
+// ══════════════════════════════════════════════════════════════════════════════
+// SECÇÃO SÍNCRONA — corre ANTES de qualquer código async
+// Garante que o overlay de login não pisca por causa da chamada PHP
+// ══════════════════════════════════════════════════════════════════════════════
 
-// ── Helpers de UI (chamadas ao app.js que corre no IIFE global) ───────────────
-function _hideLogin()  { if (typeof window._hideLoginOverlay  === 'function') window._hideLoginOverlay();  }
-function _showLogin()  { if (typeof window._showLoginOverlay  === 'function') window._showLoginOverlay();  }
-function _updateAdmin(){ if (typeof window._updateAdminVisibility === 'function') window._updateAdminVisibility(); }
+let _supabaseResolved = false;  // true depois de supabase.auth.getSession() terminar
+let _currentSession   = null;
+let _currentRole      = 'agent';
 
-// ── Visibilidade baseada em role ──────────────────────────────────────────────
+// 1. Oculta o overlay imediatamente com uma classe de loading
+//    (evita o flash do formulário de login enquanto o Supabase verifica)
+const _loginOverlay = document.getElementById('login-overlay');
+if (_loginOverlay && SUPABASE_ENABLED) {
+  _loginOverlay.setAttribute('data-auth-loading', 'true');
+  // Aplica estilos de loading inline para não depender de CSS externo
+  _loginOverlay.style.background = 'rgba(255,255,255,1)';
+  _loginOverlay.style.display    = 'flex';
+  // Esconde o card do login durante o check — só mostra se não autenticado
+  const _loginCard = _loginOverlay.querySelector('.login-card');
+  if (_loginCard) _loginCard.style.visibility = 'hidden';
+}
+
+// 2. Intercepta window._showLoginOverlay para bloquear chamadas do app.js PHP
+//    enquanto o Supabase ainda não respondeu, ou se já há sessão válida
+const _origShowLogin = window._showLoginOverlay;
+if (SUPABASE_ENABLED) {
+  window._showLoginOverlay = function() {
+    if (!_supabaseResolved) return;  // Supabase ainda a verificar — ignorar
+    if (_currentSession)   return;  // Supabase confirmou sessão — não mostrar
+    // Sem sessão Supabase → mostrar login real
+    _restoreLoginCard();
+    if (typeof _origShowLogin === 'function') _origShowLogin.call(this);
+  };
+}
+
+function _restoreLoginCard() {
+  if (!_loginOverlay) return;
+  _loginOverlay.removeAttribute('data-auth-loading');
+  _loginOverlay.style.background = '';
+  const _loginCard = _loginOverlay.querySelector('.login-card');
+  if (_loginCard) _loginCard.style.visibility = '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECÇÃO ASSÍNCRONA
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _hideLogin() {
+  if (_loginOverlay) {
+    _loginOverlay.style.display = 'none';
+    _loginOverlay.classList.add('hidden');
+    _restoreLoginCard();
+  }
+  if (typeof window._hideLoginOverlay === 'function') window._hideLoginOverlay();
+}
+
+function _showLogin() {
+  _restoreLoginCard();
+  if (typeof _origShowLogin === 'function') _origShowLogin();
+  else if (_loginOverlay) { _loginOverlay.classList.remove('hidden'); _loginOverlay.style.display = 'flex'; }
+}
+
+function _updateAdmin() {
+  if (typeof window._updateAdminVisibility === 'function') window._updateAdminVisibility();
+}
+
+// ── Visibilidade por role ─────────────────────────────────────────────────────
 function applyRoleUI(role) {
   const isAdmin = role === 'admin';
 
   // Finance tab dentro do Ticketing — só admin
-  const finTab   = document.getElementById('qt-tab-finance');
-  const finPanel = document.getElementById('dv-panel-finance');
-  if (finTab)   finTab.style.display   = isAdmin ? '' : 'none';
-  if (finPanel) finPanel.style.display = isAdmin ? '' : 'none';
+  ['qt-tab-finance', 'dv-panel-finance'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
 
-  // Financeiro na sidebar — só admin
-  const snavFin = document.getElementById('snav-financeiro');
-  if (snavFin) snavFin.style.display = isAdmin ? '' : 'none';
+  // Financeiro na sidebar e section-page — só admin
+  ['snav-financeiro', 'section-financeiro'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
 
-  // Secção Financeiro (section-page) — só admin
-  const sectionFin = document.getElementById('section-financeiro');
-  if (sectionFin) sectionFin.style.display = isAdmin ? '' : 'none';
-
-  // Admin sidebar items — só admin (já controlado por _updateAdminVisibility,
-  // mas garantimos aqui também)
+  // Admin sidebar — já controlado por _updateAdminVisibility, mas reforçamos
   const adminLabel = document.getElementById('sidebar-admin-label');
   const adminItem  = document.getElementById('snav-admin-users');
   if (adminLabel) adminLabel.style.display = isAdmin ? 'block' : 'none';
@@ -62,12 +121,13 @@ async function fetchRole(userId) {
   }
 }
 
-// ── Sessão Supabase → estado do app ──────────────────────────────────────────
+// ── Aplicar sessão ────────────────────────────────────────────────────────────
 async function applySession(session) {
   if (!session) {
     _currentSession = null;
     _currentRole    = 'agent';
     window.__serverSession = { authenticated: false, isAdmin: false };
+    _supabaseResolved = true;
     _showLogin();
     return;
   }
@@ -77,27 +137,22 @@ async function applySession(session) {
 
   const isAdmin = _currentRole === 'admin';
   window.__serverSession = { authenticated: true, isAdmin };
+  _supabaseResolved = true;
 
-  // Hidrata localStorage com os dados do Supabase (se ainda não foi feito)
   await sbHydrate();
-
-  // Activa a sincronização em background (localStorage ↔ Supabase)
   sbStartSync();
 
   _hideLogin();
   _updateAdmin();
   applyRoleUI(_currentRole);
+  if (typeof window.__hydrate === 'function') setTimeout(window.__hydrate, 150);
 }
 
 // ── Override: login ───────────────────────────────────────────────────────────
 window.__loginSubmitReal = async function() {
   if (!SUPABASE_ENABLED) {
-    console.warn('[auth] Supabase não configurado — preencha .env');
     const errEl = document.getElementById('login-error');
-    if (errEl) {
-      errEl.textContent = '⚠️ Supabase não configurado. Adicione as variáveis no .env';
-      errEl.style.display = 'block';
-    }
+    if (errEl) { errEl.textContent = '⚠️ Supabase não configurado. Adicione VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env'; errEl.style.display = 'block'; }
     return;
   }
 
@@ -114,8 +169,8 @@ window.__loginSubmitReal = async function() {
     return;
   }
 
-  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Connexion…'; }
-  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  if (btnEl)  { btnEl.disabled = true; btnEl.textContent = 'Connexion…'; }
+  if (errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
@@ -133,9 +188,6 @@ window.__loginSubmitReal = async function() {
 
     await applySession(data.session);
 
-    // Chamar __hydrate do app.js se disponível (carrega dossiers na UI)
-    if (typeof window.__hydrate === 'function') setTimeout(window.__hydrate, 150);
-
   } catch (e) {
     if (errEl) {
       errEl.textContent = '⚠️ Erreur réseau — ' + (e.message || 'impossible de joindre Supabase');
@@ -148,16 +200,14 @@ window.__loginSubmitReal = async function() {
 
 // ── Override: logout ──────────────────────────────────────────────────────────
 window._logout = async function() {
-  if (supabase) {
-    await supabase.auth.signOut().catch(() => {});
-  }
-  // Limpa estado local
-  _currentSession = null;
+  if (supabase) await supabase.auth.signOut().catch(() => {});
+  _currentSession  = null;
+  _supabaseResolved = false;
   window.__serverSession = { authenticated: false, isAdmin: false };
   location.reload();
 };
 
-// ── Override: verificação de sessão (chamada pelo app.js no boot) ─────────────
+// ── Override: verificação de sessão ──────────────────────────────────────────
 window._checkServerSession = async function() {
   if (!SUPABASE_ENABLED) return { authenticated: false, isAdmin: false };
   try {
@@ -173,32 +223,37 @@ window._checkServerSession = async function() {
 // ── Inicialização ─────────────────────────────────────────────────────────────
 async function init() {
   if (!SUPABASE_ENABLED) {
-    console.warn('[auth] Supabase não configurado — a app funciona em modo localStorage.');
+    // Sem Supabase: liberta o overlay para que o app.js use o fluxo PHP normal
+    _supabaseResolved = true;
+    window._showLoginOverlay = _origShowLogin;
+    _restoreLoginCard();
+    console.warn('[auth] Supabase não configurado — usando fluxo PHP.');
     return;
   }
 
-  // Escuta mudanças de sessão (ex: token expirado, login noutro tab)
+  // Escuta mudanças de sessão (ex: token expirado, logout noutro tab)
   supabase.auth.onAuthStateChange(async (_event, session) => {
-    await applySession(session);
+    if (_supabaseResolved) {
+      // Só trata mudanças DEPOIS do check inicial (evita double-trigger)
+      await applySession(session);
+    }
   });
 
-  // Verifica sessão existente no arranque
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (session) {
-    // Aplica imediatamente sem esperar pelo _checkServerSession do app.js
+  // Verifica sessão existente (lê do localStorage — muito rápido)
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
     await applySession(session);
+  } catch (e) {
+    console.warn('[auth] Erro ao verificar sessão:', e.message);
+    _supabaseResolved = true;
+    _restoreLoginCard();
+    _showLogin();
   }
-  // Se não há sessão, o login overlay já está visível (app.js mostra por defeito)
 }
 
-// Corre assim que o DOM estiver pronto
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+// Corre imediatamente (o módulo é importado após o DOM estar pronto)
+init();
 
-// ── Expõe role publicamente para outros módulos ───────────────────────────────
-export function getCurrentRole()    { return _currentRole; }
+// ── Exports públicos ──────────────────────────────────────────────────────────
+export function getCurrentRole()    { return _currentRole;    }
 export function getCurrentSession() { return _currentSession; }
