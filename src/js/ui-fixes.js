@@ -177,13 +177,22 @@ document.addEventListener('click', function(e) {
     try { localStorage.setItem('expatur_booked_' + dossierId, '1'); } catch(_) {}
   }
 
-  // 3. Desbloquear aba billet
-  const billetTab = document.getElementById('qt-tab-billet');
-  if (billetTab) billetTab.classList.remove('qt-tab-locked');
+  // 3. Desbloquear TODAS as abas de reserva (billet, docs, tasks, finance)
+  ['paiement','billet','docs','tasks','finance'].forEach(function(t) {
+    const tb = document.getElementById('qt-tab-' + t);
+    if (tb) { tb.classList.remove('qt-tab-locked'); tb.disabled = false; }
+  });
+  try { if (typeof window._applyBookingTabState === 'function') window._applyBookingTabState(); } catch(_) {}
 
-  // 4. Navegar para TICKETS via quotingSwitch (actualiza qt-tab-* + chama openBilletModal)
+  // 4. Restaurar visibilidade FINANCE para admin (o nosso PAYOUT fix pode ter ocultado)
+  const isAdmin = !!(window.__serverSession && window.__serverSession.isAdmin);
+  ['qt-tab-finance','dv-panel-finance','snav-financeiro','section-financeiro'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+
+  // 5. Navegar para TICKETS (activar qt-tab-billet + dv-panel-billet)
   setTimeout(function() {
-    // Activar tab TICKETS visualmente
     ['vols','client','couts','paiement','billet','docs','tasks','finance'].forEach(function(t) {
       const tb = document.getElementById('qt-tab-' + t);
       const pn = document.getElementById('dv-panel-' + t);
@@ -192,7 +201,7 @@ document.addEventListener('click', function(e) {
     });
     try { window._lastQuotingTab = 'billet'; } catch(_) {}
 
-    // Chamar openBilletModal para preencher o conteúdo
+    // Preencher conteúdo do billet
     setTimeout(function() {
       try { if (typeof window.openBilletModal === 'function') window.openBilletModal(); } catch(_) {}
     }, 50);
