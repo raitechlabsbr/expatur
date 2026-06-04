@@ -44,12 +44,39 @@ if (_loginOverlay && SUPABASE_ENABLED) {
 const _origShowLogin = window._showLoginOverlay;
 if (SUPABASE_ENABLED) {
   window._showLoginOverlay = function() {
-    if (!_supabaseResolved) return;  // Supabase ainda a verificar — ignorar
-    if (_currentSession)   return;  // Supabase confirmou sessão — não mostrar
-    // Sem sessão Supabase → mostrar login real
+    if (!_supabaseResolved) return;
+    if (_currentSession)   return;
     _restoreLoginCard();
     if (typeof _origShowLogin === 'function') _origShowLogin.call(this);
   };
+}
+
+// 3. GUARDA CRÍTICA: MutationObserver no #login-overlay
+//    Causa raiz: pm2 serve --spa retorna HTTP 200 para /finance/api.php
+//    O app.js interpreta como "autenticado" e chama _hideLoginOverlay() (função LOCAL,
+//    não o window.xxx). O observer apanha essa ocultação e reverte imediatamente
+//    se o Supabase ainda não confirmou sessão.
+if (SUPABASE_ENABLED && _loginOverlay) {
+  const _overlayGuard = new MutationObserver(function() {
+    if (_supabaseResolved && _currentSession) return; // Auth confirmada — deixar passar
+    // Supabase ainda não resolveu OU não há sessão → manter overlay visível
+    const isHidden = _loginOverlay.classList.contains('hidden')
+                   || _loginOverlay.style.display === 'none'
+                   || _loginOverlay.style.visibility === 'hidden';
+    if (isHidden) {
+      _loginOverlay.classList.remove('hidden');
+      _loginOverlay.style.removeProperty('display');
+      _loginOverlay.style.removeProperty('visibility');
+    }
+  });
+  _overlayGuard.observe(_loginOverlay, {
+    attributes: true,
+    attributeFilter: ['class', 'style']
+  });
+  // Parar o guard assim que Supabase resolver (evita interferência posterior)
+  const _stopGuard = function() { _overlayGuard.disconnect(); };
+  // Será chamado em applySession após resolução
+  window.__stopOverlayGuard = _stopGuard;
 }
 
 function _restoreLoginCard() {
@@ -205,6 +232,12 @@ async function fetchRole(userId) {
 // Aceita tanto o objeto session do SDK ({ user, access_token })
 // como a resposta directa da REST API ({ user, access_token, refresh_token })
 async function applySession(session) {
+  // Parar o guard assim que Supabase resolver (seja com sessão ou sem)
+  if (typeof window.__stopOverlayGuard === 'function') {
+    window.__stopOverlayGuard();
+    window.__stopOverlayGuard = null;
+  }
+
   if (!session) {
     _currentSession = null;
     _currentRole    = 'agent';
