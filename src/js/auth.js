@@ -112,40 +112,63 @@ window._applyRoleUI = function() {
 };
 
 // ── Bypass do gate de senha do Financeiro para admin ─────────────────────────
-// app.js sidebarGo('financeiro') verifica _finIsUnlocked() → mostra modal de senha
-// Para admin: marcar sempre como desbloqueado (TTL de 4h) e suprimir o modal
-function _bypassFinGateForAdmin() {
-  if (_currentRole !== 'admin') return;
-  // Marcar como "desbloqueado agora" — _finIsUnlocked() verifica este timestamp
-  try { localStorage.setItem('_finAccessTs', String(Date.now())); } catch(_) {}
-  // Fechar o overlay de password se estiver aberto por engano
+// Abordagem definitiva: MutationObserver no #fin-pw-overlay
+// Assim que o overlay abre (classe 'open' adicionada), se o utilizador for admin:
+//   1. Remove a classe 'open' imediatamente (fecha o modal)
+//   2. Marca _finAccessTs = agora (4h de acesso livre)
+//   3. Chama sidebarGo('financeiro') para completar a navegação
+//
+// Isto funciona independentemente de quantos wrappers sidebarGo tenha.
+function _installFinGateBypass() {
   const ov = document.getElementById('fin-pw-overlay');
-  if (ov && ov.classList.contains('open')) ov.classList.remove('open');
+  if (!ov || ov._adminBypassObserver) return;
+
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.type !== 'attributes' || m.attributeName !== 'class') return;
+      if (!ov.classList.contains('open')) return;
+      if (_currentRole !== 'admin') return;
+
+      // Admin: fechar imediatamente e marcar como desbloqueado
+      ov.classList.remove('open');
+      try { localStorage.setItem('_finAccessTs', String(Date.now())); } catch(_) {}
+
+      // Completar a navegação para Financeiro (que foi bloqueada pelo gate)
+      setTimeout(function() {
+        // Chamar _orig ou directamente a lógica de navegação
+        if (typeof window._currentSection !== 'undefined') {
+          window._currentSection = 'financeiro';
+        }
+        // Mostrar secção Financeiro directamente
+        document.querySelectorAll('.section-page').forEach(function(el) {
+          el.classList.remove('open');
+        });
+        const finSection = document.getElementById('section-financeiro');
+        if (finSection) finSection.classList.add('open');
+        // Actualizar sidebar active state
+        document.querySelectorAll('.sidebar-item').forEach(function(b) {
+          b.classList.remove('active');
+        });
+        const finBtn = document.getElementById('snav-financeiro');
+        if (finBtn) finBtn.classList.add('active');
+        // Fechar sidebar mobile
+        if (typeof window.sidebarClose === 'function') window.sidebarClose();
+      }, 10);
+    });
+  });
+
+  observer.observe(ov, { attributes: true, attributeFilter: ['class'] });
+  ov._adminBypassObserver = true;
 }
 
-// Interceptar sidebarGo para admin: antes de navegar para financeiro,
-// garantir que o timestamp está fresco para o gate deixar passar
-(function patchSidebarGoForAdmin() {
-  function _patch() {
-    if (typeof window.sidebarGo !== 'function') return;
-    if (window.sidebarGo._adminBypass) return;
-    const _orig = window.sidebarGo;
-    window.sidebarGo = function(section) {
-      if (section === 'financeiro' && _currentRole === 'admin') {
-        _bypassFinGateForAdmin();
-      }
-      return _orig.apply(this, arguments);
-    };
-    window.sidebarGo._adminBypass = true;
-  }
-  _patch();
-  // Safety net: sidebarGo pode ser definido mais tarde por patches
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _patch);
-  } else {
-    setTimeout(_patch, 500);
-  }
-})();
+// Instalar logo que o DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _installFinGateBypass);
+} else {
+  _installFinGateBypass();
+  // Safety net para caso o overlay seja criado mais tarde
+  setTimeout(_installFinGateBypass, 800);
+}
 
 // ── Obter role do perfil ──────────────────────────────────────────────────────
 async function fetchRole(userId) {
