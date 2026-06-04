@@ -11,6 +11,12 @@
  */
 import { supabase, SUPABASE_ENABLED } from './supabase-client.js';
 
+// ── Referência ao setItem NATIVO — capturada ANTES de qualquer override ────────
+// CRÍTICO: _lsSet e sbStartSync devem usar esta referência para evitar
+// recursão infinita quando localStorage.setItem for sobrescrito pelo sync.
+const _nativeLsSet    = localStorage.setItem.bind(localStorage);
+const _nativeLsRemove = localStorage.removeItem.bind(localStorage);
+
 // ── Purge de caches de voos expirados (evita QuotaExceededError) ──────────────
 function _purgeStaleCaches() {
   const TTL = 7 * 24 * 60 * 60 * 1000;
@@ -20,20 +26,20 @@ function _purgeStaleCaches() {
     if (!k?.startsWith('expatur_flight_')) continue;
     try {
       const e = JSON.parse(localStorage.getItem(k));
-      if (now - e.ts > TTL) localStorage.removeItem(k);
-    } catch { localStorage.removeItem(k); }
+      if (now - e.ts > TTL) _nativeLsRemove(k);
+    } catch { _nativeLsRemove(k); }
   }
 }
 
-// ── Guarda de cota para localStorage ─────────────────────────────────────────
+// ── Guarda de cota para localStorage (usa referência nativa — sem recursão) ───
 function _lsSet(key, value) {
   try {
-    localStorage.setItem(key, value);
+    _nativeLsSet(key, value);   // ← nativo, nunca chama o override
     return true;
   } catch (e) {
     if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
       _purgeStaleCaches();
-      try { localStorage.setItem(key, value); return true; } catch { return false; }
+      try { _nativeLsSet(key, value); return true; } catch { return false; }
     }
     return false;
   }
@@ -182,12 +188,10 @@ export function sbStartSync() {
   if (!SUPABASE_ENABLED || !supabase || _syncActive) return;
   _syncActive = true;
 
-  const _origSetItem    = localStorage.setItem.bind(localStorage);
-  const _origRemoveItem = localStorage.removeItem.bind(localStorage);
-
-  // Override setItem
+  // Override setItem — usa _nativeLsSet para evitar recursão infinita
+  // (_lsSet também usa _nativeLsSet, mas sendo explícito aqui por clareza)
   localStorage.setItem = function(key, value) {
-    // 1. Escreve no localStorage normalmente
+    // 1. Escreve no localStorage via referência nativa (sem recursão)
     _lsSet(key, value);
 
     // 2. Sincroniza com Supabase em background (com debounce)
@@ -198,7 +202,7 @@ export function sbStartSync() {
 
   // Override removeItem (para dossiers apagados)
   localStorage.removeItem = function(key) {
-    _origRemoveItem(key);
+    _nativeLsRemove(key);
 
     if (!SUPABASE_ENABLED || !supabase) return;
     const rule = _findRule(key);
