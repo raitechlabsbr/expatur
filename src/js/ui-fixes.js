@@ -152,9 +152,59 @@ function _clearPanelInlineStyles() {
 document.addEventListener('click', function(e) {
   const tab = e.target.closest('.dv-tab, .qt-tab, [id^="qt-tab-"], [id^="dv-tab-"]');
   if (!tab) return;
-  // Só limpa se não for o botão PAYOUT (que tem lógica própria)
   if (tab.id === 'qt-payout-btn') return;
   _clearPanelInlineStyles();
+}, true);
+
+// ── "ÉMETTRE LE BILLET →" — navegar para aba TICKETS via quotingSwitch ────────
+// emGoToTickets() usa dvSwitch('billet') que só actualiza dv-tab-* (booking tabs).
+// No contexto Ticketing precisamos de quotingSwitch('billet') que actualiza
+// qt-tab-* (quoting tabs) E chama openBilletModal().
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('#em-go-emission-cash');
+  if (!btn) return;
+
+  e.stopPropagation();
+  e.preventDefault();
+
+  // 1. Limpar inline styles dos painéis
+  _clearPanelInlineStyles();
+
+  // 2. Garantir que o booking está marcado
+  let dossierId = null;
+  try { dossierId = localStorage.getItem('expatur_active_dossier') || null; } catch(_) {}
+  if (dossierId) {
+    try { localStorage.setItem('expatur_booked_' + dossierId, '1'); } catch(_) {}
+  }
+
+  // 3. Desbloquear aba billet
+  const billetTab = document.getElementById('qt-tab-billet');
+  if (billetTab) billetTab.classList.remove('qt-tab-locked');
+
+  // 4. Navegar para TICKETS via quotingSwitch (actualiza qt-tab-* + chama openBilletModal)
+  setTimeout(function() {
+    // Activar tab TICKETS visualmente
+    ['vols','client','couts','paiement','billet','docs','tasks','finance'].forEach(function(t) {
+      const tb = document.getElementById('qt-tab-' + t);
+      const pn = document.getElementById('dv-panel-' + t);
+      if (tb) tb.classList.toggle('active', t === 'billet');
+      if (pn) pn.classList.toggle('active', t === 'billet');
+    });
+    try { window._lastQuotingTab = 'billet'; } catch(_) {}
+
+    // Chamar openBilletModal para preencher o conteúdo
+    setTimeout(function() {
+      try { if (typeof window.openBilletModal === 'function') window.openBilletModal(); } catch(_) {}
+    }, 50);
+
+    // Scroll topo
+    try {
+      const host = document.getElementById('quoting-panels-host');
+      if (host) host.scrollTop = 0;
+    } catch(_) {}
+  }, 50);
+
+  if (typeof window.toast === 'function') window.toast('Passage en Tickets ✓', 'success');
 }, true);
 
 // ══════════════════════════════════════════════════════════════════════════════
