@@ -286,7 +286,122 @@ function importTasksFromExcelV2(input) {
     document.addEventListener('DOMContentLoaded', _override);
   } else {
     _override();
-    // Safety net para patches que podem redefinir mais tarde
     setTimeout(_override, 500);
+  }
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PATCH XLSX.read — suporte a ficheiros XLS baseados em HTML (Bitrix24, etc.)
+//
+// O modal "Importar Excel" em Tarefas usa XLSX.read() que falha com HTML.
+// Este patch:
+//  1. Detecta se os dados são HTML (começa com <meta|<table|<html)
+//  2. Converte a tabela HTML em workbook XLSX usando XLSX.utils.table_to_book
+//  3. Normaliza os nomes das colunas Bitrix24 → nomes esperados pelo modal:
+//       Task        → title
+//       Project     → categoria
+//       Deadline    → vencimento
+//       Status      → _status (para lógica de done)
+//       Description → descricao
+//       Assignee    → assignee
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Mapeamento de colunas Bitrix24 → aliases usados pelo modal
+const BITRIX_COL_MAP = {
+  'task':         'title',
+  'project':      'categoria',
+  'deadline':     'vencimento',
+  'status':       '_status',
+  'description':  'descricao',
+  'assignee':     'assignee',
+  'id':           '_id',
+};
+
+function _normalizeBitrixRow(row) {
+  const normalized = {};
+  Object.keys(row).forEach(function(k) {
+    const lower = k.toLowerCase().trim();
+    const mapped = BITRIX_COL_MAP[lower] || lower;
+    normalized[mapped] = row[k];
+  });
+  return normalized;
+}
+
+function _htmlToWorkbook(arrayBuffer) {
+  const text = new TextDecoder('utf-8').decode(new Uint8Array(arrayBuffer));
+
+  // Criar elemento DOM temporário para o browser parsear o HTML
+  const div = document.createElement('div');
+  div.innerHTML = text;
+  const table = div.querySelector('table');
+  if (!table || !window.XLSX) return null;
+
+  // Usar XLSX.utils.table_to_book para converter a tabela HTML em workbook
+  const wb = window.XLSX.utils.table_to_book(table, { sheet: 'Sheet1', raw: false });
+
+  // Normalizar as colunas de todas as folhas
+  wb.SheetNames.forEach(function(sheetName) {
+    const ws = wb.Sheets[sheetName];
+    const rows = window.XLSX.utils.sheet_to_json(ws, { defval: '' });
+    if (!rows.length) return;
+
+    // Verificar se é formato Bitrix24 (tem coluna 'Task')
+    const isBitrix = Object.keys(rows[0]).some(function(k) {
+      return k.toLowerCase().trim() === 'task';
+    });
+
+    if (isBitrix) {
+      // Normalizar colunas e re-construir o workbook
+      const normalized = rows.map(_normalizeBitrixRow);
+      const newWs = window.XLSX.utils.json_to_sheet(normalized);
+      wb.Sheets[sheetName] = newWs;
+    }
+  });
+
+  return wb;
+}
+
+function _patchXLSXRead() {
+  if (!window.XLSX || window.XLSX.__htmlPatched) return;
+
+  const _origRead = window.XLSX.read.bind(window.XLSX);
+
+  window.XLSX.read = function(data, opts) {
+    // Verificar se é HTML
+    let isHtmlFile = false;
+    try {
+      const arr = (data instanceof Uint8Array)
+        ? data
+        : new Uint8Array(ArrayBuffer.isView(data) ? data.buffer : data);
+      const head = new TextDecoder().decode(arr.slice(0, 300));
+      isHtmlFile = /<html|<meta|<table|<thead/i.test(head);
+    } catch(_) {}
+
+    if (isHtmlFile) {
+      try {
+        const buf = (data instanceof Uint8Array) ? data.buffer : data;
+        const wb = _htmlToWorkbook(buf instanceof ArrayBuffer ? buf : data.buffer || data);
+        if (wb) return wb;
+      } catch(e) {
+        console.warn('[task-import] HTML fallback failed:', e.message);
+      }
+    }
+
+    return _origRead(data, opts);
+  };
+
+  window.XLSX.__htmlPatched = true;
+  console.info('[task-import] XLSX.read patched — HTML-based XLS now supported');
+}
+
+// Aplicar patch assim que XLSX estiver disponível
+(function waitForXLSX() {
+  if (window.XLSX) {
+    _patchXLSXRead();
+  } else {
+    // XLSX é carregado com defer — esperar
+    window.addEventListener('load', _patchXLSXRead);
+    setTimeout(_patchXLSXRead, 1000);
+    setTimeout(_patchXLSXRead, 3000);
   }
 })();
