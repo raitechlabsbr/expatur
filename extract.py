@@ -83,11 +83,28 @@ js_builtins = {
     'Error','TypeError','RangeError','Map','Set','WeakMap','Symbol',
 }
 
-needs_window = (handler_funcs - window_assigned - js_builtins) & function_declared
+# ── Comprehensive window exports ─────────────────────────────────────────────
+# In classic <script> blocks, function declarations are automatically global.
+# Inside an IIFE they're local. We need to export to window:
+#   1. Functions called from HTML onclick/onchange/etc. handlers
+#   2. Functions checked by patches via: typeof window.foo === 'function'
+#   3. Functions called as: window.foo()
+#
+# CRITICAL: These must be placed at the START of the IIFE body, not the end,
+# because patch code checks window.foo BEFORE the "end-of-file" position.
+# JavaScript hoists function declarations, so they're available immediately.
 
-window_exports = '\n'.join(
-    f'  if (typeof {fn} !== \'undefined\') window.{fn} = {fn};'
-    for fn in sorted(needs_window)
+patch_checked = set(re.findall(
+    r"typeof\s+window\.([A-Za-z_$][A-Za-z0-9_$]*)\s*===?\s*['\"]function['\"]",
+    js_combined
+))
+called_via_window = set(re.findall(r'window\.([A-Za-z_$][A-Za-z0-9_$]*)\s*\(', js_combined))
+
+all_needs_window = (handler_funcs | patch_checked) & function_declared - js_builtins
+
+early_exports = '\n'.join(
+    f'  window.{fn} = {fn};'
+    for fn in sorted(all_needs_window)
 )
 
 # ── Wrap in IIFE ──────────────────────────────────────────────────────────────
@@ -103,11 +120,13 @@ js_final = f'''// Expatur Backoffice — consolidated app.js
 (function(window, document) {{
 'use strict';
 
-{js_combined}
+// ── Early window exports (MUST be first — patches check window.xxx) ──────────
+// Function declarations are hoisted, so they're available even before their
+// source line. Placing exports here ensures patches find them on window.
+{early_exports}
 
-// ── Window exports (auto-generated) ─────────────────────────────────────────
-// Functions defined inside the IIFE that are called from HTML event handlers
-{window_exports}
+// ── App code ─────────────────────────────────────────────────────────────────
+{js_combined}
 
 }})(window, document);
 '''
@@ -115,7 +134,7 @@ js_final = f'''// Expatur Backoffice — consolidated app.js
 os.makedirs(f'{BASE}/src/js', exist_ok=True)
 with open(f'{BASE}/src/js/app.js', 'w', encoding='utf-8') as f:
     f.write(js_final)
-print(f'✓ JS   → src/js/app.js        ({len(js_final)//1024}KB, {len(all_scripts)} blocks, +{len(needs_window)} window exports)')
+print(f'✓ JS   → src/js/app.js        ({len(js_final)//1024}KB, {len(all_scripts)} blocks, +{len(all_needs_window)} window exports)')
 
 # ── 4. Shell index-app.html ───────────────────────────────────────────────────
 shell = f'''<!DOCTYPE html>
