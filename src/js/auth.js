@@ -113,15 +113,31 @@ window._applyRoleUI = function() {
 
 // ── Obter role do perfil ──────────────────────────────────────────────────────
 async function fetchRole(userId) {
+  // 1. Verificar user_metadata.role (disponível imediatamente no JWT, sem DB query)
+  //    Definido quando o utilizador foi criado: user_metadata: {role: 'admin'}
+  const sessionObj = _currentSession?.user || _currentSession;
+  const metaRole = sessionObj?.user_metadata?.role;
+  if (metaRole === 'admin' || metaRole === 'agent') {
+    console.info('[auth] role from user_metadata:', metaRole);
+    return metaRole;
+  }
+
+  // 2. Fallback: consultar a tabela profiles (requer sessão Supabase activa)
   if (!supabase) return 'agent';
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single();
+    if (error) {
+      console.warn('[auth] profiles query error:', error.message);
+      return 'agent';
+    }
+    console.info('[auth] role from profiles table:', data?.role);
     return data?.role || 'agent';
-  } catch {
+  } catch (e) {
+    console.warn('[auth] fetchRole exception:', e.message);
     return 'agent';
   }
 }
