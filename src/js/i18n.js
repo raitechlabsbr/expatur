@@ -352,6 +352,38 @@ function _translateAll() {
   document.querySelectorAll('[placeholder],[title]').forEach(_translateElement);
 }
 
+// ── Restaurar texto original (FR) sem recarregar a página ────────────────────
+function _restoreAll() {
+  // 1. Restaurar todos os nós de texto que têm _origText guardado
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: function(node) {
+        return node._origText ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    }
+  );
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(function(node) {
+    node.textContent = node._origText;
+    node._origText = null;
+  });
+
+  // 2. Restaurar placeholders e titles
+  document.querySelectorAll('[placeholder],[title]').forEach(function(el) {
+    if (el._origPlaceholder) {
+      el.placeholder = el._origPlaceholder;
+      el._origPlaceholder = null;
+    }
+    if (el._origTitle) {
+      el.title = el._origTitle;
+      el._origTitle = null;
+    }
+  });
+}
+
 // ── MutationObserver para conteúdo dinâmico ───────────────────────────────────
 let _observer = null;
 let _pendingTranslation = null;
@@ -396,8 +428,14 @@ export function setLanguage(lang) {
     _translateAll();
     _startObserver();
   } else {
-    // FR: recarregar para restaurar texto original (mais simples e robusto)
-    location.reload();
+    // FR: reverter traduções no DOM sem recarregar a página
+    // (location.reload() reiniciava a autenticação → logout indesejado)
+    _restoreAll();
+    // Parar o observer — já não há nada para traduzir
+    if (_observer) {
+      _observer.disconnect();
+      _observer = null;
+    }
   }
 }
 
