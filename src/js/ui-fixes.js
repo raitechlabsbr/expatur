@@ -985,7 +985,11 @@ document.addEventListener('click', function(e) {
         window.csvDoImport = function() { _doImport(rows); };
 
         const btn = document.getElementById('csv-import-btn');
-        if (btn) { btn.disabled = false; btn.textContent = 'Importar ' + rows.length + ' contactos'; }
+        if (btn) {
+          btn.disabled = false;
+          btn.style.display = '';  // remover display:none
+          btn.textContent = 'Importar ' + rows.length + ' contactos';
+        }
         return;
       }
 
