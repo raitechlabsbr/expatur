@@ -775,3 +775,227 @@ document.addEventListener('click', function(e) {
 
   console.info('[ui-fixes] cpmod client modal implemented');
 })();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CSV IMPORT — Override com suporte correcto ao formato Bitrix24 CRM
+//
+// Problemas do auto-detect original:
+//   - "Middle Name" → nom (errado)
+//   - "Details: Name", "Banking details: Name" → nom (errado)
+//   - "Details (USA): First Name" → prenom (errado — é billing, não cliente)
+//   - Sem suporte ao separador de origem "; " com espaço extra
+//   - Sem campo "source" (origem do contacto)
+// ══════════════════════════════════════════════════════════════════════════════
+
+(function() {
+  // Mapeamento explícito para Bitrix24 (sobrepõe o auto-detect)
+  const BITRIX_MAP = {
+    'salutation':          'civilite',
+    'first name':          'prenom',
+    'last name':           'nom',
+    'birthday':            'naissance',
+    'mobile':              'tel',
+    'work phone':          'tel',
+    'home phone':          '_homephone',  // guardamos mas não sobrescrevemos tel
+    'work e-mail':         'email',
+    'home e-mail':         '_homeemail',  // fallback se work e-mail vazio
+    'newsletters email':   '',            // ignorar
+    'other e-mail':        '',            // ignorar
+    'comment':             'notes',
+    'responsible':         'agent',       // campo extra
+    'source':              'source',      // origem do contacto
+    // Ignorar campos de billing/empresa/banco
+    'middle name':         '',
+    'position':            '',
+    'company':             '',
+    'fax':                 '',
+    'pager number':        '',
+    'sms marketing phone': '',
+    'other phone number':  '',
+    'corporate website':   '',
+    'personal page':       '',
+    'facebook page':       '',
+    'vk page':             '',
+    'livejournal':         '',
+    'twitter':             '',
+    'other website':       '',
+    'facebook account':    '',
+    'telegram account':    '',
+    'vk account':          '',
+    'viber contact':       '',
+    'instagram comments':  '',
+    'network contact':     '',
+    'live chat':           '',
+    'open channel account':'',
+    'other contact':       '',
+    'linked user':         '',
+    'last updated on':     '',
+    'source information':  '',
+    'included in export':  '',
+    'created by':          '',
+    'created':             '',
+    'modified by':         '',
+    'modified':            '',
+    'created by crm form': '',
+    'customer journey':    '',
+    'utm source':          '',
+    'utm medium':          '',
+    'utm campaign':        '',
+    'utm content':         '',
+    'utm term':            '',
+    'last contact':        '',
+    'id':                  '',
+    'photo':               '',
+    'observers':           '',
+    'contact type':        '',
+  };
+  // Ignorar tudo que começa com "Details" ou "Banking details"
+  function _isBitrix(headers) {
+    const h0 = (headers[0] || '').toLowerCase().replace(/\s+/g,' ').trim();
+    const h1 = (headers[1] || '').toLowerCase().replace(/\s+/g,' ').trim();
+    return (h0 === 'id' || h0 === 'salutation' || h0 === 'photo') &&
+           (h1 === 'photo' || h1 === 'salutation' || headers.some(function(h) { return h.toLowerCase().includes('departure'); }));
+  }
+
+  function _getBitrixKey(header) {
+    const h = (header || '').toLowerCase().trim();
+    // Ignorar colunas Details: e Banking:
+    if (h.startsWith('details') || h.startsWith('banking') || h.startsWith('departure') || h.startsWith('destination') || h.startsWith('aller') || h.startsWith('returning') || h.startsWith('taille') || h.startsWith('collaborateur')) return '';
+    const mapped = BITRIX_MAP[h];
+    if (mapped !== undefined) return mapped; // pode ser '' (ignorar)
+    // Fallback para headers não mapeados explicitamente
+    return null; // null = usar autoDetect original
+  }
+
+  function _doImport(rows) {
+    if (!rows || !rows.length) return;
+    const existing = JSON.parse(localStorage.getItem('expatur_clients_db') || '[]');
+    const now = new Date().toISOString();
+    let added = 0, updated = 0, skipped = 0;
+
+    rows.forEach(function(r) {
+      if (!r.prenom && !r.nom && !r.email) { skipped++; return; }
+      // Merge fallbacks
+      if (!r.email && r._homeemail) r.email = r._homeemail;
+      if (!r.tel && r._homephone) r.tel = r._homephone;
+      delete r._homeemail; delete r._homephone;
+
+      // Find existing by email or name
+      let idx = -1;
+      if (r.email) idx = existing.findIndex(function(c) { return c.email && c.email.toLowerCase() === r.email.toLowerCase(); });
+      if (idx < 0 && (r.prenom || r.nom)) {
+        const full = ((r.prenom||'')+' '+(r.nom||'')).trim().toUpperCase();
+        idx = existing.findIndex(function(c) { return ((c.prenom||'')+' '+(c.nom||'')).trim().toUpperCase() === full; });
+      }
+
+      if (idx >= 0) {
+        Object.keys(r).forEach(function(k) { if (r[k]) existing[idx][k] = r[k]; });
+        existing[idx].updatedAt = now;
+        updated++;
+      } else {
+        r.id = 'cli_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+        r.createdAt = now;
+        r.updatedAt = now;
+        existing.push(r);
+        added++;
+      }
+    });
+
+    localStorage.setItem('expatur_clients_db', JSON.stringify(existing));
+    if (typeof window.clientsRender === 'function') window.clientsRender();
+
+    // Fechar modal e mostrar resultado
+    if (typeof window.csvImportClose === 'function') window.csvImportClose();
+    const msg = (added   ? added   + ' adicionado(s)' : '') +
+                (updated ? (added?', ':'')+updated+' actualizado(s)' : '') +
+                (skipped ? (added||updated?', ':'')+skipped+' ignorado(s)' : '');
+    if (typeof window.xpAlert === 'function') window.xpAlert('✓ Importação concluída\n' + msg, 'success');
+    else if (typeof window.toast === 'function') window.toast('Importação concluída: ' + msg, 'success');
+  }
+
+  // Override do csvHandleFile
+  const _origHandleFile = window.csvHandleFile;
+  window.csvHandleFile = function(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      // Parse CSV (detectar delimitador)
+      const firstLine = text.split(/\r?\n/)[0] || '';
+      const delim = firstLine.split(';').length > firstLine.split(',').length ? ';' : ',';
+
+      const lines = text.split(/\r?\n/).filter(function(l) { return l.trim() !== ''; });
+      function parseLine(line) {
+        const result = []; let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+          else if (ch === delim && !inQ) { result.push(cur); cur = ''; }
+          else cur += ch;
+        }
+        result.push(cur);
+        return result.map(function(v) { return v.trim(); });
+      }
+
+      const headers = parseLine(lines[0]);
+
+      if (_isBitrix(headers)) {
+        // ── Bitrix24 CRM format ─────────────────────────────────
+        const colMap = {};
+        headers.forEach(function(h) {
+          const key = _getBitrixKey(h);
+          if (key === null) return; // não mapeado, ignorar
+          if (key !== '') colMap[h] = key;
+        });
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const vals = parseLine(lines[i]);
+          const obj = {};
+          headers.forEach(function(h, idx) { obj[h] = vals[idx] || ''; });
+          const contact = {};
+          Object.keys(colMap).forEach(function(h) {
+            const key = colMap[h];
+            if (obj[h] !== undefined) contact[key] = contact[key] || obj[h] || '';
+          });
+          if (contact.prenom || contact.nom || contact.email) rows.push(contact);
+        }
+
+        // Preview simples antes de importar
+        const lbl = document.getElementById('csv-filename-label');
+        if (lbl) lbl.textContent = file.name + ' · ' + rows.length + ' contacto(s) Bitrix24';
+
+        const s1 = document.getElementById('csv-step-drop');
+        const s2 = document.getElementById('csv-step-preview');
+        if (s1) s1.style.display = 'none';
+        if (s2) s2.style.display = '';
+
+        // Substituir o grid de mapeamento por uma pré-visualização simples
+        const grid = document.getElementById('csv-mapping-grid');
+        if (grid) {
+          grid.innerHTML = '<div style="grid-column:1/-1;background:rgba(22,101,52,0.06);border:1px solid rgba(22,101,52,0.2);border-radius:8px;padding:0.85rem 1rem;font-size:0.8rem;color:#166534;">'
+            + '<strong>✓ Formato Bitrix24 detectado</strong><br>'
+            + rows.length + ' contacto(s) prontos para importar · '
+            + rows.filter(function(r){return r.email;}).length + ' com email · '
+            + rows.filter(function(r){return r.tel;}).length + ' com telefone'
+            + '</div>';
+        }
+
+        // Substituir a função csvDoImport
+        window.csvDoImport = function() { _doImport(rows); };
+
+        const btn = document.getElementById('csv-import-btn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Importar ' + rows.length + ' contactos'; }
+        return;
+      }
+
+      // Não é Bitrix24 — usar função original
+      if (typeof _origHandleFile === 'function') {
+        _origHandleFile.call(this, file);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  console.info('[ui-fixes] CSV import: Bitrix24 format override active');
+})();
