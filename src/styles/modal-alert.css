@@ -95,3 +95,115 @@
 #xp-alert-ok.ok-error   { background: var(--red); }
 #xp-alert-ok.ok-success { background: var(--success); }
 #xp-alert-ok.ok-warning { background: #92400e; }
+
+/* ── Modal de confirmação (dois botões) ─────────────────────────────────────── */
+#xp-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,32,59,0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+#xp-confirm-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#xp-confirm-box {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(6,32,59,0.22);
+  width: min(440px, 94vw);
+  overflow: hidden;
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.18s ease;
+}
+#xp-confirm-overlay.visible #xp-confirm-box {
+  transform: translateY(0) scale(1);
+}
+
+#xp-confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+#xp-confirm-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(216,5,5,0.10);
+}
+#xp-confirm-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+
+#xp-confirm-body {
+  padding: 1.1rem 1.25rem 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--navy);
+}
+#xp-confirm-body small {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--red);
+  font-weight: 600;
+}
+
+#xp-confirm-footer {
+  padding: 0 1.25rem 1.1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+#xp-confirm-cancel {
+  background: transparent;
+  color: var(--navy);
+  border: 1.5px solid rgba(6,32,59,0.25);
+  border-radius: 5px;
+  padding: 0.52rem 1.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+#xp-confirm-cancel:hover { background: rgba(6,32,59,0.05); border-color: var(--navy); }
+
+#xp-confirm-ok {
+  border: none;
+  border-radius: 5px;
+  padding: 0.52rem 1.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+#xp-confirm-ok:hover { opacity: 0.88; }
+#xp-confirm-ok.xp-confirm-danger  { background: var(--red);     color: #fff; }
+#xp-confirm-ok.xp-confirm-primary { background: var(--navy);    color: #fff; }

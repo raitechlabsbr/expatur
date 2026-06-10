@@ -127,3 +127,78 @@ window.alert = function(message) {
 //   window.xpAlert('mensagem', 'success')
 //   window.xpAlert('mensagem', 'error')
 window.xpAlert = xpAlert;
+
+// ── Modal de confirmação (dois botões) ────────────────────────────────────────
+let _resolveConfirm = null;
+let _prevConfirmFocus = null;
+
+function _injectConfirmDOM() {
+  if (document.getElementById('xp-confirm-overlay')) return;
+  const el = document.createElement('div');
+  el.id = 'xp-confirm-overlay';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML = `
+    <div id="xp-confirm-box">
+      <div id="xp-confirm-header">
+        <div id="xp-confirm-icon" aria-hidden="true"></div>
+        <span id="xp-confirm-title"></span>
+      </div>
+      <div id="xp-confirm-body"></div>
+      <div id="xp-confirm-footer">
+        <button id="xp-confirm-cancel">Annuler</button>
+        <button id="xp-confirm-ok">Confirmer</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+
+  el.addEventListener('click', e => { if (e.target === el) _confirmResolve(false); });
+  document.addEventListener('keydown', e => {
+    if (!el.classList.contains('visible')) return;
+    if (e.key === 'Escape') _confirmResolve(false);
+  });
+  el.querySelector('#xp-confirm-cancel').addEventListener('click', () => _confirmResolve(false));
+  el.querySelector('#xp-confirm-ok').addEventListener('click',     () => _confirmResolve(true));
+}
+
+function _confirmResolve(result) {
+  const overlay = document.getElementById('xp-confirm-overlay');
+  if (overlay) overlay.classList.remove('visible');
+  if (_prevConfirmFocus) { try { _prevConfirmFocus.focus(); } catch(_) {} }
+  _prevConfirmFocus = null;
+  if (_resolveConfirm) { _resolveConfirm(result); _resolveConfirm = null; }
+}
+
+/**
+ * xpConfirm(message, opts) → Promise<boolean>
+ * opts: { title, icon, okLabel, cancelLabel, type: 'danger'|'warning'|'info' }
+ */
+function xpConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    _injectConfirmDOM();
+    const overlay    = document.getElementById('xp-confirm-overlay');
+    const iconEl     = document.getElementById('xp-confirm-icon');
+    const titleEl    = document.getElementById('xp-confirm-title');
+    const bodyEl     = document.getElementById('xp-confirm-body');
+    const okBtn      = document.getElementById('xp-confirm-ok');
+    const cancelBtn  = document.getElementById('xp-confirm-cancel');
+
+    const type = opts.type || 'warning';
+    iconEl.textContent  = opts.icon || (type === 'danger' ? '⚠' : '?');
+    iconEl.className    = type === 'danger' ? 'error' : type;
+    titleEl.textContent = opts.title || 'Confirmation';
+    bodyEl.innerHTML    = String(message || '');
+    okBtn.textContent   = opts.okLabel     || 'Confirmer';
+    okBtn.className     = type === 'danger' ? 'xp-confirm-danger' : 'xp-confirm-primary';
+    cancelBtn.textContent = opts.cancelLabel || 'Annuler';
+
+    _resolveConfirm  = resolve;
+    _prevConfirmFocus = document.activeElement;
+    overlay.classList.add('visible');
+    requestAnimationFrame(() => okBtn.focus());
+  });
+}
+
+window.xpConfirm = xpConfirm;
