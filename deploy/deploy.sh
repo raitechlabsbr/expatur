@@ -10,7 +10,7 @@ VPS_IP="72.60.243.106"
 VPS_USER="root"
 VPS_DIR="/var/www/expatur-backoffice"
 APP_NAME="expatur-backoffice"
-APP_PORT=4100
+APP_PORT=3100  # tem de coincidir com PM2_SERVE_PORT no ecosystem.config.cjs
 
 # ── Cores ─────────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
