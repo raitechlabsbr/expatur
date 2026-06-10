@@ -20,23 +20,28 @@ alter table public.profiles enable row level security;
 create policy "self_read" on public.profiles
   for select using (auth.uid() = id);
 
+-- Função SECURITY DEFINER para verificar role sem recursão de RLS
+-- (uma policy de profiles que consulta profiles entra em recursão infinita)
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
 -- Admin lê todos os perfis
 create policy "admin_read_all" on public.profiles
-  for select using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
-    )
-  );
+  for select using (public.is_admin());
 
 -- Admin atualiza qualquer perfil
 create policy "admin_update" on public.profiles
-  for update using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.role = 'admin'
-    )
-  );
+  for update using (public.is_admin());
 
 -- Trigger: cria perfil automaticamente ao criar utilizador em auth.users
 create or replace function public.handle_new_user()

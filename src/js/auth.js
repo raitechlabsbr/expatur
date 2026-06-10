@@ -187,6 +187,12 @@ function _installFinGateBypass() {
         if (finBtn) finBtn.classList.add('active');
         // Fechar sidebar mobile
         if (typeof window.sidebarClose === 'function') window.sidebarClose();
+        // Renderizar o conteúdo do Financeiro — o caminho normal (sidebarGo)
+        // chama finRefresh(), mas este bypass abre a secção via DOM directo;
+        // sem isto o widget Stripe fica preso em "A sincronizar…"
+        if (typeof window.finRefresh === 'function') {
+          try { window.finRefresh(); } catch (_) {}
+        }
       }, 10);
     });
   });

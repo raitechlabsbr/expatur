@@ -330,13 +330,28 @@ function _setPayoutReady(ready) {
   btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
 }
 
-// ── Inicializar PAYOUT como desactivado ───────────────────────────────────────
+// ── Ready persistente: devis gerado nesta sessão OU dossier com devis/booking ─
+// Sem isto, recarregar a página (ou trocar de aba — ver _initPayoutBtn) exigia
+// regenerar o devis para poder dar PAYOUT num dossier já existente.
+function _payoutReadyFromStorage() {
+  try {
+    const id = localStorage.getItem('expatur_active_dossier');
+    if (!id) return false;
+    if (localStorage.getItem('expatur_booked_' + id) === '1') return true;
+    if (localStorage.getItem('expatur_quote_' + id)) return true;
+    const d = JSON.parse(localStorage.getItem('expatur_dossier_' + id) || 'null');
+    if (d && (d.quote || d.status)) return true;
+  } catch (_) {}
+  return false;
+}
+
+// ── Inicializar PAYOUT preservando o estado ready ─────────────────────────────
 function _initPayoutBtn() {
   const btn = document.getElementById('qt-payout-btn');
   if (!btn) return;
   // Garantir visibilidade quando na aba couts (override do app.js)
   btn.classList.add('is-visible');
-  _setPayoutReady(false);
+  _setPayoutReady(_payoutReady || _payoutReadyFromStorage());
 }
 
 // Correr quando DOM está pronto e quando se abre a aba Tarification
@@ -1002,4 +1017,38 @@ document.addEventListener('click', function(e) {
   };
 
   console.info('[ui-fixes] CSV import: Bitrix24 format override active');
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FINANCEIRO — auto-sync do saldo Stripe ao abrir a secção
+// O finRefresh original (app.js) buscava o saldo com throttle de 2 min, mas os
+// patches v3.8/v3.8-R substituíram-no por uma versão que só renderiza o
+// dashboard. Resultado: o widget Stripe (Fluxo de Caixa) ficava no placeholder
+// "A sincronizar…" até o utilizador clicar manualmente na aba STRIPE.
+// Este wrapper restaura o auto-sync (throttle 2 min) sobre o finRefresh final.
+// ══════════════════════════════════════════════════════════════════════════════
+(function autoSyncStripeBalance() {
+  function _wrap() {
+    if (typeof window.finRefresh !== 'function') return;
+    if (window.finRefresh._stripeAutoSync) return;
+
+    const _orig = window.finRefresh;
+    window.finRefresh = function() {
+      _orig.apply(this, arguments);
+      try {
+        const last = window._stripeBalanceCacheTs ? window._stripeBalanceCacheTs.getTime() : 0;
+        if (Date.now() - last > 2 * 60 * 1000) {
+          if (typeof window.finFetchStripeBalance === 'function') window.finFetchStripeBalance();
+        } else if (window._stripeBalanceCache && typeof window.finRenderFluxoStripeWidget === 'function') {
+          window.finRenderFluxoStripeWidget(window._stripeBalanceCache);
+        }
+      } catch (_) {}
+    };
+    window.finRefresh._stripeAutoSync = true;
+  }
+
+  // app.js já correu (import anterior), mas patches tardios usam setTimeout —
+  // wrap imediato + safety net
+  _wrap();
+  setTimeout(_wrap, 500);
 })();

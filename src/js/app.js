@@ -166,29 +166,18 @@ window._loginSubmit = function() {
 // ─────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  AUTH — server-backed login gate
-//  Session truth comes from /finance/api.php (401 vs 200)
+//  AUTH — Supabase
+//  O gate PHP (/finance/login.php, api.php) foi removido — backend extinto.
+//  src/js/auth.js sobrepõe window._loginSubmit / _logout / _checkServerSession
+//  com as versões Supabase e controla o overlay de login. As funções abaixo
+//  são o esqueleto local: nunca tocam a rede.
 // ─────────────────────────────────────────────────────────────────────────────
-const _SESSION_PROBE_URL = '/finance/api.php';
-const _LOGIN_URL = '/finance/login.php';
-const _LOGOUT_URL = '/finance/logout.php';
-
 let __serverSession = { authenticated:false, isAdmin:false };
 
 async function _checkServerSession() {
-  try {
-    const r = await fetch(_SESSION_PROBE_URL, { credentials:'same-origin' });
-    if (r.status === 401) return { authenticated:false, isAdmin:false };
-    if (!r.ok) return { authenticated:false, isAdmin:false };
-    let isAdmin = false;
-    try {
-      const adminProbe = await fetch('/finance/users-api.php', { credentials:'same-origin' });
-      isAdmin = adminProbe.ok;
-    } catch(e) {}
-    return { authenticated:true, isAdmin };
-  } catch(e) {
-    return { authenticated:false, isAdmin:false };
-  }
+  // Versão Supabase em window._checkServerSession (auth.js). Sem probe de rede.
+  const sess = window.__serverSession;
+  return (sess && sess.authenticated) ? sess : { authenticated:false, isAdmin:false };
 }
 
 function _hideLoginOverlay() {
@@ -201,96 +190,34 @@ function _showLoginOverlay() {
 }
 
 function _updateAdminVisibility() {
+  const sess = window.__serverSession || __serverSession;
   const fab = document.getElementById('admin-fab');
   if (fab) fab.style.display = 'none';
   const adminLabel = document.getElementById('sidebar-admin-label');
   const adminItem = document.getElementById('snav-admin-users');
-  if (adminLabel) adminLabel.style.display = __serverSession.isAdmin ? 'block' : 'none';
-  if (adminItem) adminItem.style.display = __serverSession.isAdmin ? 'flex' : 'none';
+  if (adminLabel) adminLabel.style.display = sess.isAdmin ? 'block' : 'none';
+  if (adminItem) adminItem.style.display = sess.isAdmin ? 'flex' : 'none';
   document.querySelectorAll('.header-admin-btn').forEach(function(el){ el.style.display = 'none'; });
 }
 
 async function _logout() {
-  try { await fetch(_LOGOUT_URL, { credentials:'same-origin' }); } catch(e) {}
+  // Sobreposto por auth.js (signOut Supabase). Fallback local: limpa tokens.
+  try {
+    Object.keys(localStorage).forEach(function(k){
+      if (k.startsWith('sb-') || k.includes('supabase') || k.includes('-auth-token')) {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch(e) {}
   location.reload();
 }
 
 async function __loginSubmitReal() {
-  const emailEl = document.getElementById('login-email-input');
-  const pwEl    = document.getElementById('login-pw-input');
-  const remEl   = document.getElementById('login-remember-input');
-  const errEl   = document.getElementById('login-error');
-  const btnEl   = document.querySelector('.login-btn');
-
-  const email   = emailEl ? emailEl.value.trim() : '';
-  const pw      = pwEl    ? pwEl.value            : '';
-  const remember = !!(remEl && remEl.checked);
-
-  if (!email || !pw) {
-    if (errEl) { errEl.textContent = 'Veuillez entrer votre email et votre mot de passe.'; errEl.style.display = 'block'; }
-    return;
-  }
-
-  // Loading state
-  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Connexion…'; }
-  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-
-  try {
-    const body = new URLSearchParams();
-    body.set('email', email);
-    body.set('password', pw);
-    if (remember) body.set('remember', '1');
-
-    const r = await fetch(_LOGIN_URL, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
-
-    // Success path: login.php redirects to /finance/home.php
-    if (r.redirected && /\/finance\/home\.php(?:$|\?)/.test(r.url)) {
-      __serverSession = await _checkServerSession();
-      if (__serverSession.authenticated) {
-        _hideLoginOverlay();
-        _updateAdminVisibility();
-        try { if (typeof __hydrate === 'function') setTimeout(__hydrate, 150); } catch(e) {}
-        return;
-      }
-    }
-
-    // Fallback: some servers don't expose redirect via fetch — probe session directly
-    __serverSession = await _checkServerSession();
-    if (__serverSession.authenticated) {
-      _hideLoginOverlay();
-      _updateAdminVisibility();
-      try { if (typeof __hydrate === 'function') setTimeout(__hydrate, 150); } catch(e) {}
-      return;
-    }
-
-    // Login failed — surface the server's error message
-    let txt = '';
-    try { txt = await r.text(); } catch(_) {}
-    txt = txt.replace(/<[^>]*>/g, '').trim();
-    if (errEl) {
-      if (/Invalid credentials|Please enter email|incorrect|invalid/i.test(txt)) {
-        errEl.textContent = '❌ Identifiants invalides — vérifiez votre email et mot de passe.';
-      } else if (txt && txt.length < 200) {
-        errEl.textContent = '⚠️ ' + txt;
-      } else {
-        errEl.textContent = '⚠️ Connexion refusée. Vérifiez vos identifiants.';
-      }
-      errEl.style.display = 'block';
-    }
-    if (pwEl) { pwEl.value = ''; pwEl.focus(); }
-
-  } catch (e) {
-    if (errEl) {
-      errEl.textContent = '⚠️ Erreur réseau — impossible de joindre le serveur (' + (e.message || 'network error') + ')';
-      errEl.style.display = 'block';
-    }
-  } finally {
-    if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Connexion sécurisée →'; }
+  // Sobreposto por auth.js (login Supabase). Se executou, o auth.js não carregou.
+  const errEl = document.getElementById('login-error');
+  if (errEl) {
+    errEl.textContent = '⚠️ Module d\'authentification non chargé — rechargez la page.';
+    errEl.style.display = 'block';
   }
 }
 
@@ -303,45 +230,41 @@ async function _changePasswordSubmit() {
   if (errEl) errEl.textContent = 'Utilisez le bouton reset password dans Admin Users.';
 }
 
-(function(){
-  _checkServerSession().then(function(sess){
-    __serverSession = sess;
-    if (sess.authenticated) {
-      _hideLoginOverlay();
-      _updateAdminVisibility();
-    } else {
-      _showLoginOverlay();
-      document.getElementById('login-email-input')?.focus();
-    }
-  });
-})();
+// (Sem probe de sessão no boot — auth.js resolve a sessão Supabase e decide
+//  mostrar/esconder o overlay de login.)
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Admin users / audit helpers
+//  Admin users / audit — Supabase (tabela profiles · auth.resetPasswordForEmail)
+//  Criação de utilizadores: node scripts/setup-users.mjs (precisa da service key)
 // ─────────────────────────────────────────────────────────────────────────────
 async function __adminFetchUsers() {
   const tbody = document.getElementById('admin-users-body');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="4" class="admin-hint">Loading…</td></tr>';
   try {
-    const r = await fetch('/finance/users-api.php', { credentials:'same-origin' });
-    if (!r.ok) throw new Error('users-api unavailable');
-    const users = await r.json();
-    tbody.innerHTML = users.map(function(u){
+    const sb = window.__supabase;
+    if (!sb) throw new Error('Supabase non configuré');
+    const { data: users, error } = await sb.from('profiles')
+      .select('id, email, role, is_active').order('email');
+    if (error) throw error;
+    tbody.innerHTML = (users || []).map(function(u){
+      const active = u.is_active !== false;
+      const uid = String(u.id);
       const safeEmail = String(u.email || '').replace(/'/g, "\\'");
+      const role = u.role || 'agent';
       return '<tr>' +
         '<td>' + (u.email || '') + '</td>' +
-        '<td>' + (u.role || 'user') + '</td>' +
-        '<td><span class="admin-status ' + ((+u.is_active===1)?'active':'off') + '">' + ((+u.is_active===1)?'Active':'Disabled') + '</span></td>' +
+        '<td>' + role + '</td>' +
+        '<td><span class="admin-status ' + (active?'active':'off') + '">' + (active?'Active':'Disabled') + '</span></td>' +
         '<td style="display:flex;gap:.35rem;flex-wrap:wrap;">' +
           '<button class="admin-mini-btn" type="button" onclick="__resetInvite(\'' + safeEmail + '\')">Reset password</button>' +
-          '<button class="admin-mini-btn" type="button" onclick="__toggleUser(' + u.id + ',' + (+u.is_active===1?0:1) + ',\'' + (u.role||'user') + '\')">' + ((+u.is_active===1)?'Disable':'Enable') + '</button>' +
-          '<button class="admin-mini-btn" type="button" onclick="__toggleRole(' + u.id + ',\'' + ((u.role||'user')==='admin'?'user':'admin') + '\',' + (+u.is_active||1) + ')">' + ((u.role||'user')==='admin'?'Make user':'Make admin') + '</button>' +
+          '<button class="admin-mini-btn" type="button" onclick="__toggleUser(\'' + uid + '\',' + (active?0:1) + ',\'' + role + '\')">' + (active?'Disable':'Enable') + '</button>' +
+          '<button class="admin-mini-btn" type="button" onclick="__toggleRole(\'' + uid + '\',\'' + (role==='admin'?'agent':'admin') + '\',' + (active?1:0) + ')">' + (role==='admin'?'Make agent':'Make admin') + '</button>' +
         '</td>' +
       '</tr>';
     }).join('') || '<tr><td colspan="4" class="admin-hint">No users found.</td></tr>';
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="4" class="admin-hint">Users endpoint not available yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="admin-hint">Impossible de charger les utilisateurs (profiles): ' + (e.message || '') + '</td></tr>';
   }
 }
 
@@ -350,14 +273,17 @@ async function __adminFetchAudit() {
   if (!box) return;
   box.innerHTML = 'Loading…';
   try {
-    const r = await fetch('/finance/audit-api.php', { credentials:'same-origin' });
-    if (!r.ok) throw new Error('audit-api unavailable');
-    const rows = await r.json();
-    box.innerHTML = rows.map(function(row){
+    const sb = window.__supabase;
+    if (!sb) throw new Error('no supabase');
+    const { data: rows, error } = await sb.from('audit_log')
+      .select('created_at, action, actor_email, target')
+      .order('created_at', { ascending: false }).limit(100);
+    if (error) throw error;
+    box.innerHTML = (rows || []).map(function(row){
       return '<div class="audit-row"><div class="audit-dot blue"></div><div class="audit-time">' + (row.created_at || '') + '</div><div class="audit-action">' + (row.action || 'Action') + '<small>' + ((row.actor_email||'') + ' ' + (row.target||'')).trim() + '</small></div></div>';
     }).join('') || '<div class="admin-hint">No audit entries.</div>';
   } catch (e) {
-    box.innerHTML = 'Audit endpoint not available yet.';
+    box.innerHTML = '<div class="admin-hint">No audit entries.</div>';
   }
 }
 
@@ -371,63 +297,41 @@ window.__closeAdminPanel = function() {
 };
 
 window.__createInvite = async function() {
-  const email = document.getElementById('admin-new-email')?.value.trim();
-  const role = document.getElementById('admin-new-role')?.value || 'user';
   const out = document.getElementById('admin-invite-result');
-  if (!email) { if (out) out.textContent = 'Enter an email.'; return; }
-  try {
-    const createRes = await fetch('/finance/users-api.php', {
-      method:'POST',
-      credentials:'same-origin',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ action:'create', email:email, password: Math.random().toString(36).slice(2) + 'A9!', role:role })
-    });
-    // ignore duplicate create errors; invite may still work for existing user
-    const inviteRes = await fetch('/finance/invite.php?email=' + encodeURIComponent(email), { credentials:'same-origin' });
-    const html = await inviteRes.text();
-    const m = html.match(/https:\/\/[^\s"'<>]+set-password\.php\?token=[^\s"'<>]+/i);
-    if (out) out.innerHTML = m ? ('Invite link: <a href="' + m[0] + '" target="_blank" rel="noopener">' + m[0] + '</a>') : 'Invite created. Check invite endpoint output.';
-    __adminFetchUsers();
-  } catch(e) {
-    if (out) out.textContent = 'Could not create invite.';
-  }
+  if (out) out.textContent = 'Création d\'utilisateurs: exécutez "node scripts/setup-users.mjs" (service key requise). Fonctionnalité in-app à venir.';
 };
 
 window.__resetInvite = async function(email) {
   const out = document.getElementById('admin-invite-result');
   try {
-    const inviteRes = await fetch('/finance/invite.php?email=' + encodeURIComponent(email), { credentials:'same-origin' });
-    const html = await inviteRes.text();
-    const m = html.match(/https:\/\/[^\s"'<>]+set-password\.php\?token=[^\s"'<>]+/i);
-    if (out) out.innerHTML = m ? ('Reset link: <a href="' + m[0] + '" target="_blank" rel="noopener">' + m[0] + '</a>') : 'Reset link generated.';
+    const sb = window.__supabase;
+    if (!sb) throw new Error('Supabase non configuré');
+    const { error } = await sb.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    if (out) out.textContent = 'Email de réinitialisation envoyé à ' + email + '.';
   } catch(e) {
-    if (out) out.textContent = 'Could not generate reset link.';
+    if (out) out.textContent = 'Impossible d\'envoyer le reset: ' + (e.message || '');
   }
 };
 
 window.__toggleUser = async function(id, isActive, role) {
   try {
-    await fetch('/finance/users-api.php', {
-      method:'POST',
-      credentials:'same-origin',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ action:'update', id:id, role:role, is_active:isActive })
-    });
+    const sb = window.__supabase;
+    if (!sb) return;
+    await sb.from('profiles').update({ is_active: !!isActive, role: role }).eq('id', id);
     __adminFetchUsers();
   } catch(e) {}
 };
 
 window.__toggleRole = async function(id, role, isActive) {
   try {
-    await fetch('/finance/users-api.php', {
-      method:'POST',
-      credentials:'same-origin',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ action:'update', id:id, role:role, is_active:isActive })
-    });
+    const sb = window.__supabase;
+    if (!sb) return;
+    await sb.from('profiles').update({ role: role, is_active: !!isActive }).eq('id', id);
     __adminFetchUsers();
   } catch(e) {}
 };
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIG
@@ -458,7 +362,7 @@ const EXPATUR_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1
 
 const ARROW_SVG = `<svg viewBox="0 0 60 16" xmlns="http://www.w3.org/2000/svg" style="width:54px;height:12px;display:block;margin:2px auto;"><line x1="0" y1="8" x2="47" y2="8" stroke="#06203B" stroke-width="1.2" opacity="0.25"/><polygon points="47,4 60,8 47,12" fill="#06203B" opacity="0.35"/></svg>`;
 
-const AIRLINE_LOGO_BASE_URL = 'https://workspace.expaturtravel.com/assets/airlines/';
+const AIRLINE_LOGO_BASE_URL = '/assets/airlines/'; // espelhado em public/ (antes: workspace.expaturtravel.com)
 const AIRLINE_LOGO_DEFAULT = `${AIRLINE_LOGO_BASE_URL}default.svg`;
 const AIRLINE_LOGO_CACHE_BUST = String(Date.now());
 
@@ -1536,9 +1440,10 @@ const IATA_CITY = {
 const IATA_NAME    = {}; // code → full airport name (from CSV)
 const IATA_COUNTRY = {}; // code → country code (from CSV)
 
-// Load full airport database from workspace CSV
+// Load full airport database from local CSV (vendored em public/ — antes vinha
+// do servidor PHP workspace.expaturtravel.com, que bloqueava por CORS)
 (function _loadAirportDB() {
-  const _URL = 'https://workspace.expaturtravel.com/assets/airportdata/airport%20list%20iata%20%2B%20country%20%2B%20name%20%2B%20city.csv';
+  const _URL = '/assets/airportdata/airports.csv';
   fetch(_URL)
     .then(function(r) { return r.ok ? r.text() : Promise.reject(r.status); })
     .then(function(csv) {
@@ -4086,6 +3991,8 @@ function openBilletModal() {
       });
       // Refresh doc annexe tab labels now that passenger names are loaded
       setTimeout(updateDocAnnexe, 50);
+      // Re-evaluate Émettre button state now that fields are restored
+      _blUpdateEmettreBtn();
     } catch(_e) {}
   }, 150);
 }
@@ -4364,7 +4271,7 @@ async function generateBilletPDFs() {
           // If src is a fallback SVG data URI, clear it so the rasterizer fetches fresh
           if (img.src && img.src.indexOf('data:image/svg+xml') === 0) {
             const _code = (img.getAttribute('data-airline-code') || '').toUpperCase();
-            if (_code) img.src = (window.AIRLINE_LOGO_BASE_URL || 'https://workspace.expaturtravel.com/assets/airlines/') + _code.toLowerCase() + '.svg?v=' + Date.now();
+            if (_code) img.src = (window.AIRLINE_LOGO_BASE_URL || '/assets/airlines/') + _code.toLowerCase() + '.svg?v=' + Date.now();
           }
         });
         _unifiedStrips = _tmpDiv.innerHTML;
@@ -4711,7 +4618,7 @@ async function generateBilletPDFs() {
       // fetch from the workspace URL. This covers logos marked 'fallback' in
       // _logoMap118 (e.g. LATAM 'la' not found in local directory probe) but that
       // DO exist at workspace.expaturtravel.com/assets/airlines/la.svg.
-      const BASE = 'https://workspace.expaturtravel.com/assets/airlines/';
+      const BASE = '/assets/airlines/'; // espelhado em public/
       const BUST = String(Date.now());
       const needed = [];
       wrapper.querySelectorAll('img.airline-logo-img').forEach(function(img) {
@@ -6643,8 +6550,8 @@ function updateItineraryWidget() {
     var logoHtml = '';
     if (airlineIata) {
       var logoVer = (typeof AIRLINE_LOGO_CACHE_BUST !== 'undefined' ? AIRLINE_LOGO_CACHE_BUST : String(Date.now()));
-      var logoSrc = ((typeof AIRLINE_LOGO_BASE_URL !== 'undefined' ? AIRLINE_LOGO_BASE_URL : 'https://workspace.expaturtravel.com/assets/airlines/') + airlineIata + '.svg?v=' + logoVer);
-      var logoFallback = ((typeof AIRLINE_LOGO_DEFAULT !== 'undefined' ? AIRLINE_LOGO_DEFAULT : 'https://workspace.expaturtravel.com/assets/airlines/default.svg') + '?v=' + logoVer);
+      var logoSrc = ((typeof AIRLINE_LOGO_BASE_URL !== 'undefined' ? AIRLINE_LOGO_BASE_URL : '/assets/airlines/') + airlineIata + '.svg?v=' + logoVer);
+      var logoFallback = ((typeof AIRLINE_LOGO_DEFAULT !== 'undefined' ? AIRLINE_LOGO_DEFAULT : '/assets/airlines/default.svg') + '?v=' + logoVer);
       logoHtml = `<img src="${logoSrc}" style="width:24px;height:24px;border-radius:4px;object-fit:contain;" onerror="this.onerror=null;this.src='${logoFallback}'" />`;
     }
     html += '<div style="flex:0 0 auto;display:flex;align-items:center;gap:0.5rem;">';
@@ -7764,6 +7671,42 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// Intercept Émettre button — show confirm modal before emission
+(function _wireEmettreConfirm() {
+  function _setup() {
+    var btn = document.getElementById('bl-emettre-btn');
+    if (!btn || btn._confirmWired) return;
+    btn._confirmWired = true;
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click', function () {
+      if (typeof window.xpConfirm !== 'function') {
+        if (window.confirm('Confirmer l\'émission des billets ?')) window.emettreBillet();
+        return;
+      }
+      window.xpConfirm(
+        'Confirmer l\'émission des billets pour ce dossier ?<small>Cette action ne peut pas être annulée.</small>',
+        { title: 'Émettre les billets', icon: '✈', okLabel: 'Émettre →', type: 'danger' }
+      ).then(function (confirmed) {
+        if (!confirmed) return;
+        if (typeof window.emettreBillet !== 'function') return;
+        try {
+          window.emettreBillet();
+        } catch (e) {
+          console.error('[Expatur] emettreBillet threw:', e);
+          toast('Erreur lors de l\'émission : ' + (e && e.message ? e.message : String(e)), 'error');
+        }
+      }).catch(function(e) {
+        console.error('[Expatur] xpConfirm rejected:', e);
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _setup);
+  } else {
+    _setup();
+  }
+})();
+
 //  Airline code extraction 
 function _extractAirlineCodes(fn) {
   // fn looks like "AF 1234" or "G3 8811" or "AF 123 + KL 456"
@@ -8288,11 +8231,38 @@ function emettreBillet() {
   renderTasks();
   _refreshNFBox();
 
-  dvSwitch('tasks');
+  // Ensure booking flag is set for the active dossier
+  var _emitDosId = localStorage.getItem('expatur_active_dossier');
+  if (_emitDosId && localStorage.getItem('expatur_booked_' + _emitDosId) !== '1') {
+    localStorage.setItem('expatur_booked_' + _emitDosId, '1');
+    if (!localStorage.getItem('expatur_bookedAt_' + _emitDosId)) {
+      localStorage.setItem('expatur_bookedAt_' + _emitDosId, new Date().toISOString());
+    }
+  }
+  // Unlock booking tabs directly (bypasses _isBookingEnabled lock in quotingSwitch)
+  _BOOKING_TABS.forEach(function(t) {
+    var _lkBtn = document.getElementById('qt-tab-' + t);
+    if (_lkBtn) _lkBtn.classList.remove('qt-tab-locked');
+  });
+  // Activate tasks tab and panel directly (no lock-check detour)
+  _ALL_QT_TABS.forEach(function(t) {
+    var _tb = document.getElementById('qt-tab-' + t);
+    if (_tb) _tb.classList.toggle('active', t === 'tasks');
+  });
+  ['vols','client','couts','paiement','billet','docs','tasks','finance'].forEach(function(t) {
+    var _pn = document.getElementById('dv-panel-' + t);
+    if (_pn) _pn.classList.toggle('active', t === 'tasks');
+  });
+  _lastQuotingTab = 'tasks';
+  // Note: _applyBookingTabState() is intentionally NOT called here.
+  // It re-evaluates _isBookingEnabled() which may return false when no
+  // active dossier is set, which would immediately re-lock the tabs we
+  // just unlocked above. The v3.39 wrapper (§3) calls it after persisting
+  // the booking flag, so it fires correctly when a dossier IS active.
   toast(' Émis · ' + generated.length + ' tâche' + (generated.length !== 1 ? 's' : '') + ' générée' + (generated.length !== 1 ? 's' : ''), 'success');
 }
 
-// 
+//
 // PARTNER WHATSAPP
 // 
 var _WA_PARTNERS = {
@@ -9206,7 +9176,7 @@ function _diOpenDossierFromIndex(dossierId) {
   switchDossier(dossierId);
   closeDevisIndex();
   // Jump to tasks tab
-  if (typeof dvSwitch === 'function') dvSwitch('tasks');
+  if (typeof quotingSwitch === 'function') quotingSwitch('tasks');
 }
 
 function devisIndexDelete(id, event) {
@@ -13320,229 +13290,8 @@ window.bkRenderCoutsSummary = bkRenderCoutsSummary;
    Keeps synchronous localStorage semantics for the app, but hydrates from
    /finance/api.php and persists changes back to the server.
    ═══════════════════════════════════════════════════════════════════════ */
-(function () {
-  'use strict';
-  if (window.__serverBridgeMenusPatched) return;
-  window.__serverBridgeMenusPatched = true;
-
-  async function saveData(type, name, data) {
-    var res = await fetch('/finance/api.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: type, name: name, data: data })
-    });
-    return res.json();
-  }
-
-  async function loadData(type) {
-    var res = await fetch('/finance/api.php?type=' + encodeURIComponent(type));
-    return res.json();
-  }
-
-  var __mem = Object.create(null);
-  var __shadow = Object.create(null);
-  var __timers = Object.create(null);
-  var __hydrated = false;
-
-  var nativeGet = Storage.prototype.getItem;
-  var nativeSet = Storage.prototype.setItem;
-  var nativeRemove = Storage.prototype.removeItem;
-  var nativeKey = Storage.prototype.key;
-
-  function __allKeys() {
-    var seen = Object.create(null), arr = [];
-    [__mem, __shadow].forEach(function(obj){
-      Object.keys(obj).forEach(function(k){
-        if (seen[k]) return;
-        seen[k] = true;
-        arr.push(k);
-      });
-    });
-    return arr;
-  }
-
-  function __matchHandler(key) {
-    if (key === 'expatur_fornecedores') return { kind: 'fornecedores_blob', name: key };
-    if (key === 'expatur_clients_db') return { kind: 'clients_blob', name: key };
-    if (key.indexOf('expatur_client_') === 0) return { kind: 'client_dossier', name: key.replace('expatur_client_', '') };
-    if (key.indexOf('tasks_v2_') === 0) return { kind: 'taskset', name: key.replace('tasks_v2_', '') };
-    if (key.indexOf('task_files_v1_') === 0) return { kind: 'taskfiles', name: key.replace('task_files_v1_', '') };
-    return null;
-  }
-
-  async function __loadBlob(name, fallbackType) {
-    var rows = await loadData('__blob');
-    var row = rows.find(function(r){ return r.name === name; });
-    if (row && row.data != null) return row.data;
-    if (fallbackType) {
-      var fallbackRows = await loadData(fallbackType);
-      return fallbackRows.map(function(r){ return r.data || r; });
-    }
-    return null;
-  }
-
-  async function __hydrate() {
-    try {
-      var forn = await __loadBlob('expatur_fornecedores', 'fornecedor');
-      __shadow['expatur_fornecedores'] = JSON.stringify(Array.isArray(forn) ? forn : []);
-
-      var cli = await __loadBlob('expatur_clients_db', null);
-      __shadow['expatur_clients_db'] = JSON.stringify(Array.isArray(cli) ? cli : []);
-
-      var tasksets = await loadData('taskset');
-      tasksets.forEach(function(r){
-        __shadow['tasks_v2_' + r.name] = JSON.stringify(r.data || []);
-      });
-
-      var taskfiles = await loadData('taskfiles');
-      taskfiles.forEach(function(r){
-        __shadow['task_files_v1_' + r.name] = JSON.stringify(r.data || []);
-      });
-
-      var dossierClients = await loadData('client_dossier');
-      dossierClients.forEach(function(r){
-        __shadow['expatur_client_' + r.name] = JSON.stringify(r.data || {});
-      });
-
-      __hydrated = true;
-
-      setTimeout(function(){
-        try { if (typeof fornRender === 'function') fornRender(); } catch(e){}
-        try { if (typeof window.clientsRender === 'function') window.clientsRender(); } catch(e){}
-        try { if (typeof tarefasRender === 'function') tarefasRender(); } catch(e){}
-        try { if (typeof renderTasks === 'function') renderTasks(); } catch(e){}
-        try { if (typeof welcomeRefresh === 'function') welcomeRefresh(); } catch(e){}
-      }, 50);
-
-      console.log('[Server Bridge] Menus hydrated from backend.');
-    } catch (e) {
-      console.warn('[Server Bridge] hydration failed', e);
-    }
-  }
-
-  function __debouncePersist(key, value) {
-    if (__timers[key]) clearTimeout(__timers[key]);
-    __timers[key] = setTimeout(function(){
-      __persistKey(key, value).catch(function(err){
-        console.warn('[Server Bridge] persist failed for', key, err);
-      });
-    }, 250);
-  }
-
-  async function __persistKey(key, rawValue) {
-    var h = __matchHandler(key);
-    if (!h) return;
-
-    var parsed;
-    try { parsed = JSON.parse(rawValue); } catch (e) { parsed = rawValue; }
-
-    if (h.kind === 'fornecedores_blob') {
-      await saveData('__blob', 'expatur_fornecedores', parsed || []);
-      if (Array.isArray(parsed)) {
-        for (var i = 0; i < parsed.length; i++) {
-          var f = parsed[i] || {};
-          var nm = (f.nome || f.email || f.contato || ('fornecedor_' + i));
-          await saveData('fornecedor', String(nm), f);
-        }
-      }
-      return;
-    }
-
-    if (h.kind === 'clients_blob') {
-      await saveData('__blob', 'expatur_clients_db', parsed || []);
-      if (Array.isArray(parsed)) {
-        for (var j = 0; j < parsed.length; j++) {
-          var c = parsed[j] || {};
-          var cn = c.id || c.email || (((c.prenom||'') + ' ' + (c.nom||'')).trim()) || ('client_' + j);
-          await saveData('cliente', String(cn), c);
-        }
-      }
-      return;
-    }
-
-    if (h.kind === 'client_dossier') {
-      await saveData('client_dossier', h.name, parsed || {});
-      return;
-    }
-
-    if (h.kind === 'taskset') {
-      await saveData('taskset', h.name, Array.isArray(parsed) ? parsed : []);
-      return;
-    }
-
-    if (h.kind === 'taskfiles') {
-      await saveData('taskfiles', h.name, Array.isArray(parsed) ? parsed : []);
-      return;
-    }
-  }
-
-  Storage.prototype.getItem = function(key) {
-    if (typeof key !== 'string') key = String(key);
-    if (Object.prototype.hasOwnProperty.call(__shadow, key)) return __shadow[key];
-    if (Object.prototype.hasOwnProperty.call(__mem, key)) return __mem[key];
-    var h = __matchHandler(key);
-    if (h) return null;
-    return null;
-  };
-
-  Storage.prototype.setItem = function(key, value) {
-    if (typeof key !== 'string') key = String(key);
-    value = String(value);
-    var h = __matchHandler(key);
-    if (h) {
-      __shadow[key] = value;
-      __debouncePersist(key, value);
-      return;
-    }
-    __mem[key] = value;
-  };
-
-  Storage.prototype.removeItem = function(key) {
-    if (typeof key !== 'string') key = String(key);
-    delete __shadow[key];
-    delete __mem[key];
-    // Note: API has no delete endpoint; blob-backed collections are overwritten on next save.
-  };
-
-  Storage.prototype.key = function(index) {
-    var keys = __allKeys();
-    return (index >= 0 && index < keys.length) ? keys[index] : null;
-  };
-
-  try {
-    Object.defineProperty(Storage.prototype, 'length', {
-      configurable: true,
-      get: function() { return __allKeys().length; }
-    });
-  } catch (e) {}
-
-  // Optional helpers for direct backend usage
-  window.saveData = saveData;
-  window.loadData = loadData;
-
-  // Force-reload menus from backend when visiting their sections
-  var _origSidebarGoSB = window.sidebarGo;
-  if (typeof _origSidebarGoSB === 'function') {
-    window.sidebarGo = function(section) {
-      var out = _origSidebarGoSB.apply(this, arguments);
-      setTimeout(function(){
-        if (section === 'fornecedores') { try { if (typeof fornRender === 'function') fornRender(); } catch(e){} }
-        if (section === 'clientes') { try { if (typeof window.clientsRender === 'function') window.clientsRender(); } catch(e){} }
-        if (section === 'tarefas') {
-          try { if (typeof tarefasRender === 'function') tarefasRender(); } catch(e){}
-          try { if (typeof renderTasks === 'function') renderTasks(); } catch(e){}
-        }
-      }, 120);
-      return out;
-    };
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(__hydrate, 250); });
-  } else {
-    setTimeout(__hydrate, 250);
-  }
-})();
+/* SERVER STORAGE BRIDGE (fornecedores/clientes/tarefas) — REMOVIDO (backend
+   PHP extinto). Persistência agora: localStorage nativo + Supabase (storage.js). */
 
 // ─────────────────────────────────────
 
@@ -13552,237 +13301,9 @@ window.bkRenderCoutsSummary = bkRenderCoutsSummary;
    Covers: vendeurs, fornecedores, clients, tasks, bookings, ticketing,
    finance/disponibilites, welcome dashboard hydration.
    ========================================================================== */
-(function(){
-  'use strict';
-  if (window.__FULL_SERVER_NATIVE__) return;
-  window.__FULL_SERVER_NATIVE__ = true;
-
-  var originalLocalStorage = {
-    getItem: localStorage.getItem.bind(localStorage),
-    setItem: localStorage.setItem.bind(localStorage),
-    removeItem: localStorage.removeItem.bind(localStorage),
-    clear: localStorage.clear.bind(localStorage),
-    key: localStorage.key.bind(localStorage)
-  };
-
-  var memoryStore = Object.create(null);
-  var memoryKeys = [];
-  function _has(k){ return Object.prototype.hasOwnProperty.call(memoryStore, k); }
-  function _setMem(k,v){ if (!_has(k)) memoryKeys.push(k); memoryStore[k] = String(v); }
-  function _delMem(k){ if (_has(k)) { delete memoryStore[k]; memoryKeys = memoryKeys.filter(function(x){return x!==k;}); } }
-  function _json(v, fallback){ try { return JSON.parse(v); } catch(e) { return fallback; } }
-  function _clone(v){ return v == null ? v : JSON.parse(JSON.stringify(v)); }
-  function _sanitizeRef(ref){ return String(ref||'').replace(/[^a-zA-Z0-9]/g,'_'); }
-
-  window.saveData = window.saveData || async function(type, name, data){
-    const res = await fetch('/finance/api.php', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ type:type, name:name, data:data })
-    });
-    return res.json();
-  };
-  window.loadData = window.loadData || async function(type){
-    const res = await fetch('/finance/api.php?type=' + encodeURIComponent(type));
-    return res.json();
-  };
-
-  function keyMap(key){
-    if (key === 'expatur_fornecedores') return {type:'fornecedores_collection', name:'main', mode:'json'};
-    if (key === 'expatur_vendedores') return {type:'vendedores_collection', name:'main', mode:'json'};
-    if (key === 'expatur_disponibilidades') return {type:'disponibilidades_collection', name:'main', mode:'json'};
-    if (key === 'expatur_financeiro_lancamentos') return {type:'financeiro_lancamentos', name:'main', mode:'json'};
-    if (key === 'expatur_stripe_monthly_fees') return {type:'stripe_fees', name:'main', mode:'json'};
-    if (key === 'expatur_clients_db') return {type:'clients_collection', name:'main', mode:'json'};
-    if (key === 'expatur_dossier_list') return {type:'dossier_index', name:'main', mode:'json'};
-    if (key === 'expatur_dossiers') return {type:'dossiers_import', name:'main', mode:'json'};
-    if (key === 'expatur_active_dossier') return {type:'session_state', name:'active_dossier', mode:'scalar'}; // ephemeral-ish but server-backed per shared state
-    if (key === 'expatur_last_devis') return {type:'session_state', name:'last_devis', mode:'json'};
-    if (key.indexOf('expatur_dossier_') === 0) return {type:'dossier', name:key.slice('expatur_dossier_'.length), mode:'json'};
-    if (key.indexOf('tasks_v2_') === 0) return {type:'task', name:key.slice('tasks_v2_'.length), mode:'json'};
-    if (key.indexOf('task_files_v1_') === 0) return {type:'task_files', name:key.slice('task_files_v1_'.length), mode:'json'};
-    if (key.indexOf('expatur_client_') === 0) return {type:'client', name:key.slice('expatur_client_'.length), mode:'json'};
-    if (key.indexOf('expatur_cli_passport_') === 0) return {type:'client_passport', name:key.slice('expatur_cli_passport_'.length), mode:'json'};
-    if (key.indexOf('expatur_billet_') === 0) return {type:'billet', name:key.slice('expatur_billet_'.length), mode:'json'};
-    if (key.indexOf('billetFrozen_') === 0) return {type:'billet_frozen', name:key.slice('billetFrozen_'.length), mode:'scalar'};
-    if (key.indexOf('expatur_booked_') === 0) return {type:'booked', name:key.slice('expatur_booked_'.length), mode:'scalar'};
-    if (key.indexOf('expatur_bookedAt_') === 0) return {type:'bookedAt', name:key.slice('expatur_bookedAt_'.length), mode:'scalar'};
-    if (key.indexOf('expatur_payments_') === 0) return {type:'payment', name:key.slice('expatur_payments_'.length), mode:'json'};
-    if (key.indexOf('expatur_em_state_') === 0) return {type:'em_state', name:key.slice('expatur_em_state_'.length), mode:'json'};
-    if (key.indexOf('expatur_em_invoice_') === 0) return {type:'em_invoice', name:key.slice('expatur_em_invoice_'.length), mode:'json'};
-    if (key.indexOf('expatur_pnl_') === 0) return {type:'pnl', name:key.slice('expatur_pnl_'.length), mode:'json'};
-    if (key.indexOf('expatur_flight_') === 0) return {type:'availability', name:key.slice('expatur_flight_'.length), mode:'json'};
-    return null;
-  }
-
-  async function persistKey(key, rawValue){
-    var m = keyMap(key);
-    if (!m) return;
-    var payload = (m.mode === 'scalar') ? String(rawValue == null ? '' : rawValue) : _json(String(rawValue || 'null'), null);
-    try { await window.saveData(m.type, m.name, payload); } catch(err) { console.error('server persist failed', key, err); }
-  }
-  async function deleteKeyOnServer(key){
-    // soft delete pattern: store null/empty marker, since api.php has no delete endpoint yet
-    var m = keyMap(key);
-    if (!m) return;
-    var payload = (m.mode === 'scalar') ? '' : null;
-    try { await window.saveData(m.type, m.name, payload); } catch(err) { console.error('server soft delete failed', key, err); }
-  }
-
-  localStorage.getItem = function(key){
-    if (_has(key)) return memoryStore[key];
-    return null;
-  };
-  localStorage.setItem = function(key, value){
-    _setMem(key, value);
-    persistKey(key, value);
-  };
-  localStorage.removeItem = function(key){
-    _delMem(key);
-    deleteKeyOnServer(key);
-  };
-  localStorage.clear = function(){
-    memoryKeys.slice().forEach(function(k){ localStorage.removeItem(k); });
-  };
-  localStorage.key = function(i){ return memoryKeys[i] || null; };
-  try {
-    Object.defineProperty(localStorage, 'length', {
-      configurable:true,
-      get:function(){ return memoryKeys.length; }
-    });
-  } catch(e) {}
-
-  async function hydrateAll(){
-    var rows = [];
-    try {
-      var res = await fetch('/finance/api.php');
-      rows = await res.json();
-      if (!Array.isArray(rows)) rows = [];
-    } catch(err) {
-      console.error('hydrateAll failed', err);
-      return;
-    }
-    rows.forEach(function(row){
-      var type = row.type, name = row.name, data = row.data;
-      function put(key, value){ _setMem(key, typeof value === 'string' ? value : JSON.stringify(value)); }
-      if (type === 'fornecedores_collection' && name === 'main') put('expatur_fornecedores', data || []);
-      else if (type === 'vendedores_collection' && name === 'main') put('expatur_vendedores', data || []);
-      else if (type === 'disponibilidades_collection' && name === 'main') put('expatur_disponibilidades', data || []);
-      else if (type === 'financeiro_lancamentos' && name === 'main') put('expatur_financeiro_lancamentos', data || []);
-      else if (type === 'stripe_fees' && name === 'main') put('expatur_stripe_monthly_fees', data || []);
-      else if (type === 'clients_collection' && name === 'main') put('expatur_clients_db', data || []);
-      else if (type === 'dossier_index' && name === 'main') put('expatur_dossier_list', data || []);
-      else if (type === 'dossiers_import' && name === 'main') put('expatur_dossiers', data || []);
-      else if (type === 'session_state' && name === 'active_dossier') put('expatur_active_dossier', data || '');
-      else if (type === 'session_state' && name === 'last_devis') put('expatur_last_devis', data || {});
-      else if (type === 'dossier') put('expatur_dossier_' + name, data || {});
-      else if (type === 'task') put('tasks_v2_' + name, data || []);
-      else if (type === 'task_files') put('task_files_v1_' + name, data || []);
-      else if (type === 'client') put('expatur_client_' + name, data || {});
-      else if (type === 'client_passport') put('expatur_cli_passport_' + name, data || {});
-      else if (type === 'billet') put('expatur_billet_' + name, data || {});
-      else if (type === 'billet_frozen') put('billetFrozen_' + name, data || '');
-      else if (type === 'booked') put('expatur_booked_' + name, data || '');
-      else if (type === 'bookedAt') put('expatur_bookedAt_' + name, data || '');
-      else if (type === 'payment') put('expatur_payments_' + name, data || []);
-      else if (type === 'em_state') put('expatur_em_state_' + name, data || {});
-      else if (type === 'em_invoice') put('expatur_em_invoice_' + name, data || {});
-      else if (type === 'pnl') put('expatur_pnl_' + name, data || {});
-      else if (type === 'availability') put('expatur_flight_' + name, data || {});
-    });
-    window.__serverHydrated = true;
-  }
-
-  function collectDossiersWithTasksFromMemory(){
-    var result = [];
-    var seen = Object.create(null);
-    var list = _json(localStorage.getItem('expatur_dossier_list') || '[]', []);
-    list.forEach(function(entry){
-      var data = _json(localStorage.getItem('expatur_dossier_' + entry.id) || 'null', null);
-      if (!data) return;
-      var ref = (data.fields && data.fields['booking-ref']) || entry.label || '';
-      var tasks = _json(localStorage.getItem('tasks_v2_' + String(ref).trim()) || '[]', []);
-      result.push({ ref: ref || entry.id, fields: data.fields || {}, tripType: data.tripType || 'oneway', multiLegs: data.multiLegs || [], tasks: tasks, id: entry.id });
-      if (ref) seen[ref] = true;
-    });
-    var imported = _json(localStorage.getItem('expatur_dossiers') || '[]', []);
-    imported.forEach(function(d){
-      var ref = (d.fields && d.fields['booking-ref']) || d.ref || '';
-      var tasks = Array.isArray(d.tasks) ? d.tasks : [];
-      if (!tasks.length) return;
-      if (ref && seen[ref]) {
-        var existing = result.find(function(x){ return x.ref === ref; });
-        if (existing) {
-          var titles = existing.tasks.map(function(t){ return t.title || t.text; });
-          tasks.forEach(function(t){ var title=t.title||t.text; if (titles.indexOf(title) === -1) { existing.tasks.push(t); titles.push(title); } });
-        }
-      } else {
-        result.push({ ref: ref || 'IMPORTADAS', fields: d.fields || {}, tripType: d.tripType || 'oneway', multiLegs: d.multiLegs || [], tasks: tasks, id: d.id || '' });
-        if (ref) seen[ref] = true;
-      }
-    });
-    return result;
-  }
-  window._getAllDossiersWithTasks = collectDossiersWithTasksFromMemory;
-
-  function refreshUI(){
-    [window.fornRender, window.vendRender, window.dispRender, window.cliRender, window.renderTasks, window.tasksRender, window.renderClientsTable, window.renderBookingsSection, window.welcomeRefresh, window.renderDossierTabs].forEach(function(fn){
-      try { if (typeof fn === 'function') fn(); } catch(err){ console.warn('refresh fn failed', err); }
-    });
-    try {
-      var activeId = localStorage.getItem('expatur_active_dossier') || '';
-      if (activeId && typeof window._dossierLoad === 'function') window._dossierLoad(activeId);
-    } catch(err) {}
-  }
-
-  function bindDossierPersistence(){
-    if (window.__dossierBridgeBound) return; window.__dossierBridgeBound = true;
-
-    var prevSave = window._dossierSave;
-    if (typeof prevSave === 'function') {
-      window._dossierSave = function(id){
-        var out = prevSave.apply(this, arguments);
-        try {
-          var data = _json(localStorage.getItem('expatur_dossier_' + id) || 'null', null);
-          if (data) persistKey('expatur_dossier_' + id, JSON.stringify(data));
-          var list = _json(localStorage.getItem('expatur_dossier_list') || '[]', []);
-          persistKey('expatur_dossier_list', JSON.stringify(list));
-        } catch(err) { console.error(err); }
-        return out;
-      };
-    }
-
-    var prevCreate = window._dossierCreate;
-    if (typeof prevCreate === 'function') {
-      window._dossierCreate = function(){
-        var out = prevCreate.apply(this, arguments);
-        try { persistKey('expatur_dossier_list', localStorage.getItem('expatur_dossier_list') || '[]'); } catch(err) {}
-        return out;
-      };
-    }
-
-    var prevDelete = window._dossierDelete;
-    if (typeof prevDelete === 'function') {
-      window._dossierDelete = function(id){
-        var out = prevDelete.apply(this, arguments);
-        try {
-          persistKey('expatur_dossier_list', localStorage.getItem('expatur_dossier_list') || '[]');
-          deleteKeyOnServer('expatur_dossier_' + id);
-        } catch(err) {}
-        return out;
-      };
-    }
-  }
-
-  async function boot(){
-    await hydrateAll();
-    bindDossierPersistence();
-    refreshUI();
-    setTimeout(refreshUI, 600);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-})();
+/* FULL SERVER-NATIVE BRIDGE v1 — REMOVIDO (backend PHP extinto).
+   Substituía o localStorage por store em memória + /finance/api.php.
+   Persistência agora: localStorage nativo + Supabase (src/js/storage.js). */
 
 // ─────────────────────────────────────
 
@@ -29562,9 +29083,6 @@ function _attachInvoiceLiveSyncListeners() {
      ═══════════════════════════════════════════════════════════════════════ */
   var _prevEmettre = window.emettreBillet;
   window.emettreBillet = function () {
-    /* §1 — Confirmation dialog */
-    if (!confirm('Are you sure to issue your tickets?')) return;
-
     var dossierId = localStorage.getItem('expatur_active_dossier');
 
     /* Call original emettreBillet (saves billet, generates tasks, switches to tasks tab) */
@@ -29596,14 +29114,9 @@ function _attachInvoiceLiveSyncListeners() {
         }
       } catch (e) { console.warn('[v3.39] persist issued error:', e); }
 
-      /* §3 — Auto-open new blank dossier after short delay */
-      setTimeout(function () {
-        if (typeof createNewDossier === 'function') createNewDossier();
-        if (typeof _dossierRenderTabs === 'function') _dossierRenderTabs();
-        /* Switch new dossier to vols tab (default quoting view) */
-        if (typeof quotingSwitch === 'function') quotingSwitch('vols');
-        if (typeof toast === 'function') toast('Billet émis ✓ — nouveau dossier ouvert', 'success');
-      }, 800);
+      /* §3 — Unlock tabs and stay on the issued dossier after emission */
+      if (typeof _applyBookingTabState === 'function') _applyBookingTabState();
+      if (typeof _dossierRenderTabs === 'function') _dossierRenderTabs();
     }
   };
 
@@ -32228,10 +31741,13 @@ function _attachInvoiceLiveSyncListeners() {
       bar.appendChild(chip);
     });
 
-    /* Insert before the toolbar or list body */
+    /* Insert before the toolbar or list body — o toolbar pode estar noutro
+       wrapper (patches v3.100+ reestruturam o DOM), validar o pai antes */
     var toolbar = document.getElementById('v343-toolbar-wrap') || document.getElementById('tp-toolbar') || document.getElementById('tp-stats-bar');
-    if (toolbar) {
+    if (toolbar && toolbar.parentNode === parent) {
       parent.insertBefore(bar, toolbar);
+    } else if (toolbar && toolbar.parentNode) {
+      toolbar.parentNode.insertBefore(bar, toolbar);
     } else {
       parent.insertBefore(bar, listBody);
     }
@@ -46959,10 +46475,11 @@ window._isLaterOfflineInstallmentRecord = function(p) {
 // ─────────────────────────────────────
 
 (async function(){
+  /* Antes: probe a /finance/users-api.php (PHP, removido). Agora a verdade de
+     admin vem da sessão Supabase (auth.js → window.__serverSession.isAdmin). */
   async function forceAdminUI(){
     try {
-      const r = await fetch('/finance/users-api.php', { credentials:'same-origin' });
-      if (!r.ok) return;
+      if (!window.__serverSession || !window.__serverSession.isAdmin) return;
       const fab = document.getElementById('admin-fab');
       if (fab) fab.style.display = 'inline-flex';
       document.querySelectorAll('.header-admin-btn').forEach(function(btn){ btn.style.display='inline-flex'; });
@@ -46973,6 +46490,8 @@ window._isLaterOfflineInstallmentRecord = function(p) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', forceAdminUI);
   else forceAdminUI();
   window.addEventListener('load', function(){ setTimeout(forceAdminUI, 200); });
+  /* O login Supabase resolve depois do load — re-verificar com atraso */
+  window.addEventListener('load', function(){ setTimeout(forceAdminUI, 3000); });
 })();
 
 // ─────────────────────────────────────
@@ -47454,7 +46973,7 @@ window._isLaterOfflineInstallmentRecord = function(p) {
 
 (function(){
   /* ===== Authoritative Airline Logo Resolution (consolidated) ===== */
-  var AIRLINE_LOGO_BASE_URL_W = 'https://workspace.expaturtravel.com/assets/airlines/';
+  var AIRLINE_LOGO_BASE_URL_W = '/assets/airlines/'; // espelhado em public/
   window.AIRLINE_LOGO_BASE_URL = AIRLINE_LOGO_BASE_URL_W;
   window.AIRLINE_LOGO_DEFAULT  = AIRLINE_LOGO_BASE_URL_W + 'default.svg';
   window.AIRLINE_LOGO_CACHE_BUST = String(Date.now());
@@ -55093,7 +54612,7 @@ function _canIssueTicketsAgainstInvoices() {
   var _logoFailed110 = {};       /* code → true if remote failed */
   window._airlineLogoCache110 = _logoCache110;
 
-  var BASE_URL_110 = 'https://workspace.expaturtravel.com/assets/airlines/';
+  var BASE_URL_110 = '/assets/airlines/'; // espelhado em public/
   var CACHE_BUST_110 = String(Date.now());
 
   /* Update global constants */
@@ -56204,7 +55723,7 @@ function _canIssueTicketsAgainstInvoices() {
     try { localStorage.setItem(CACHE_LS_KEY, JSON.stringify(toSave)); } catch(e) {}
   }
 
-  var BASE_URL = 'https://workspace.expaturtravel.com/assets/airlines/';
+  var BASE_URL = '/assets/airlines/'; // espelhado em public/
 
   /* ══════════════════════════════════════════════════════════════════
      §2. makeAirlineLogoFallbackDataUrl — ALWAYS works, zero network
@@ -56881,7 +56400,7 @@ function _canIssueTicketsAgainstInvoices() {
     }
     /* Fallback if v3.112 not loaded */
     if (!code) return window.makeAirlineLogoFallbackDataUrl('', '');
-    return 'https://workspace.expaturtravel.com/assets/airlines/' + code.toLowerCase() + '.svg?v=113';
+    return '/assets/airlines/' + code.toLowerCase() + '.svg?v=113'; // espelhado em public/
   };
 
   /* Override getAirlineLogo to use _extractIata113 */
@@ -57777,7 +57296,7 @@ function _canIssueTicketsAgainstInvoices() {
 
   /* Base URL for local logo directory — matches existing project convention.
      This is the same workspace path but treated as "local" — no external APIs. */
-  var LOCAL_LOGO_BASE = 'https://workspace.expaturtravel.com/assets/airlines/';
+  var LOCAL_LOGO_BASE = '/assets/airlines/';
 
   /* In-memory logo map: code (uppercase) → { src: string, status: 'found'|'fallback' } */
   var _logoMap118 = {};
@@ -61439,10 +60958,10 @@ function _canIssueTicketsAgainstInvoices() {
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.indexOf('expatur_dossier_') === 0) {
+        if (k && k.indexOf('expatur_dossier_') === 0 && k !== 'expatur_dossier_list') {
           var id = k.slice('expatur_dossier_'.length);
           var d = _readJSON(k, null);
-          if (d) { d.__id = d.__id || id; out.push(d); }
+          if (d && !Array.isArray(d)) { d.__id = d.__id || id; out.push(d); }
         }
       }
     } catch(_) {}
@@ -62191,10 +61710,10 @@ function _canIssueTicketsAgainstInvoices() {
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.indexOf('expatur_dossier_') === 0) {
+        if (k && k.indexOf('expatur_dossier_') === 0 && k !== 'expatur_dossier_list') {
           var id = k.slice('expatur_dossier_'.length);
           var d = _readJSON(k, null);
-          if (d) { d.__id = d.__id || id; out.push(d); }
+          if (d && !Array.isArray(d)) { d.__id = d.__id || id; out.push(d); }
         }
       }
     } catch(_) {}

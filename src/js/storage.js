@@ -100,6 +100,26 @@ function _findRule(key) {
   return SYNC_RULES.find(r => r.test(key)) || null;
 }
 
+// ── Catch-all: restantes chaves de negócio → tabela kv_store ─────────────────
+// Cobre o que o bridge PHP antigo persistia (booked, billets, pagamentos,
+// emissão, PnL, finance store, fornecedores, vendedores, etc.)
+const KV_SKIP = [
+  /^expatur_flight_/,          // cache de disponibilidade (TTL 7 dias)
+  /^expatur_fx_rate_cache/,    // cache de câmbio
+  /^expatur_active_dossier$/,  // estado de sessão por dispositivo
+  /^expatur_bookings_view$/,   // preferência de UI
+  /^sb-/, /supabase/, /-auth-token/,
+  /_migrated$/,                // flags locais de migração
+];
+const KV_SYNC = [
+  /^expatur_/, /^fin_/, /^payments_/, /^task_files_v1_/, /^billetFrozen_/,
+];
+function _isKvKey(key) {
+  if (_findRule(key)) return false;                 // já coberto por tabela dedicada
+  if (KV_SKIP.some(re => re.test(key))) return false;
+  return KV_SYNC.some(re => re.test(key));
+}
+
 // ── Debounce por chave para não sobrecarregar o Supabase em cada keystroke ────
 const _debounceTimers = {};
 function _debouncedUpsert(key, value, delay = 1500) {
@@ -127,7 +147,17 @@ async function _upsertToSupabase(key, value) {
   }
 
   const rule = _findRule(key);
-  if (!rule || !rule.table) return;
+  if (!rule || !rule.table) {
+    // Catch-all → kv_store (valor bruto, tal como está no localStorage)
+    if (_isKvKey(key)) {
+      try {
+        await supabase.from('kv_store').upsert({ key, value: String(value) }, { onConflict: 'key' });
+      } catch (e) {
+        console.warn(`[storage] kv sync error for ${key}:`, e.message);
+      }
+    }
+    return;
+  }
 
   try {
     const payload = rule.payload(key, value);
@@ -175,6 +205,13 @@ export async function sbHydrate() {
       if (t.data) _lsSet(`tasks_v2_${t.ref}`, JSON.stringify(t.data));
     });
 
+    // KV store — todas as restantes chaves de negócio (booked, billets,
+    // pagamentos, emissão, PnL, finance store, fornecedores, vendedores…)
+    const { data: kv } = await supabase.from('kv_store').select('key, value');
+    kv?.forEach(row => {
+      if (row.key && row.value != null) _lsSet(row.key, row.value);
+    });
+
     console.info('[storage] Hidratação concluída.');
   } catch (e) {
     console.warn('[storage] Erro na hidratação:', e.message);
@@ -188,31 +225,43 @@ export function sbStartSync() {
   if (!SUPABASE_ENABLED || !supabase || _syncActive) return;
   _syncActive = true;
 
-  // Override setItem — usa _nativeLsSet para evitar recursão infinita
-  // (_lsSet também usa _nativeLsSet, mas sendo explícito aqui por clareza)
-  localStorage.setItem = function(key, value) {
-    // 1. Escreve no localStorage via referência nativa (sem recursão)
-    _lsSet(key, value);
-
-    // 2. Sincroniza com Supabase em background (com debounce)
-    if (_findRule(key)) {
+  // Envolve Storage.prototype (e não a instância localStorage) para preservar
+  // a cadeia de wrappers que o app.js instala no prototype: v3.126 logger,
+  // v3.127 mirror de active_dossier, v3.128 kanban watcher, v3.129 q2d.
+  // Sobrepor a instância faria essas funcionalidades deixarem de disparar.
+  const _prevSet = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (key, value) {
+    try {
+      _prevSet.apply(this, arguments);
+    } catch (e) {
+      // QuotaExceeded: purga caches de voos antigos e tenta de novo (nativo)
+      if (this === localStorage) _lsSet(key, value);
+      else throw e;
+    }
+    // Sincroniza com Supabase em background (com debounce)
+    if (this === localStorage && (_findRule(key) || _isKvKey(key))) {
       _debouncedUpsert(key, value);
     }
   };
 
-  // Override removeItem (para dossiers apagados)
-  localStorage.removeItem = function(key) {
-    _nativeLsRemove(key);
+  const _prevRemove = Storage.prototype.removeItem;
+  Storage.prototype.removeItem = function (key) {
+    _prevRemove.apply(this, arguments);
+    if (this !== localStorage || !SUPABASE_ENABLED || !supabase) return;
 
-    if (!SUPABASE_ENABLED || !supabase) return;
     const rule = _findRule(key);
-    if (!rule || !rule.table) return;
+    if (!rule || !rule.table) {
+      if (_isKvKey(key)) {
+        supabase.from('kv_store').delete().eq('key', key).then(() => {}, () => {});
+      }
+      return;
+    }
     const rowId = rule.rowId(key);
     if (!rowId) return;
 
     // Deleta no Supabase em background
     const pkCol = rule.table === 'tasks' || rule.table === 'clients' ? 'ref' : 'id';
-    supabase.from(rule.table).delete().eq(pkCol, rowId).then().catch(() => {});
+    supabase.from(rule.table).delete().eq(pkCol, rowId).then(() => {}, () => {});
   };
 
   console.info('[storage] Sincronização em background activa.');
