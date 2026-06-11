@@ -3,3 +3,4 @@ dist/
 .env
 .env.local
 *.local
+legacy/php-export*.json
