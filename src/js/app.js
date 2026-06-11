@@ -38509,12 +38509,11 @@ function _attachInvoiceLiveSyncListeners() {
       }
     } catch(e) {}
 
-    var booked = false;
-    try {
-      booked = (typeof window._isBookingEnabled === 'function') ? window._isBookingEnabled() : false;
-    } catch(e) {}
-
-    if (activeTab === 'couts' && !booked) {
+    /* Sempre visível na aba Tarification — mesmo com booking já feito.
+       Esconder quando booked fazia o botão "desaparecer" ao reabrir um
+       dossier já pago (flags hidratados do Supabase) e conflitava com o
+       ui-fixes.js, que o força visível. Clicar de novo é idempotente. */
+    if (activeTab === 'couts') {
       btn.classList.add('is-visible');
     } else {
       btn.classList.remove('is-visible');
