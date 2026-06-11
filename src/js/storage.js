@@ -171,48 +171,78 @@ async function _upsertToSupabase(key, value) {
 }
 
 // ── sbHydrate: carrega dados do Supabase → localStorage (chamado no login) ───
+// Chaves kv_store com anexos base64 (≈5 MB) — hidratadas em background,
+// DEPOIS do app abrir; só são lidas ao abrir ficheiros de uma tarefa/cliente.
+const KV_HEAVY_PREFIXES = ['task_files_v1_', 'expatur_cli_passport_', 'expatur_cli_files_'];
+
+// Dossiers em fatias paralelas: o PostgREST demora ~5s a serializar os ~930
+// jsonb num único pedido; 3 pedidos concorrentes baixam para ~1.5s.
+async function _fetchDossiersChunked() {
+  const { count } = await supabase.from('dossiers').select('id', { count: 'exact', head: true });
+  if (!count) return [];
+  const CHUNK = Math.ceil(count / 3);
+  const jobs = [];
+  for (let from = 0; from < count; from += CHUNK) {
+    jobs.push(supabase.from('dossiers').select('id, data').order('id').range(from, from + CHUNK - 1));
+  }
+  const results = await Promise.all(jobs);
+  return results.flatMap(r => r.data || []);
+}
+
+async function _hydrateHeavyKv() {
+  try {
+    const orFilter = KV_HEAVY_PREFIXES.map(p => `key.like.${p}*`).join(',');
+    const { data: kv } = await supabase.from('kv_store').select('key, value').or(orFilter);
+    kv?.forEach(row => {
+      if (row.key && row.value != null) _lsSet(row.key, row.value);
+    });
+    console.info(`[storage] Anexos hidratados em background (${kv?.length || 0} chaves).`);
+  } catch (e) {
+    console.warn('[storage] Erro na hidratação de anexos:', e.message);
+  }
+}
+
 export async function sbHydrate() {
   if (!SUPABASE_ENABLED || !supabase) return;
 
   console.info('[storage] Hidratando localStorage com dados do Supabase…');
+  const t0 = Date.now();
 
   try {
-    // Dossiers
-    const { data: dossiers } = await supabase.from('dossiers').select('id, data');
-    dossiers?.forEach(d => {
+    let kvQuery = supabase.from('kv_store').select('key, value');
+    for (const p of KV_HEAVY_PREFIXES) kvQuery = kvQuery.not('key', 'like', `${p}%`);
+
+    const [dossiers, { data: list }, { data: clients }, { data: cdb }, { data: tasks }, { data: kv }] =
+      await Promise.all([
+        _fetchDossiersChunked(),
+        supabase.from('dossier_list').select('id, label'),
+        supabase.from('clients').select('ref, data'),
+        supabase.from('clients_db').select('data').eq('id', 1).single(),
+        supabase.from('tasks').select('ref, data'),
+        kvQuery,
+      ]);
+
+    dossiers.forEach(d => {
       if (d.data) _lsSet(`expatur_dossier_${d.id}`, JSON.stringify(d.data));
     });
-
-    // Dossier list
-    const { data: list } = await supabase.from('dossier_list').select('id, label');
     if (list?.length) {
       _lsSet('expatur_dossier_list', JSON.stringify(list.map(r => ({ id: r.id, label: r.label }))));
     }
-
-    // Clients
-    const { data: clients } = await supabase.from('clients').select('ref, data');
     clients?.forEach(c => {
       if (c.data) _lsSet(`expatur_client_${c.ref}`, JSON.stringify(c.data));
     });
-
-    // Clients DB
-    const { data: cdb } = await supabase.from('clients_db').select('data').eq('id', 1).single();
     if (cdb?.data) _lsSet('expatur_clients_db', JSON.stringify(cdb.data));
-
-    // Tasks
-    const { data: tasks } = await supabase.from('tasks').select('ref, data');
     tasks?.forEach(t => {
       if (t.data) _lsSet(`tasks_v2_${t.ref}`, JSON.stringify(t.data));
     });
-
-    // KV store — todas as restantes chaves de negócio (booked, billets,
-    // pagamentos, emissão, PnL, finance store, fornecedores, vendedores…)
-    const { data: kv } = await supabase.from('kv_store').select('key, value');
     kv?.forEach(row => {
       if (row.key && row.value != null) _lsSet(row.key, row.value);
     });
 
-    console.info('[storage] Hidratação concluída.');
+    console.info(`[storage] Hidratação concluída em ${Date.now() - t0}ms.`);
+
+    // Anexos (base64 pesados) — sem await: não bloqueiam a abertura do app
+    _hydrateHeavyKv();
   } catch (e) {
     console.warn('[storage] Erro na hidratação:', e.message);
   }

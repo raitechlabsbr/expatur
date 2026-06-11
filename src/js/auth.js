@@ -413,10 +413,16 @@ async function init() {
 
   // Escuta mudanças de sessão (ex: token expirado, logout noutro tab)
   supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (_supabaseResolved) {
-      // Só trata mudanças DEPOIS do check inicial (evita double-trigger)
-      await applySession(session);
-    }
+    if (!_supabaseResolved) return; // só trata mudanças DEPOIS do check inicial
+
+    // TOKEN_REFRESHED dispara ~1x/hora com o MESMO utilizador — re-aplicar a
+    // sessão completa re-hidrataria todo o localStorage (vários MB) à toa.
+    // Só re-aplica quando o utilizador muda de facto (login/logout/troca).
+    const newId = session?.user?.id || null;
+    const curId = _currentSession?.user?.id || null;
+    if (newId && newId === curId) { _currentSession = session; return; }
+
+    await applySession(session);
   });
 
   // Verifica sessão existente (lê do localStorage — muito rápido)
