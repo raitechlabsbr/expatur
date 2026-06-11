@@ -1220,7 +1220,20 @@ async function serpFetch(params) {
     const text = await r.text();
     const data = JSON.parse(text);
     if (r.ok && ('best_flights' in data || 'other_flights' in data || 'price_insights' in data)) return data;
-  } catch (e) { /* fall through */ }
+    // Resposta SerpApi válida mas com erro de negócio (ex.: "Google Flights
+    // hasn't returned any results") — mostrar a mensagem real. O fallback
+    // directo a serpapi.com nunca funciona no browser (sem CORS) e mascarava
+    // tudo com "Failed to fetch".
+    if (data && data.error) {
+      const msg = /hasn't returned any results/i.test(data.error)
+        ? 'Google Flights n\'a renvoyé aucun résultat pour cette recherche — vérifiez les codes IATA et la date.'
+        : data.error;
+      const be = new Error(msg); be._serpBusiness = true; throw be;
+    }
+  } catch (e) {
+    if (e && e._serpBusiness) throw e;
+    /* falha de rede/parse do proxy → tenta o fallback */
+  }
   const q2 = new URLSearchParams({...params, api_key: SERP_API_KEY, output: 'json'});
   const r2 = await fetch('https://serpapi.com/search?' + q2);
   if (!r2.ok) throw new Error('SerpAPI ' + r2.status);
