@@ -170,10 +170,51 @@ async function _upsertToSupabase(key, value) {
   }
 }
 
-// ── sbHydrate: carrega dados do Supabase → localStorage (chamado no login) ───
-// Chaves kv_store com anexos base64 (≈5 MB) — hidratadas em background,
-// DEPOIS do app abrir; só são lidas ao abrir ficheiros de uma tarefa/cliente.
+// ── Overlay de memória para anexos base64 (≈5 MB) ────────────────────────────
+// O localStorage tem cota de ~5–10 MB por origem; os anexos migrados NÃO cabem
+// junto com os dados de negócio — chegou a bloquear a gravação do token de
+// auth do Supabase (QuotaExceededError no login). Estas chaves vivem só em
+// memória + Supabase; getItem/key/length são virtualizados para o app.js
+// continuar a lê-las e enumerá-las como se estivessem no localStorage.
 const KV_HEAVY_PREFIXES = ['task_files_v1_', 'expatur_cli_passport_', 'expatur_cli_files_'];
+const _memBlobs = new Map();
+const _isHeavyKey = k => typeof k === 'string' && KV_HEAVY_PREFIXES.some(p => k.startsWith(p));
+
+(function _installMemOverlay() {
+  const _protoGet = Storage.prototype.getItem;
+  Storage.prototype.getItem = function (key) {
+    if (this === localStorage && _memBlobs.has(key)) return _memBlobs.get(key);
+    return _protoGet.apply(this, arguments);
+  };
+
+  // Enumeração virtual: índices nativos primeiro, depois os blobs em memória
+  // (app.js varre expatur_cli_passport_* com for i < length / key(i))
+  const _lenDesc  = Object.getOwnPropertyDescriptor(Storage.prototype, 'length');
+  const _protoKey = Storage.prototype.key;
+  Storage.prototype.key = function (i) {
+    if (this === localStorage) {
+      const n = _lenDesc.get.call(this);
+      if (i >= n) return [..._memBlobs.keys()][i - n] ?? null;
+    }
+    return _protoKey.apply(this, arguments);
+  };
+  Object.defineProperty(Storage.prototype, 'length', {
+    get() {
+      const n = _lenDesc.get.call(this);
+      return this === localStorage ? n + _memBlobs.size : n;
+    },
+  });
+
+  // Migra blobs já gravados no localStorage (boots antigos) para a memória —
+  // liberta a cota imediatamente, senão nem o token de auth consegue gravar.
+  for (const k of Object.keys(localStorage)) {
+    if (!_isHeavyKey(k)) continue;
+    const v = _protoGet.call(localStorage, k);
+    if (v != null) _memBlobs.set(k, v);
+    _nativeLsRemove(k);
+  }
+  if (_memBlobs.size) console.info(`[storage] ${_memBlobs.size} anexos movidos do localStorage para memória.`);
+})();
 
 // Dossiers em fatias paralelas: o PostgREST demora ~5s a serializar os ~930
 // jsonb num único pedido; 3 pedidos concorrentes baixam para ~1.5s.
@@ -194,7 +235,7 @@ async function _hydrateHeavyKv() {
     const orFilter = KV_HEAVY_PREFIXES.map(p => `key.like.${p}*`).join(',');
     const { data: kv } = await supabase.from('kv_store').select('key, value').or(orFilter);
     kv?.forEach(row => {
-      if (row.key && row.value != null) _lsSet(row.key, row.value);
+      if (row.key && row.value != null) _memBlobs.set(row.key, row.value);
     });
     console.info(`[storage] Anexos hidratados em background (${kv?.length || 0} chaves).`);
   } catch (e) {
@@ -261,6 +302,12 @@ export function sbStartSync() {
   // Sobrepor a instância faria essas funcionalidades deixarem de disparar.
   const _prevSet = Storage.prototype.setItem;
   Storage.prototype.setItem = function (key, value) {
+    // Anexos pesados: só memória + Supabase — nunca localStorage (cota)
+    if (this === localStorage && _isHeavyKey(key)) {
+      _memBlobs.set(key, String(value));
+      _debouncedUpsert(key, value);
+      return;
+    }
     try {
       _prevSet.apply(this, arguments);
     } catch (e) {
@@ -276,6 +323,7 @@ export function sbStartSync() {
 
   const _prevRemove = Storage.prototype.removeItem;
   Storage.prototype.removeItem = function (key) {
+    if (this === localStorage) _memBlobs.delete(key);
     _prevRemove.apply(this, arguments);
     if (this !== localStorage || !SUPABASE_ENABLED || !supabase) return;
 
