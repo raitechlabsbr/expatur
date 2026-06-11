@@ -53133,8 +53133,8 @@ function _canIssueTicketsAgainstInvoices() {
       /* Ensure pw field has a value so _buildInvoicePayload doesn't fail */
       var pwField = document.getElementById('em-stripe-pw');
       if (pwField && !pwField.value) {
-        /* Use stored password or a placeholder that the worker accepts for admin */
-        pwField.value = window._emLastUsedPw || '___ADMIN_BYPASS___';
+        /* Use stored password or the worker password (same default as v3.28 prefill) */
+        pwField.value = window._emLastUsedPw || '12345';
       }
     }
     if (typeof _prevEmSendInvoice107 === 'function') {
@@ -53151,7 +53151,7 @@ function _canIssueTicketsAgainstInvoices() {
       if (window.canIssueInvoiceWithoutPassword()) {
         var pwField = document.getElementById('em-stripe-pw');
         if (pwField && !pwField.value) {
-          pwField.value = window._emLastUsedPw || '___ADMIN_BYPASS___';
+          pwField.value = window._emLastUsedPw || '12345';
         }
       }
       return _prevEmSendStripeMulti107.apply(this, arguments);
@@ -53165,7 +53165,7 @@ function _canIssueTicketsAgainstInvoices() {
       if (window.canIssueInvoiceWithoutPassword()) {
         var pwField = document.getElementById('em-stripe-pw');
         if (pwField && !pwField.value) {
-          pwField.value = window._emLastUsedPw || '___ADMIN_BYPASS___';
+          pwField.value = window._emLastUsedPw || '12345';
         }
       }
       return _prevEmCheckStatus107.apply(this, arguments);
@@ -53350,7 +53350,7 @@ function _canIssueTicketsAgainstInvoices() {
       if (window.canIssueInvoiceWithoutPassword()) {
         var pwField = document.getElementById('em-stripe-pw');
         if (pwField && !pwField.value) {
-          pwField.value = window._emLastUsedPw || '___ADMIN_BYPASS___';
+          pwField.value = window._emLastUsedPw || '12345';
         }
       }
 
@@ -58097,7 +58097,7 @@ function _canIssueTicketsAgainstInvoices() {
 
     /* If admin, ensure pw field has bypass value for invoice sending */
     if (window.isCurrentUserAdmin()) {
-      pwField.value = window._emLastUsedPw || '___ADMIN_BYPASS___';
+      pwField.value = window._emLastUsedPw || '12345';
     }
   }
 
