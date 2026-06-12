@@ -457,7 +457,12 @@ let milesRowId    = 0;
 let _milesTotalBRL  = 0;   // live numeric total from miles calc
 let _quoteFinalPrice = 0;  // set by buildPreview()
 let _quoteCurrency   = '€';// set by buildPreview()
-const MILES_ISSUERS = ['Smiles','Copa','Latam Pass','Latam Tabela Fixa','Air France','APM','Azul Fidelidade','QR Privilege Club','Consolidator','VISA / E.T.A','Volta Cancelada'];
+// Fallback — a fonte real é a tabela `programs` (menu Programas, spec A5.3);
+// programs.js injeta a lista via window.__setMilesIssuers após carregar do Supabase.
+let MILES_ISSUERS = ['Smiles','Copa','Latam Pass','Latam Tabela Fixa','Air France','APM','Azul Fidelidade','QR Privilege Club','Consolidator','VISA / E.T.A','Volta Cancelada'];
+window.__setMilesIssuers = function(names) {
+  if (Array.isArray(names) && names.length) MILES_ISSUERS = names;
+};
 
 //  Fornecedores list for Billet Cost tab (add/edit here) 
 const COST_FORNECEDORES = [
@@ -575,7 +580,17 @@ function onMilesIssuerChange(id) {
     'Air France':         { cpm: 80,    fee: 33.64 },
     'APM':                { cpm: 28,    fee: 33.64 },
   };
-  const defaults = ISSUER_DEFAULTS[sel];
+  let defaults = ISSUER_DEFAULTS[sel];
+  // Presets cadastrados no menu Programas (tabela programs) têm prioridade
+  const _progRow = (window.EXPATUR_PROGRAMS || []).find(function(p){ return p.name === sel; });
+  if (_progRow && (_progRow.cpm != null || _progRow.fee != null || _progRow.extra != null)) {
+    defaults = {
+      vol: defaults && defaults.vol,
+      cpm: _progRow.cpm   != null ? _progRow.cpm   : (defaults && defaults.cpm),
+      fee: _progRow.fee   != null ? _progRow.fee   : (defaults && defaults.fee),
+      ext: _progRow.extra != null ? _progRow.extra : (defaults && defaults.ext),
+    };
+  }
   if (defaults) {
     const volEl = document.getElementById(`mc-vol-${id}`);
     const cpmEl = document.getElementById(`mc-cpm-${id}`);
@@ -9336,7 +9351,7 @@ function _onDueCustomInput(inp) {
 var _sidebarOpen = false;
 var _currentSection = 'welcome';
 
-var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vendedores','disponibilidades','tarefas','clientes','financeiro'];
+var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vendedores','programas','disponibilidades','tarefas','clientes','financeiro'];
 
 /* v3.69 — sidebar is always visible on desktop via CSS.
    sidebarOpen/Close only affect mobile drawer behavior. */
@@ -9424,6 +9439,7 @@ function sidebarGo(section) {
     if (section === 'bookings')         { if (typeof bookingsRender === 'function') bookingsRender(); }
     if (section === 'fornecedores')     fornRender();
     if (section === 'vendedores')       vendRender();
+    if (section === 'programas')        { if (typeof window.programasRender === 'function') window.programasRender(); }
     if (section === 'disponibilidades') dispRender();
     if (section === 'tarefas')          tarefasRender();
     if (section === 'clientes')         clientsRender();
