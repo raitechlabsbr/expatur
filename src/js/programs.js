@@ -47,9 +47,18 @@ async function loadPrograms() {
   try {
     const { data, error } = await supabase.from('programs').select('*').order('name');
     if (error) throw error;
-    _dbReady  = true;
-    _programs = data || [];
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_programs)); } catch (e) {}
+    if (data && data.length) {
+      _dbReady  = true;
+      _programs = data;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(_programs)); } catch (e) {}
+    } else {
+      // Lista vazia: ou não há sessão ainda (RLS filtra tudo, sem erro) ou a
+      // tabela está realmente vazia. Só confia no vazio se autenticado.
+      let hasSession = false;
+      try { hasSession = !!(await supabase.auth.getSession()).data?.session; } catch (e) {}
+      if (hasSession) _dbReady = true;
+      if (!_programs.length) _programs = FALLBACK.map(n => ({ name: n, active: true }));
+    }
     _applyToCostCalc();
   } catch (e) {
     // tabela ainda não migrada — segue com fallback hardcoded
@@ -112,6 +121,7 @@ function _appendProgramsGroupToFournisseur() {
 }
 
 // Reaplica o grupo quando o app re-popula os selects (troca de aba couts)
+// e quando uma linha nova é criada no Cost Calculator
 function _hookFournisseurRefresh() {
   ['dvSwitch', 'quotingSwitch'].forEach(fn => {
     const prev = window[fn];
@@ -124,6 +134,16 @@ function _hookFournisseurRefresh() {
     w.__progFornHook = true;
     window[fn] = w;
   });
+  const prevAdd = window.addMilesRow;
+  if (typeof prevAdd === 'function' && !prevAdd.__progFornHook) {
+    const w = function () {
+      const r = prevAdd.apply(this, arguments);
+      _appendProgramsGroupToFournisseur();
+      return r;
+    };
+    w.__progFornHook = true;
+    window.addMilesRow = w;
+  }
 }
 
 /* ── Registro de emissões (A5.4/A5.5) ────────────────────────────────────── */
@@ -423,6 +443,14 @@ function _init() {
   _hookEmettre();
   _hookFournisseurRefresh();
   loadPrograms();
+  // Recarrega do banco assim que houver sessão (no boot o RLS filtra tudo)
+  if (SUPABASE_ENABLED && supabase) {
+    try {
+      supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN' || (event === 'TOKEN_REFRESHED' && !_dbReady)) loadPrograms();
+      });
+    } catch (e) {}
+  }
   // retry do hook caso emettreBillet seja (re)definido depois
   let tries = 0;
   const t = setInterval(() => { if (_hookEmettre() || ++tries > 20) clearInterval(t); }, 500);
