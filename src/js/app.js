@@ -7316,6 +7316,17 @@ function _dossierSave(id) {
   data._label = (document.getElementById('booking-ref')||{}).value
              || (document.getElementById('pax-name-1')||{}).value
              || 'Nouveau dossier';
+  // Preserva chaves que não vivem no formulário — senão cada save apagaria o
+  // status canônico/atribuição (deal-status.js) e o snapshot .ticketing (v3.127)
+  try {
+    var _prev = JSON.parse(localStorage.getItem('expatur_dossier_'+id)||'null');
+    if (_prev && typeof _prev === 'object' && !Array.isArray(_prev)) {
+      ['status','statusChangedAt','statusHistory','statusOverride',
+       'createdBy','assignedTo','assignmentHistory','ticketing','issuedAt'].forEach(function(k){
+        if (_prev[k] !== undefined && data[k] === undefined) data[k] = _prev[k];
+      });
+    }
+  } catch(e){}
   try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(data)); } catch(e){}
 }
 
@@ -8998,6 +9009,11 @@ function devisIndexDuplicate(id, event) {
   if (!newData.fields) newData.fields = {};
   newData.fields['booking-ref'] = newRef;
   newData._label = newRef;
+  // A cópia é um deal novo: não herda status/atribuição/emissão do original
+  ['status','statusChangedAt','statusHistory','statusOverride',
+   'createdBy','assignedTo','assignmentHistory','ticketing','issuedAt'].forEach(function(k){
+    delete newData[k];
+  });
 
   // Add to list
   var list;
@@ -61782,12 +61798,17 @@ function _canIssueTicketsAgainstInvoices() {
   window.__V3128_INSTALLED__ = true;
 
   // ---- Constants & helpers (mirrored — v3.127 closures aren't reachable) --
-  var STATUSES = (window.STATUSES_V127 && window.STATUSES_V127.length)
-                  ? window.STATUSES_V127.slice()
-                  : ['devis','invoiced','ticketing','ticketed'];
-  var STATUS_LABELS = window.STATUS_LABELS_V127 || {
-    devis:'Devis', invoiced:'Facturé', ticketing:'En émission', ticketed:'Émis'
-  };
+  // Fase 3 (spec 3.1): colunas = vocabulário canônico de deal-status.js
+  var STATUSES = ['quote','awaiting_payment','ticketing','ticketed'];
+  function STATUS_LABEL(s){
+    if (window.DEAL_STATUS && typeof window.DEAL_STATUS.label === 'function') {
+      return window.DEAL_STATUS.label(s);
+    }
+    return ({ quote:'Quote', awaiting_payment:'En attente de paiement',
+              ticketing:'En émission', ticketed:'Émis' })[s] || s;
+  }
+  var _LEGACY_TO_CANON = { devis:'quote', invoiced:'awaiting_payment',
+                           ticketing:'ticketing', ticketed:'ticketed' };
 
   function _esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
@@ -61924,12 +61945,84 @@ function _canIssueTicketsAgainstInvoices() {
     return out;
   }
 
+  // ---- Fase 3: trechos, rota (A4), PNR e companhia (A8) -------------------
+  function _billetOf(d, id){
+    var ref = d.fields && d.fields['booking-ref'];
+    return (ref && _readJSON('expatur_billet_' + String(ref).replace(/[^a-zA-Z0-9]/g,'_'), null))
+        || (d.ticketing && d.ticketing.billet)
+        || _readJSON('expatur_billet_'+id, null) || {};
+  }
+
+  // A4.2: rota calculada dinamicamente dos trechos do deal (sem campo manual)
+  function _legsOf(d){
+    var f = d.fields || {};
+    var tt = d.tripType || 'oneway';
+    var legs = [];
+    if (f['dep1'] || f['arr1']) {
+      legs.push({ dep: f['dep1']||'', arr: f['arr1']||'' });
+      if (tt === 'return' && (f['dep2'] || f['arr2'])) legs.push({ dep: f['dep2']||'', arr: f['arr2']||'' });
+      if (tt === 'multicity' && Array.isArray(d.multiLegs)) {
+        d.multiLegs.forEach(function(ml){
+          if (ml && (ml.dep || ml.arr)) legs.push({ dep: ml.dep||'', arr: ml.arr||'' });
+        });
+      }
+      return legs;
+    }
+    return _extractSegments(d).map(function(s){ return { dep: _iata(s,'from'), arr: _iata(s,'to') }; });
+  }
+
+  // A4: trecho simples "DEP → ARR"; multicidade trecho a trecho separada por
+  // ";", truncada em 2 trechos + "…"
+  function _routeStr(legs, tt){
+    if (!legs.length) return '';
+    if (tt === 'multicity' || legs.length > 2) {
+      var parts = legs.map(function(l){ return (l.dep||'?') + ' → ' + (l.arr||'?'); });
+      return parts.slice(0,2).join('; ') + (parts.length > 2 ? '; …' : '');
+    }
+    return (legs[0].dep||'?') + ' → ' + (legs[0].arr||'?');
+  }
+
+  function _pnrOf(bil){
+    if (bil.masterPnr) return bil.masterPnr;
+    var pnr = '';
+    if (Array.isArray(bil.legs)) bil.legs.some(function(l){ if (l && l.pnr) { pnr = l.pnr; return true; } });
+    if (!pnr && Array.isArray(bil.pax)) bil.pax.some(function(p){ if (p && p.pnr) { pnr = p.pnr; return true; } });
+    return pnr;
+  }
+
+  function _airlineOf(bil){
+    var name = '', code = '';
+    var legs = Array.isArray(bil.legs) ? bil.legs : [];
+    for (var i = 0; i < legs.length && !code; i++) {
+      var l = legs[i] || {};
+      if (!name && l.airline) name = String(l.airline);
+      var raw = String(l.airline || l.fn || '').trim().toUpperCase();
+      if (!raw) continue;
+      if (/^[A-Z0-9]{2}$/.test(raw)) code = raw;
+      else if (typeof window.parseFlightDesignator === 'function') {
+        var p = window.parseFlightDesignator(raw);
+        if (p && p.airlineCode) code = p.airlineCode;
+      }
+    }
+    return { code: code, name: name };
+  }
+
+  // A8.2/A8.3: logo via base assets/airlines com placeholder genérico
+  function _logoImg(air){
+    if (typeof window.getAirlineLogoSrc !== 'function') return '';
+    var src = window.getAirlineLogoSrc(air.code, air.name);
+    return '<img class="kb-card-logo" src="' + _esc(src) + '" alt="' + _esc(air.name || air.code || 'Compagnie') + '"'
+      + ' data-airline-code="' + _esc(air.code) + '"'
+      + ' onload="window._onAirlineLogoLoad110&&window._onAirlineLogoLoad110(this)"'
+      + ' onerror="window._onAirlineLogoError110&&window._onAirlineLogoError110(this)"/>';
+  }
+
   // ---- Card data ---------------------------------------------------------
   function _cardData(d){
     if (!d) return null;
     var id = d.__id || d.id;
     var t  = d.ticketing || {};
-    var billet   = t.billet   || _readJSON('expatur_billet_'+id,   null) || {};
+    var billet   = _billetOf(d, id);
     var quote    = _readJSON('expatur_quote_'+id, null) || (d.quote || {});
     var payments = t.payments || _readJSON('expatur_payments_'+id, null) || {};
 
@@ -61954,30 +62047,58 @@ function _canIssueTicketsAgainstInvoices() {
               || quote.totalPrice  || quote.total  || quote.grandTotal
               || d.totalPrice || d.total || d.dealValue || d.amount
               || (payments && (payments.total || payments.grandTotal)) || null;
+    // Fallback: campos clássicos do dossier (pax × preço − desconto)
+    if (amount == null && d.fields) {
+      var f0 = d.fields;
+      var tot = (parseFloat(f0['pax-adultes']||0)||0) * (parseFloat(f0['price-adulte']||0)||0)
+              + (parseFloat(f0['pax-enfants']||0)||0) * (parseFloat(f0['price-enfant']||0)||0)
+              + (parseFloat(f0['pax-bebes']  ||0)||0) * (parseFloat(f0['price-bebe']  ||0)||0);
+      if (tot) amount = Math.max(0, tot - (parseFloat(f0['discount-value']||0)||0));
+    }
 
-    // Payment summary
+    // Payment summary (o histórico real é chaveado pelo booking-ref)
     var paidTot = 0;
     try {
-      var arr = (payments && payments.records) || (Array.isArray(payments) ? payments : []);
-      if (Array.isArray(arr)) arr.forEach(function(r){ var n = Number(r && r.amount); if (isFinite(n)) paidTot += n; });
+      var ref0 = d.fields && d.fields['booking-ref'];
+      var payArr = (ref0 && _readJSON('expatur_payments_' + String(ref0).replace(/[^a-zA-Z0-9]/g,'_'), null))
+                || (payments && payments.records)
+                || (Array.isArray(payments) ? payments : []);
+      if (Array.isArray(payArr)) payArr.forEach(function(r){ var n = Number(r && r.amount); if (isFinite(n)) paidTot += n; });
     } catch(_) {}
     var payState = 'unpaid';
     if (amount != null && paidTot >= Number(amount) - 0.01 && Number(amount) > 0) payState = 'paid';
     else if (paidTot > 0) payState = 'partial';
 
-    // Trip
+    // Trip (Fase 3: trechos do próprio dossier; segments só como fallback)
+    var legs = _legsOf(d);
     var segs = _extractSegments(d);
     var trip = _tripFromSegments(segs);
+    if (legs.length) {
+      trip.dep = legs[0].dep || trip.dep;
+      trip.arr = legs[legs.length-1].arr || trip.arr;
+      var tt0 = d.tripType || (legs.length > 1 ? 'multicity' : 'oneway');
+      trip.kind = tt0 === 'return' ? 'Aller-retour' : (tt0 === 'multicity' ? 'Multi-villes' : 'Aller simple');
+    }
 
-    var status = (typeof window.dossierStatus === 'function')
-                  ? window.dossierStatus(d)
-                  : 'devis';
+    // Fase 2/3: status canônico persistido (deal-status.js)
+    var status;
+    if (window.DEAL_STATUS && typeof window.DEAL_STATUS.get === 'function') {
+      status = window.DEAL_STATUS.get(id);
+    } else {
+      var legacy = (typeof window.dossierStatus === 'function') ? window.dossierStatus(d) : 'devis';
+      status = _LEGACY_TO_CANON[legacy] || 'quote';
+    }
 
     return {
       id: id,
+      ref: (d.fields && d.fields['booking-ref']) || billet.ref || '',
       name: (pname && pname.toUpperCase()) || ('Dossier ' + id),
       amount: amount,
       trip: trip,
+      route: _routeStr(legs, d.tripType || ''),
+      multicity: (d.tripType === 'multicity') || legs.length > 2,
+      pnr: _pnrOf(billet),
+      airline: _airlineOf(billet),
       status: status,
       pills: { frozen: !!t.frozen, issued: !!t.issued, pay: payState },
       updatedAt: d.updatedAt || d.lastEditedAt || t.lastSnapshotAt || null
@@ -61985,7 +62106,7 @@ function _canIssueTicketsAgainstInvoices() {
   }
   window.kanbanCardData = function(id){ return _cardData(_readDossier(id)); };
 
-  // ---- Card render (canonical layout) ------------------------------------
+  // ---- Card render (Fase 3 — spec 3.2/3.3 + A4 + A8) ----------------------
   function _renderCard(c){
     var t = c.trip || {};
     // Pills
@@ -61996,14 +62117,22 @@ function _canIssueTicketsAgainstInvoices() {
     else if (c.pills.pay === 'partial') pills += '<span class="kb-pill partial">Partiel</span>';
     else if (c.amount && c.pills.pay === 'unpaid') pills += '<span class="kb-pill unpaid">Non payé</span>';
 
-    // Deal value: hide for ticketed
+    // 3.2: valor total do deal — sempre visível
     var dealLine = '';
-    if (c.amount != null && c.status !== 'ticketed') {
+    if (c.amount != null) {
       var m = _money(c.amount);
       if (m) dealLine = '<div class="kb-card-deal">' + _esc(m) + '</div>';
     }
 
     var kindLine = t.kind ? '<div class="kb-card-kind">' + _esc(t.kind) + '</div>' : '';
+
+    // 3.3: nº do dossier clicável (sublinhado) — abre o deal no Ticketing
+    var refLine = c.ref
+      ? '<a class="kb-ref-link" href="javascript:void(0)" data-ref-open="' + _esc(c.id) + '" title="Ouvrir dans Ticketing">' + _esc(c.ref) + '</a>'
+      : '<span class="kb-card-id">#' + _esc(c.id) + '</span>';
+
+    // 3.2/A8: logo da companhia (placeholder genérico quando indisponível)
+    var logo = _logoImg(c.airline || {});
 
     // Route block (DEP → ARR)
     var routeBlock = '';
@@ -62022,6 +62151,14 @@ function _canIssueTicketsAgainstInvoices() {
         + '</div>';
     }
 
+    // A4.2: rota multicidade trecho a trecho (truncada em 2 + "…")
+    var routesLine = (c.multicity && c.route)
+      ? '<div class="kb-card-routes">' + _esc(c.route) + '</div>' : '';
+
+    // 3.2: PNR
+    var pnrLine = c.pnr
+      ? '<div class="kb-card-pnr">PNR <strong>' + _esc(c.pnr) + '</strong></div>' : '';
+
     // Dates row
     var dateRow = '';
     if (t.dod || t.dor) {
@@ -62034,18 +62171,20 @@ function _canIssueTicketsAgainstInvoices() {
     return ''
       + '<div class="kb-card" data-v128="1" data-dossier="' + _esc(c.id) + '" data-status="' + c.status + '">'
       +   '<button class="kb-card-more" data-dossier="' + _esc(c.id) + '" title="Actions">⋯</button>'
-      +   '<div class="kb-card-id">#' + _esc(c.id) + '</div>'
+      +   '<div class="kb-card-head">' + refLine + logo + '</div>'
       +   '<div class="kb-card-name">' + _esc(c.name) + '</div>'
       +   dealLine
       +   kindLine
       +   routeBlock
+      +   routesLine
+      +   pnrLine
       +   dateRow
       +   (pills ? '<div class="kb-card-pills">' + pills + '</div>' : '')
       + '</div>';
   }
 
   function _renderColumn(status, cards){
-    var label = STATUS_LABELS[status] || status;
+    var label = STATUS_LABEL(status);
     var inner = cards.length
       ? '<div class="kb-cards">' + cards.map(_renderCard).join('') + '</div>'
       : '<div class="kb-empty">Aucun dossier</div>';
@@ -62097,8 +62236,8 @@ function _canIssueTicketsAgainstInvoices() {
     if (!host) return;
     var dossiers = _allDossiers();
     var cards = dossiers.map(_cardData).filter(Boolean);
-    var byStatus = { devis:[], invoiced:[], ticketing:[], ticketed:[] };
-    cards.forEach(function(c){ (byStatus[c.status] || byStatus.devis).push(c); });
+    var byStatus = { quote:[], awaiting_payment:[], ticketing:[], ticketed:[] };
+    cards.forEach(function(c){ (byStatus[c.status] || byStatus.quote).push(c); });
     Object.keys(byStatus).forEach(function(k){
       byStatus[k].sort(function(a,b){
         var ta = a.updatedAt ? Date.parse(a.updatedAt) : 0;
@@ -62123,6 +62262,14 @@ function _canIssueTicketsAgainstInvoices() {
             // Show a tiny built-in menu
             _openMenuFallback(more, id);
           }
+          return;
+        }
+        // 3.3: nº do dossier abre o deal direto no Ticketing
+        var refLink = ev.target.closest && ev.target.closest('.kb-ref-link');
+        if (refLink) {
+          ev.stopPropagation();
+          var rid = refLink.getAttribute('data-ref-open');
+          if (rid && typeof window.switchDossier === 'function') window.switchDossier(rid);
           return;
         }
         var card = ev.target.closest && ev.target.closest('.kb-card');
@@ -62152,10 +62299,10 @@ function _canIssueTicketsAgainstInvoices() {
     _closeAnyPopover();
     var pop = document.createElement('div');
     pop.className = 'kb-pop';
-    var cur = (typeof window.dossierStatus === 'function') ? window.dossierStatus(id) : 'devis';
+    var cur = (window.DEAL_STATUS && window.DEAL_STATUS.get) ? window.DEAL_STATUS.get(id) : 'quote';
     pop.innerHTML = '<div class="kb-pop-head">Forcer le statut</div>'
       + STATUSES.map(function(s){
-          return '<button data-set="'+s+'">'+_esc(STATUS_LABELS[s]) + (s===cur?'  ✓':'') + '</button>';
+          return '<button data-set="'+s+'">'+_esc(STATUS_LABEL(s)) + (s===cur?'  ✓':'') + '</button>';
         }).join('')
       + '<hr/>'
       + '<button data-act="detail">Ouvrir le détail</button>'
@@ -62173,6 +62320,10 @@ function _canIssueTicketsAgainstInvoices() {
         d = _readDossier(id); if (!d) return;
         d.statusOverride = s;
         try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(d)); } catch(_) {}
+        // registra a transição forçada na timeline canônica (deal-status.js)
+        if (window.DEAL_STATUS && window.DEAL_STATUS.reconcile) {
+          try { window.DEAL_STATUS.reconcile(id, { source:'manual' }); } catch(_) {}
+        }
         if (window.dossierTicketing && window.dossierTicketing.appendRevision) {
           window.dossierTicketing.appendRevision(id, 'statusOverride', { reason:'manual → '+s });
         }
@@ -62184,6 +62335,9 @@ function _canIssueTicketsAgainstInvoices() {
         if (d.statusOverride) {
           delete d.statusOverride;
           try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(d)); } catch(_) {}
+          if (window.DEAL_STATUS && window.DEAL_STATUS.reconcile) {
+            try { window.DEAL_STATUS.reconcile(id, { source:'manual' }); } catch(_) {}
+          }
         }
         _closeAnyPopover(); kanbanRender(); return;
       }

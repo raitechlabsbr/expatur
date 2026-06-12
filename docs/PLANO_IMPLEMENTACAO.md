@@ -70,8 +70,9 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
 - [x] **Fase 2 — Status canônico + timeline + comments** (1.x, A3, A9.1-2): transições com efeitos
       colaterais (redirecionar TICKETS no pagamento), deal_timeline, painel direito, created_by/
       assigned_to automáticos. ✅ 2026-06-12 — `src/js/deal-status.js`
-- [ ] **Fase 3 — Booking Kanban/Lista** (3.x, A4, A8): colunas renomeadas, card completo com logo
-      IATA + placeholder, rota multicity truncada, dossier clicável.
+- [x] **Fase 3 — Booking Kanban/Lista** (3.x, A4, A8): colunas renomeadas, card completo com logo
+      IATA + placeholder, rota multicity truncada, dossier clicável. ✅ 2026-06-12 — bloco v3.128
+      do `app.js` atualizado in-place (o watcher de re-render usa o closure interno).
 - [ ] **Fase 4 — Auto-save global + indicador** (2.x).
 - [ ] **Fase 5 — Documentos persistentes + scan→cliente** (4.x, doc4 §5): Storage privado,
       doc_files, nomeação automática por PAX, arquivamento no cliente, log de acesso.

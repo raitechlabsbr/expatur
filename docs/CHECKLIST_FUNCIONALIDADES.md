@@ -7,7 +7,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2
+Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3
 
 ---
 
@@ -31,18 +31,18 @@ projeto estão marcados com *(pré-existente)*.
 - [ ] 2.2 Cobertura: campos do deal, abas (Tickets/Payout), invoice e pagamentos
 - [ ] 2.3 Em falha: alertar usuário e manter dados locais até confirmação (sem perda silenciosa)
 
-### 3. Menu Booking — Visualização de Deals → Fase 3
-- [x] 3.1 Visualização Kanban *(pré-existente; alinhar colunas na Fase 3)*
+### 3. Menu Booking — Visualização de Deals → Fase 3 ✅
+- [x] 3.1 Visualização Kanban *(pré-existente; colunas alinhadas na Fase 3)*
 - [x] 3.1 Visualização Lista/Tabela *(pré-existente)*
-- [ ] 3.1 Colunas do Kanban = Quote | Aguardando Pagamento | Em Emissão | Emitido
-- [ ] 3.2 Card: origem/destino
-- [ ] 3.2 Card: tipo de viagem (ida e volta, somente ida, múltiplos destinos)
-- [ ] 3.2 Card: logo da companhia aérea
-- [ ] 3.2 Card: número do dossier clicável (abre o deal no Ticketing)
-- [ ] 3.2 Card: PNR
-- [ ] 3.2 Card: valor total do deal
+- [x] 3.1 Colunas do Kanban = Quote | Aguardando Pagamento | Em Emissão | Emitido (Fase 3 — labels FR/PT via i18n; agrupamento pelo status canônico persistido)
+- [x] 3.2 Card: origem/destino (Fase 3 — bloco DEP → ARR calculado dos trechos do dossier)
+- [x] 3.2 Card: tipo de viagem (ida e volta, somente ida, múltiplos destinos) (Fase 3)
+- [x] 3.2 Card: logo da companhia aérea (Fase 3 — base assets/airlines + placeholder, A8)
+- [x] 3.2 Card: número do dossier clicável (abre o deal no Ticketing) (Fase 3)
+- [x] 3.2 Card: PNR (Fase 3 — masterPnr/PNR por trecho/pax do registro de billet)
+- [x] 3.2 Card: valor total do deal (Fase 3 — sempre visível, com fallback pax × preço − desconto)
 - [x] 3.3 Clicar no card abre o deal com os dados salvos *(corrigido em 2026-06-12 — deals fantasma)*
-- [ ] 3.3 Número do dossier visualmente distinguível como clicável (sublinhado/cor)
+- [x] 3.3 Número do dossier visualmente distinguível como clicável (sublinhado/cor) (Fase 3)
 - [x] 3.4 Rota Ticketing sem parâmetro cria deal novo; abrir deal existente NÃO instancia novo *(pré-existente)*
 
 ### 4. Ticketing — Upload & Gestão de Documentos de Viagem → Fase 5
@@ -125,10 +125,10 @@ projeto estão marcados com *(pré-existente)*.
 - [x] A3.2 Seção de comentários (texto, autor, data/hora), ordem cronológica estilo chat, imutáveis (Fase 2 — `deal_comments`, sem UI de edição/exclusão + RLS sem update/delete)
 - [x] A3.3 Painel direito colapsável na tela de Ticketing, visível apenas em deals ticketed+ (Fase 2 — botão "🕑 Historique" + drawer)
 
-### A4. Rota no Card Kanban → Fase 3
-- [ ] A4.1 Trecho simples: IATA origem → IATA destino
-- [ ] A4.2 Multicidade: trecho a trecho na ordem cadastrada, separados por `;`, truncar em 2 trechos + "…"
-- [ ] A4.2 Rota calculada dinamicamente dos trechos do deal (sem campo manual)
+### A4. Rota no Card Kanban → Fase 3 ✅
+- [x] A4.1 Trecho simples: IATA origem → IATA destino (Fase 3)
+- [x] A4.2 Multicidade: trecho a trecho na ordem cadastrada, separados por `;`, truncar em 2 trechos + "…" (Fase 3)
+- [x] A4.2 Rota calculada dinamicamente dos trechos do deal (sem campo manual) (Fase 3 — fields dep/arr + multiLegs; segments como fallback)
 
 ---
 
@@ -166,7 +166,7 @@ projeto estão marcados com *(pré-existente)*.
 ### A8. Base de Logos de Companhias Aéreas → Fase 3
 - [x] A8.1 Base separada em workspace.expaturtravel.com/assets/airlines mantida fora do banco *(pré-existente)*
 - [x] A8.2 Logos alimentam os PDFs de confirmação e cotações *(pré-existente)*
-- [ ] A8.2/A8.3 Logos nos cards do Kanban via IATA code ({IATA_CODE}.png), com placeholder genérico quando indisponível
+- [x] A8.2/A8.3 Logos nos cards do Kanban via IATA code, com placeholder genérico quando indisponível (Fase 3 — base local `/assets/airlines/{code}.svg` + fallback `makeAirlineLogoFallbackDataUrl`)
 
 ### A9. Log de Criação de Deals & Atribuição → Fases 2 e 6
 - [x] A9.1 Deal registra: criado por, data/hora UTC, atribuído a, histórico de atribuições, histórico de status (integrado à timeline A3) (Fase 2 — `createdBy`/`assignedTo`/`assignmentHistory`/`statusHistory` no jsonb + colunas `created_by`/`assigned_to`)

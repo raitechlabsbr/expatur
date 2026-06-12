@@ -39,9 +39,25 @@ const T = {
   'Tâches':                     'Tarefas',
   'Finance':                    'Finanças',
 
+  // ── Status canônico do deal (Fase 2/3 — spec 1.1/3.1) ─────────────────────
+  'Quote':                      'Cotação',
+  'En attente de paiement':     'Aguardando Pagamento',
+  'En émission':                'Em Emissão',
+  'Émis':                       'Emitido',
+  'Forcer le statut':           'Forçar o status',
+  'Aucun dossier':              'Nenhum dossiê',
+  'Timeline & Commentaires':    'Linha do tempo & Comentários',
+  'Timeline du statut':         'Linha do tempo do status',
+  'Commentaires':               'Comentários',
+  'Envoyer':                    'Enviar',
+  'Aucune transition enregistrée.': 'Nenhuma transição registrada.',
+  'Aucun commentaire.':         'Nenhum comentário.',
+
   // ── Itinéraire / Trip type ─────────────────────────────────────────────────
   'Aller simple':               'Só ida',
   'Aller-Retour':               'Ida e volta',
+  'Aller-retour':               'Ida e volta',
+  'Multi-villes':               'Multi-destinos',
   'Multi-destinations':         'Multi-destinos',
   'VOL ALLER':                  'VOO IDA',
   'Vol Aller':                  'Voo Ida',
@@ -417,6 +433,7 @@ function _startObserver() {
 export function setLanguage(lang) {
   if (lang !== 'fr' && lang !== 'pt') return;
   currentLang = lang;
+  window.currentLang = lang;   // lido por deal-status.js (labels canônicos)
   localStorage.setItem('expatur_lang', lang);
 
   // Actualizar botões do selector
@@ -441,6 +458,7 @@ export function setLanguage(lang) {
 
 // Expor globalmente para os onclick no HTML
 window.setLanguage = setLanguage;
+window.currentLang = currentLang;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 export function initI18n() {
