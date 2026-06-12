@@ -12106,6 +12106,12 @@ window.finPwCancel = function() {
     } catch(e) {}
     var m = (dossierId||'').match(/^dos_(\d+)/);
     if (m) return new Date(parseInt(m[1])).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    // Deals quote-shaped (ids Q…/D…) n'ont pas de timestamp dans l'id — utiliser createdAt
+    try {
+      var dq = JSON.parse(localStorage.getItem('expatur_dossier_'+dossierId)||'null');
+      var ts2 = dq && (dq.createdAt || dq.updatedAt);
+      if (ts2) return new Date(ts2).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    } catch(e) {}
     return '—';
   }
 
@@ -12226,15 +12232,53 @@ window.finPwCancel = function() {
 
   window.bookingsFilter = function(val) { _bkFilter = val||''; bookingsRender(); };
 
+  /* ── Adapt quote-shaped deals (v3.129/130, no .fields) to the classic
+        shape the detail renderer expects ─────────────────────────── */
+  function _bkAdaptQuoteShape(dossierId, d) {
+    var q = d.quote || d;
+    var segs = (Array.isArray(d.segments) && d.segments.length) ? d.segments
+             : (Array.isArray(q.segments) ? q.segments : []);
+    var f = {};
+    f['booking-ref'] = q.ref || q.bookingRef || d.__id || dossierId;
+    if (segs[0]) {
+      f['dep1']      = segs[0].dep || segs[0].from || segs[0].origin || '';
+      f['arr1']      = segs[0].arr || segs[0].to   || segs[0].destination || '';
+      f['date-leg1'] = segs[0].date || '';
+    }
+    if (segs.length > 1) f['date-leg2'] = segs[segs.length-1].date || '';
+    var pax0 = (Array.isArray(d.paxList) && d.paxList[0])
+            || (Array.isArray(q.passengers) && q.passengers[0]) || null;
+    f['pax-name-1'] = (pax0 && (pax0.name || ((pax0.firstName||'')+' '+(pax0.lastName||'')).trim()))
+                   || d.clientName || q.clientName || '';
+    var tt = q.tripType || d.tripType || (segs.length > 2 ? 'multicity' : segs.length === 2 ? 'return' : 'oneway');
+    if (tt !== 'multicity' && tt !== 'return') tt = 'oneway';
+    return {
+      tripType: tt,
+      fields: f,
+      customLines: [],
+      paxRows: [],
+      multiLegs: tt === 'multicity'
+        ? segs.map(function(s){ return { dep:s.dep||s.from||'', arr:s.arr||s.to||'', date:s.date||'' }; })
+        : [],
+      _label: f['booking-ref'],
+      _quoteShape: true,
+      _totalPrice: (d.totalPrice != null) ? d.totalPrice : (q.totalPrice != null ? q.totalPrice : null)
+    };
+  }
+
   /* ── Detail view ────────────────────────────────────────────── */
   window.bookingsOpenDetail = function(dossierId) {
     _bkActiveDossId = dossierId;
     var dosData; try { dosData=JSON.parse(localStorage.getItem('expatur_dossier_'+dossierId)||'null'); } catch(e){}
     if (!dosData) return;
+    if (!dosData.fields && (dosData.quote || dosData.segments || dosData.__source)) {
+      dosData = _bkAdaptQuoteShape(dossierId, dosData);
+    }
 
     var ref   = (dosData.fields&&dosData.fields['booking-ref'])||'—';
     var name  = (typeof _diPaxName  ==='function') ? _diPaxName(dosData)     : '—';
     var val   = (typeof _diDealValue==='function') ? (_diDealValue(dosData)||'—') : '—';
+    if ((val==='—'||!val) && dosData._quoteShape && dosData._totalPrice != null) val = String(dosData._totalPrice);
     var iss   = (typeof _diIsIssued ==='function') ? _diIsIssued(ref) : false;
     var date  = _bkDate(dossierId);
 
@@ -61079,8 +61123,21 @@ function _canIssueTicketsAgainstInvoices() {
     var inv    = t.emInvoice || _readJSON('em_invoice_'+id, null) || {};
     var frozen = (t.frozen != null) ? !!t.frozen : !!_readKey('billetFrozen_'+(billet.ref || billet.reference || id));
 
+    // Classic dossier shape: billet/frozen flags are keyed by the booking-ref,
+    // not by the dossier id (cf. _diIsIssued / _getPnr in the Bookings module)
+    var cref = d.fields && d.fields['booking-ref'];
+    if (cref) {
+      if (_readKey('billetFrozen_' + cref) === '1') return 'ticketed';
+      if (!billet.issued && !billet.ref) {
+        var cb = _readJSON('expatur_billet_' + String(cref).replace(/[^a-zA-Z0-9]/g,'_'), null);
+        if (cb) billet = cb;
+      }
+    }
+    if (d.status === 'issued' || d.issuedAt) return 'ticketed';
+
     if (t.issued || frozen || em.issued || em.locked === 'issued' || billet.issued) return 'ticketed';
     if (em.locked || em.inProgress || (d.bookingEnabled === true) || (d._bookingEnabled === true)) return 'ticketing';
+    if (_readKey('expatur_booked_' + id) === '1') return 'ticketing';
     if ((inv && (inv.number || inv.invoiceNumber)) || (em.invoiceNumber)) return 'invoiced';
     return 'devis';
   }
@@ -61256,22 +61313,28 @@ function _canIssueTicketsAgainstInvoices() {
     if (!d) return null;
     var id = d.__id || d.id;
     var t  = d.ticketing || {};
+    var f  = (d.fields && typeof d.fields === 'object') ? d.fields : null;  // classic dossier shape
     var billet = t.billet || _readJSON('expatur_billet_'+id, null) || {};
     var payments = t.payments || _readJSON('expatur_payments_'+id, null) || {};
-    var ref = billet.ref || billet.reference || '';
+    var ref = billet.ref || billet.reference || (f && f['booking-ref']) || '';
     var pax = (d.paxList && d.paxList.length) || (Array.isArray(billet.passengers) ? billet.passengers.length : null) || d.pax || '';
     var pname = '';
     try {
       if (Array.isArray(d.paxList) && d.paxList.length) pname = (d.paxList[0].lastName || d.paxList[0].name || '').toUpperCase();
       else if (Array.isArray(billet.passengers) && billet.passengers.length) pname = (billet.passengers[0].lastName || billet.passengers[0].name || '').toUpperCase();
-      else pname = (d.clientName || d.name || d.customerName || '').toUpperCase();
+      else pname = (d.clientName || d.name || d.customerName
+                    || (f && f['pax-name-1'])
+                    || (Array.isArray(d.paxRows) && d.paxRows[0] && d.paxRows[0].name)
+                    || '').toUpperCase();
     } catch(_) {}
     var route = '';
     try {
       var seg = (billet.segments && billet.segments[0]) || (d.segments && d.segments[0]) || null;
-      if (seg) route = (seg.from || seg.origin || '') + ' → ' + (seg.to || seg.destination || '');
+      if (seg) route = (seg.from || seg.origin || seg.dep || '') + ' → ' + (seg.to || seg.destination || seg.arr || '');
+      if (!route && f && (f['dep1'] || f['arr1'])) route = (f['dep1']||'?') + ' → ' + (f['arr1']||'?');
     } catch(_) {}
     var amount = billet.totalPrice || billet.total || d.totalPrice || d.total || (payments && payments.total) || null;
+    if (amount == null && f && f['price-adulte']) amount = parseFloat(f['price-adulte']) || null;
     var paidTot = 0, due = null;
     try {
       var arr = (payments && payments.records) || payments || [];
@@ -62968,6 +63031,13 @@ function _canIssueTicketsAgainstInvoices() {
     for (var i = 0; i < ids.length; i++) {
       if (ids[i]) return String(ids[i]);
     }
+    // Canonical pointer of the classic dossier system — without this the hook
+    // minted a fresh Q… id on every confirm and v3.129 auto-created a ghost
+    // quote-shaped dossier (no .fields) that showed up empty in Bookings.
+    try {
+      var lsId = localStorage.getItem('expatur_active_dossier');
+      if (lsId) return lsId;
+    } catch(_) {}
     // Pull from URL ?id=... or hash
     try {
       var p = new URLSearchParams(window.location.search);
