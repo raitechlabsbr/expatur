@@ -7,20 +7,20 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-12 · Fases concluídas: 0, 1
+Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2
 
 ---
 
 ## DOC 1 — PARTE I: Especificações Principais (v1.3)
 
-### 1. Deals — Status & Fluxo Geral → Fase 2
-- [ ] 1.1 Quatro estados canônicos: `quote`, `awaiting_payment`, `ticketing`, `ticketed` (labels Quote/Cotação, Aguardando Pagamento, Em Emissão, Emitido)
+### 1. Deals — Status & Fluxo Geral → Fase 2 ✅
+- [x] 1.1 Quatro estados canônicos: `quote`, `awaiting_payment`, `ticketing`, `ticketed` (labels Quote/Cotação, Aguardando Pagamento, Em Emissão, Emitido) (Fase 2 — `deal-status.js`, labels FR/PT em `window.DEAL_STATUS`)
 - [x] 1.2 Navegação para Ticketing cria deal novo automaticamente com número de pedido *(pré-existente)*
-- [ ] 1.2 Deal nasce com status `quote` persistido
-- [ ] 1.3 Transição quote → awaiting_payment (PAYOUT + invoice emitida via ÉMETTRE FACTURE)
-- [ ] 1.3 Transição awaiting_payment → ticketing (pagamento total ou parcial em Finance) + redirecionar/exibir aba TICKETS
-- [ ] 1.3 Transição ticketing → ticketed (campos preenchidos + ÉMETTRE) — *a geração de tarefas pós-emissão já existe (pré-existente)*
-- [ ] Migrar vocabulário legado da coluna `dossiers.status` (`draft` → `quote` etc.)
+- [x] 1.2 Deal nasce com status `quote` persistido (Fase 2 — `data.status` no jsonb + coluna `dossiers.status`)
+- [x] 1.3 Transição quote → awaiting_payment (PAYOUT + invoice emitida via ÉMETTRE FACTURE) (Fase 2 — watcher de `expatur_em_invoice_*`/`expatur_booked_*`)
+- [x] 1.3 Transição awaiting_payment → ticketing (pagamento total ou parcial em Finance) + redirecionar/exibir aba TICKETS (Fase 2 — watcher de `expatur_payments_*`; redireciona se o deal estiver aberto no Ticketing, senão toast)
+- [x] 1.3 Transição ticketing → ticketed (campos preenchidos + ÉMETTRE) (Fase 2 — hook em `emettreBillet` + watcher de `billetFrozen_*`)
+- [x] Migrar vocabulário legado da coluna `dossiers.status` (Fase 2 — migração em lote no login, 1×/navegador; jsonb migra lazy no 1º save de cada dossier)
 
 ### 2. Auto-Save Global → Fase 4
 - [x] Auto-save na troca de abas do Ticketing + sync background com Supabase *(pré-existente)*
@@ -81,7 +81,7 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 8.2 Invoice emitida em Ticketing reflete no Menu Financeiro *(pré-existente)*
 - [x] 8.2 Pagamento no Financeiro atualiza o deal em Ticketing *(pré-existente)*
 - [x] 8.3/8.4 deal_id como chave entre invoice, pagamento e dossier *(pré-existente)*
-- [ ] 8.2 Pagamento registrado dispara transição de status awaiting_payment → ticketing → Fase 2
+- [x] 8.2 Pagamento registrado dispara transição de status awaiting_payment → ticketing (Fase 2)
 
 ### 9. Interconexão entre Módulos → Fases 2-3 (vínculos) e 8 (visões)
 - [x] 9.1 Vendedor discriminado em Ticketing via dropdown *(pré-existente)*
@@ -120,10 +120,10 @@ projeto estão marcados com *(pré-existente)*.
 - [ ] A2.3 Acesso ao log apenas pelo supremo, com filtros (usuário, módulo, tipo, datas, entity_id)
 - [x] A2.3 Log imutável (sem update/delete) — *garantido por RLS na migration 004*
 
-### A3. Timeline de Alterações + Comments no Deal → Fase 2
-- [ ] A3.1 Timeline cronológica decrescente de transições de status (anterior, novo, data/hora, usuário), somente leitura — *tabela criada (migration 002); falta registrar + UI*
-- [ ] A3.2 Seção de comentários (texto, autor, data/hora), ordem cronológica estilo chat, imutáveis — *tabela criada (migration 002); falta UI*
-- [ ] A3.3 Painel direito colapsável na tela de Ticketing, visível apenas em deals ticketed+
+### A3. Timeline de Alterações + Comments no Deal → Fase 2 ✅
+- [x] A3.1 Timeline cronológica decrescente de transições de status (anterior, novo, data/hora, usuário), somente leitura (Fase 2 — toda transição grava em `deal_timeline`; fallback offline no `statusHistory` do jsonb)
+- [x] A3.2 Seção de comentários (texto, autor, data/hora), ordem cronológica estilo chat, imutáveis (Fase 2 — `deal_comments`, sem UI de edição/exclusão + RLS sem update/delete)
+- [x] A3.3 Painel direito colapsável na tela de Ticketing, visível apenas em deals ticketed+ (Fase 2 — botão "🕑 Historique" + drawer)
 
 ### A4. Rota no Card Kanban → Fase 3
 - [ ] A4.1 Trecho simples: IATA origem → IATA destino
@@ -169,8 +169,8 @@ projeto estão marcados com *(pré-existente)*.
 - [ ] A8.2/A8.3 Logos nos cards do Kanban via IATA code ({IATA_CODE}.png), com placeholder genérico quando indisponível
 
 ### A9. Log de Criação de Deals & Atribuição → Fases 2 e 6
-- [ ] A9.1 Deal registra: criado por, data/hora UTC, atribuído a, histórico de atribuições, histórico de status (integrado à timeline A3) → Fase 2
-- [ ] A9.2 Atribuição automática ao criador na criação do deal → Fase 2
+- [x] A9.1 Deal registra: criado por, data/hora UTC, atribuído a, histórico de atribuições, histórico de status (integrado à timeline A3) (Fase 2 — `createdBy`/`assignedTo`/`assignmentHistory`/`statusHistory` no jsonb + colunas `created_by`/`assigned_to`)
+- [x] A9.2 Atribuição automática ao criador na criação do deal (Fase 2 — + linha em `deal_assignments`)
 - [ ] A9.3 Reatribuição manual: supremo sempre; usuário com permissão só dos próprios; sem permissão não reatribui → Fase 6
 - [ ] A9.3 Toda reatribuição registrada (quem, para quem, quando) — *tabela deal_assignments criada (migration 002)*
 - [ ] A9.4 Visibilidade de deals por usuário: Somente meus / Meus + equipe / Todos — aplicada no backend (RLS) — *policies criadas (migration 003); falta UI e hidratação filtrada* → Fase 6
@@ -198,7 +198,7 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 3.x PBM: Cost Calculator VISA/E.T.A (33 USD × pax × câmbio ao vivo, editável) + Volta Cancelada (R$150 × pax)
 - [x] 6.1 Check-in automático por trecho (AF/KL+IAH/CAY 30h · AT/G3/LA 48h · demais 24h, fuso SP)
 - [x] 6.2 Volta Cancelada: gatilhos (tarificação/Cost Calc, CMN, partida R.D.) com dedupe, prazo 36h
-- [ ] 6.2 ⚠️ Correção: gatilho deve ser qualquer trecho partindo de CMN (código atual: apenas CMN→GRU) → Fase 2
+- [x] 6.2 ⚠️ Correção: gatilho = qualquer trecho partindo de CMN (Fase 2 — tarefa automática e linha do Cost Calculator; QR Privilege Club continua restrito a CMN→GRU+GRU→MCP)
 
 ### Seção 5 — Persistência dos documentos → Fase 5
 - [ ] 5.2 Upload da aba Documentos enviado ao servidor e vinculado ao booking-ref

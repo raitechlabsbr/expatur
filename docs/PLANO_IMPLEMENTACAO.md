@@ -62,14 +62,14 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
 
 ## 3. Checklist de implementação (fases)
 
-- [ ] **Fase 0 — Fundações**: migrations (programs, program_emissions, deal_comments,
+- [x] **Fase 0 — Fundações**: migrations (programs, program_emissions, deal_comments,
       deal_timeline, system_log, doc_files + bucket, colunas em dossiers, permissões em profiles,
-      RLS), seed dos 11 programas. *Pré-requisito de todas as demais.*
-- [ ] **Fase 1 — Menu PROGRAMAS** (A5, A7.2): CRUD, dashboard top-5, tabela, detalhe com emissões,
-      FOURNISSEUR dinâmico, registro de emissões no ticketed.
-- [ ] **Fase 2 — Status canônico + timeline + comments** (1.x, A3, A9.1-2): transições com efeitos
+      RLS), seed dos 11 programas. *Pré-requisito de todas as demais.* ✅ 2026-06-12
+- [x] **Fase 1 — Menu PROGRAMAS** (A5, A7.2): CRUD, dashboard top-5, tabela, detalhe com emissões,
+      FOURNISSEUR dinâmico, registro de emissões no ticketed. ✅ 2026-06-12
+- [x] **Fase 2 — Status canônico + timeline + comments** (1.x, A3, A9.1-2): transições com efeitos
       colaterais (redirecionar TICKETS no pagamento), deal_timeline, painel direito, created_by/
-      assigned_to automáticos.
+      assigned_to automáticos. ✅ 2026-06-12 — `src/js/deal-status.js`
 - [ ] **Fase 3 — Booking Kanban/Lista** (3.x, A4, A8): colunas renomeadas, card completo com logo
       IATA + placeholder, rota multicity truncada, dossier clicável.
 - [ ] **Fase 4 — Auto-save global + indicador** (2.x).
@@ -85,7 +85,8 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
       layout único, flag persistida; search bar com "+ Créer un nouveau client" e modo leitura/lápis.
 - [ ] **Fase 10 — Backup diário** (10.x): cron na VPS, export criptografado, checksum, retenção
       30d, alerta em falha, restauração documentada.
-- [ ] **Correção doc4**: gatilho Volta Cancelada = qualquer trecho partindo de CMN (hoje CMN→GRU).
+- [x] **Correção doc4**: gatilho Volta Cancelada = qualquer trecho partindo de CMN (hoje CMN→GRU).
+      ✅ 2026-06-12 — junto com a Fase 2.
 
 ## 4. Ordem e dependências
 

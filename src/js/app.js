@@ -8057,10 +8057,11 @@ function _generateItinTasks() {
     newTasks.push(_makeAutoTask('Check-in', ciLabel, ciDue, ciHours + 'h avant départ', comment));
   });
 
-  //  Volta Cancelada — triggers: VC in tarification OR CMN→GRU leg OR SDQ/PUJ departure
-  var _vcHasCMNGRU = legs.some(function(lg){ return lg.depCode==='CMN' && lg.arrCode==='GRU'; });
+  //  Volta Cancelada — triggers: VC in tarification OR any leg departing CMN OR SDQ/PUJ departure
+  //  (doc4 §6.2: qualquer trecho partindo de CMN, não apenas CMN→GRU)
+  var _vcHasCMNDep = legs.some(function(lg){ return lg.depCode==='CMN'; });
   var _vcHasSDQPUJ = legs.some(function(lg){ return lg.depCode==='SDQ' || lg.depCode==='PUJ'; });
-  if ((_hasVoltaCancelada() || _vcHasCMNGRU || _vcHasSDQPUJ) && firstLeg.depDate) {
+  if ((_hasVoltaCancelada() || _vcHasCMNDep || _vcHasSDQPUJ) && firstLeg.depDate) {
     var vcAlreadyExists = _tasks.some(function(t){ return t.cat==='Volta Cancelada' && t.auto && /Émitir Volta Cancelada/i.test(t.text); });
     if (!vcAlreadyExists) {
       var vcComment = _blBuildTaskComment(0, firstLeg.airlineCodes || []);
@@ -8141,10 +8142,14 @@ function _autoAddCostRows() {
 
   var added = 0;
 
-  // CMN→GRU + GRU→MCP: add QR Privilege Club + Volta Cancelada
+  // CMN→GRU + GRU→MCP: add QR Privilege Club
   if (hasRoute('CMN', 'GRU') && hasRoute('GRU', 'MCP')) {
     if (!hasIssuer('QR Privilege Club')) { addMilesRowWithValues('QR Privilege Club', null); added++; }
-    if (!hasIssuer('Volta Cancelada'))   { addMilesRowWithValues('Volta Cancelada', null);   added++; }
+  }
+
+  // Qualquer trecho partindo de CMN: add Volta Cancelada (doc4 §6.2)
+  if (routes.some(function(r) { return r.dep === 'CMN'; })) {
+    if (!hasIssuer('Volta Cancelada')) { addMilesRowWithValues('Volta Cancelada', null); added++; }
   }
 
   // SDQ↔PBM (one-way leg): add VISA/E.T.A (taxas=33 EUR) + Volta Cancelada
