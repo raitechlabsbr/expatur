@@ -7,11 +7,11 @@ module.exports = {
     {
       name: 'expatur-backoffice',
       script: 'serve',
-      args: '-s dist -l 3100',
+      args: '-s /var/www/expatur-backoffice -l 4100',
       env: {
         NODE_ENV: 'production',
-        PM2_SERVE_PATH: './dist',
-        PM2_SERVE_PORT: 3100,
+        PM2_SERVE_PATH: '/var/www/expatur-backoffice',
+        PM2_SERVE_PORT: 4100,
         PM2_SERVE_SPA: 'true',       // SPA mode: 404 → index.html
         PM2_SERVE_HOMEPAGE: '/index.html'
       },

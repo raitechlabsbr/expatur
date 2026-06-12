@@ -10,7 +10,7 @@ VPS_IP="72.60.243.106"
 VPS_USER="root"
 VPS_DIR="/var/www/expatur-backoffice"
 APP_NAME="expatur-backoffice"
-APP_PORT=3100  # tem de coincidir com PM2_SERVE_PORT no ecosystem.config.cjs
+APP_PORT=4100  # tem de coincidir com PM2_SERVE_PORT no ecosystem.config.cjs (3100 pertence ao proposta-rede-social!)
 
 # ── Cores ─────────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -60,12 +60,12 @@ fi
 # Ir para o directório pai onde está o ecosystem.config.cjs
 cd /var/www
 
-# Parar app existente (ignora erro se não existir)
-pm2 stop ${APP_NAME} 2>/dev/null || true
-pm2 delete ${APP_NAME} 2>/dev/null || true
-
-# Iniciar com PM2
-pm2 start ecosystem.config.cjs
+# Reiniciar se já existir; senão, iniciar via ecosystem
+if pm2 describe ${APP_NAME} &>/dev/null; then
+  pm2 restart ${APP_NAME} --update-env
+else
+  pm2 start ecosystem.config.cjs
+fi
 pm2 save
 
 echo "PM2 OK"
