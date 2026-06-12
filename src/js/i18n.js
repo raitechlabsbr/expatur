@@ -53,6 +53,11 @@ const T = {
   'Aucune transition enregistrée.': 'Nenhuma transição registrada.',
   'Aucun commentaire.':         'Nenhum comentário.',
 
+  // ── Auto-save (Fase 4 — spec 2.1) ──────────────────────────────────────────
+  'Enregistrement…':            'Salvando…',
+  'Enregistré':                 'Salvo',
+  'Erreur d’enregistrement':    'Erro ao salvar',
+
   // ── Itinéraire / Trip type ─────────────────────────────────────────────────
   'Aller simple':               'Só ida',
   'Aller-Retour':               'Ida e volta',

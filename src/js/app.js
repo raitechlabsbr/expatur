@@ -129,6 +129,7 @@
   if (typeof sidebarGo === 'function') window.sidebarGo = sidebarGo;
   if (typeof sidebarOpen === 'function') window.sidebarOpen = sidebarOpen;
   if (typeof switchDossier === 'function') window.switchDossier = switchDossier;
+  if (typeof _dossierSave === 'function') window._dossierSave = _dossierSave;
   if (typeof syncDateMins === 'function') window.syncDateMins = syncDateMins;
   if (typeof syncPaxPriceBoxes === 'function') window.syncPaxPriceBoxes = syncPaxPriceBoxes;
   if (typeof tarefasRender === 'function') window.tarefasRender = tarefasRender;

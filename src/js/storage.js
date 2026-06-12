@@ -127,46 +127,74 @@ function _debouncedUpsert(key, value, delay = 1500) {
   _debounceTimers[key] = setTimeout(() => _upsertToSupabase(key, value), delay);
 }
 
+// ── Fase 4 (spec 2.3): falha de sync nunca é silenciosa ──────────────────────
+// Os dados ficam no localStorage (local-first); chaves que falharam são
+// re-tentadas no evento 'online' e a cada 30s, e o estado é difundido via
+// evento 'expatur-sync-status' (consumido pelo indicador do autosave.js).
+const _failedSyncKeys = new Map();   // key → último valor que falhou
+let _syncRetryTimer = null;
+
+function _emitSyncStatus(ok, key, message) {
+  try {
+    window.dispatchEvent(new CustomEvent('expatur-sync-status', {
+      detail: { ok, key, message: message || '', pending: _failedSyncKeys.size },
+    }));
+  } catch {}
+}
+
+function _retryFailedSyncs() {
+  for (const [key, value] of [..._failedSyncKeys]) _upsertToSupabase(key, value);
+}
+
+function _scheduleSyncRetry() {
+  if (_syncRetryTimer) return;
+  _syncRetryTimer = setTimeout(() => {
+    _syncRetryTimer = null;
+    if (_failedSyncKeys.size) { _retryFailedSyncs(); _scheduleSyncRetry(); }
+  }, 30000);
+}
+window.addEventListener('online', _retryFailedSyncs);
+
 async function _upsertToSupabase(key, value) {
   if (!SUPABASE_ENABLED || !supabase) return;
+  let err = null;
 
-  // Caso especial: dossier_list
-  if (key === 'expatur_dossier_list') {
-    try {
+  try {
+    if (key === 'expatur_dossier_list') {
       const list = JSON.parse(value || '[]');
       if (!Array.isArray(list) || !list.length) return;
       const rows = list.map(item => ({
         id:    typeof item === 'string' ? item : item.id,
         label: typeof item === 'object' ? (item.label || item.id) : item,
       }));
-      await supabase.from('dossier_list').upsert(rows, { onConflict: 'id' });
-    } catch (e) {
-      console.warn('[storage] dossier_list sync error', e);
-    }
-    return;
-  }
-
-  const rule = _findRule(key);
-  if (!rule || !rule.table) {
-    // Catch-all → kv_store (valor bruto, tal como está no localStorage)
-    if (_isKvKey(key)) {
-      try {
-        await supabase.from('kv_store').upsert({ key, value: String(value) }, { onConflict: 'key' });
-      } catch (e) {
-        console.warn(`[storage] kv sync error for ${key}:`, e.message);
+      ({ error: err } = await supabase.from('dossier_list').upsert(rows, { onConflict: 'id' }));
+    } else {
+      const rule = _findRule(key);
+      if (!rule || !rule.table) {
+        // Catch-all → kv_store (valor bruto, tal como está no localStorage)
+        if (!_isKvKey(key)) return;
+        ({ error: err } = await supabase.from('kv_store')
+          .upsert({ key, value: String(value) }, { onConflict: 'key' }));
+      } else {
+        const payload = rule.payload(key, value);
+        if (!payload) return;
+        ({ error: err } = await supabase.from(rule.table).upsert(payload, {
+          onConflict: rule.table === 'clients_db' ? 'id' : (rule.table === 'tasks' || rule.table === 'clients' ? 'ref' : 'id'),
+        }));
       }
     }
-    return;
+  } catch (e) {
+    err = e;
   }
 
-  try {
-    const payload = rule.payload(key, value);
-    if (!payload) return;
-    await supabase.from(rule.table).upsert(payload, {
-      onConflict: rule.table === 'clients_db' ? 'id' : (rule.table === 'tasks' || rule.table === 'clients' ? 'ref' : 'id'),
-    });
-  } catch (e) {
-    console.warn(`[storage] sync error for ${key}:`, e.message);
+  if (err) {
+    console.warn(`[storage] sync error for ${key}:`, err.message);
+    _failedSyncKeys.set(key, value);
+    _emitSyncStatus(false, key, err.message);
+    _scheduleSyncRetry();
+  } else {
+    _failedSyncKeys.delete(key);
+    _emitSyncStatus(true, key, '');
   }
 }
 

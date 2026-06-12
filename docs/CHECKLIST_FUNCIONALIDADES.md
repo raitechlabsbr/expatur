@@ -7,7 +7,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3
+Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3, 4
 
 ---
 
@@ -22,14 +22,14 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 1.3 Transição ticketing → ticketed (campos preenchidos + ÉMETTRE) (Fase 2 — hook em `emettreBillet` + watcher de `billetFrozen_*`)
 - [x] Migrar vocabulário legado da coluna `dossiers.status` (Fase 2 — migração em lote no login, 1×/navegador; jsonb migra lazy no 1º save de cada dossier)
 
-### 2. Auto-Save Global → Fase 4
+### 2. Auto-Save Global → Fase 4 ✅
 - [x] Auto-save na troca de abas do Ticketing + sync background com Supabase *(pré-existente)*
-- [ ] 2.1 Save automático contínuo por campo (sem ação manual) em todos os estágios do deal
-- [ ] 2.1 Debounce 500ms–1s para campos de texto livre
-- [ ] 2.1 Save imediato no onChange para select/toggle/checkbox/date picker
-- [ ] 2.1 Indicador visual: "Salvando…" / "Salvo" / "Erro ao salvar"
-- [ ] 2.2 Cobertura: campos do deal, abas (Tickets/Payout), invoice e pagamentos
-- [ ] 2.3 Em falha: alertar usuário e manter dados locais até confirmação (sem perda silenciosa)
+- [x] 2.1 Save automático contínuo por campo (sem ação manual) em todos os estágios do deal (Fase 4 — `autosave.js`, listeners delegados em input/change)
+- [x] 2.1 Debounce 500ms–1s para campos de texto livre (Fase 4 — 800ms)
+- [x] 2.1 Save imediato no onChange para select/toggle/checkbox/date picker (Fase 4)
+- [x] 2.1 Indicador visual: "Salvando…" / "Salvo" / "Erro ao salvar" (Fase 4 — pill fixo, FR com tradução PT via i18n)
+- [x] 2.2 Cobertura: campos do deal, abas (Tickets/Payout), invoice e pagamentos (Fase 4 — painéis do Ticketing + modais billet/emissão; invoice/pagamentos já salvavam na ação e agora reportam falha de sync)
+- [x] 2.3 Em falha: alertar usuário e manter dados locais até confirmação (Fase 4 — storage.js rastreia chaves que falharam, alerta via toast/indicador e re-tenta no evento online + a cada 30s; localStorage preserva tudo)
 
 ### 3. Menu Booking — Visualização de Deals → Fase 3 ✅
 - [x] 3.1 Visualização Kanban *(pré-existente; colunas alinhadas na Fase 3)*

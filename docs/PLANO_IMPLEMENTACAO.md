@@ -73,7 +73,8 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
 - [x] **Fase 3 — Booking Kanban/Lista** (3.x, A4, A8): colunas renomeadas, card completo com logo
       IATA + placeholder, rota multicity truncada, dossier clicável. ✅ 2026-06-12 — bloco v3.128
       do `app.js` atualizado in-place (o watcher de re-render usa o closure interno).
-- [ ] **Fase 4 — Auto-save global + indicador** (2.x).
+- [x] **Fase 4 — Auto-save global + indicador** (2.x). ✅ 2026-06-12 — `src/js/autosave.js` +
+      retry/alerta de sync no `storage.js`.
 - [ ] **Fase 5 — Documentos persistentes + scan→cliente** (4.x, doc4 §5): Storage privado,
       doc_files, nomeação automática por PAX, arquivamento no cliente, log de acesso.
 - [ ] **Fase 6 — Permissões/atribuição/visibilidade** (A1, A9.3-5): supremo, checkboxes por menu
