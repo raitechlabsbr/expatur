@@ -1,5 +1,8 @@
 # Plano de Implementação — Especificações Consolidadas
 
+> Checklist vivo, item a item, em [CHECKLIST_FUNCIONALIDADES.md](CHECKLIST_FUNCIONALIDADES.md) —
+> atualizar a cada fase concluída.
+
 Fonte: `docs/doc1` (especificações principais v1.3 + Anexos 1-2), `docs/doc2` (Anexo 3),
 `docs/doc3` (Anexo 4), `docs/doc4` (regras R.D./Suriname — documentação do código atual + requisito de persistência).
 Branch de trabalho: `feature/backoffice-specs`.
