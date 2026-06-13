@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6
+Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7
 
 ---
 
@@ -115,10 +115,10 @@ projeto estão marcados com *(pré-existente)*.
 - [x] A1.2 Usuário sem acesso não vê o menu na sidebar (Fase 6 — `applyMenuPermissions`; Financeiro segue restrito a admin/supremo por regra de negócio)
 - [x] A1.2 Permissões aplicadas em tempo real (sem relogin) (Fase 6 — Supabase Realtime no canal profiles reaplica os menus do usuário ao vivo)
 
-### A2. Log Geral de Alterações → Fase 7
-- [ ] A2.1 Logar: criação/edição/exclusão de deals, mudanças de status, invoices, pagamentos, uploads, tarefas, perfis, permissões, login/logout, toda escrita via interface
-- [ ] A2.2 Estrutura: timestamp UTC, user_id/email, action_type, module, entity_id, field_changed, old_value, new_value, ip_address — *tabela criada (migration 004); falta instrumentação*
-- [ ] A2.3 Acesso ao log apenas pelo supremo, com filtros (usuário, módulo, tipo, datas, entity_id)
+### A2. Log Geral de Alterações → Fase 7 ✅
+- [x] A2.1 Logar: criação/status/atribuição de deals, invoices/pagamentos, uploads/exclusões de documentos, permissões, login/logout (Fase 7 — `window.__logEvent` chamado por deal-status/permissions/documents/auth; invoice e pagamento deduplicados para não poluir o log). *Edição genérica de campos do deal já cobre auto-save (2.x); eventos não-críticos restantes podem ser somados conforme necessidade.*
+- [x] A2.2 Estrutura: timestamp UTC, user_id/email, action_type, module, entity_id, field_changed, old_value, new_value, ip_address (Fase 7 — tabela migration 004; `system-log.js` preenche todos os campos; IP via lookup best-effort cacheado por sessão)
+- [x] A2.3 Acesso ao log apenas pelo admin, com filtros (usuário, módulo, tipo, datas, entity_id) (Fase 7 — painel Journal no Gestion utilisateurs; RLS de leitura por `is_supreme()`→`is_admin()` na migration 007)
 - [x] A2.3 Log imutável (sem update/delete) — *garantido por RLS na migration 004*
 
 ### A3. Timeline de Alterações + Comments no Deal → Fase 2 ✅

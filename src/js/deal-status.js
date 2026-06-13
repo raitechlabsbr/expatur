@@ -174,6 +174,9 @@ async function setDealStatus(id, to, opts = {}) {
   try {
     document.dispatchEvent(new CustomEvent('deal-status-changed', { detail: { id, from, to, source: opts.source || null } }));
   } catch (e) {}
+  // A2.1: log da mudança de status
+  if (typeof window.__logEvent === 'function')
+    window.__logEvent('STATUS_CHANGE', 'ticketing', { entity_id: id, field_changed: 'status', old_value: from, new_value: to });
   return true;
 }
 
@@ -218,6 +221,9 @@ async function initNewDeal(id) {
       by_user_email: (u && u.email) || null,
     }).then(() => {});
   }
+  // A2.1: log da criação do deal
+  if (typeof window.__logEvent === 'function')
+    window.__logEvent('CREATE', 'ticketing', { entity_id: id, new_value: 'quote' });
 }
 
 /* ── Gatilhos: watcher de escritas no localStorage ───────────────────────── */
@@ -268,6 +274,28 @@ function _onPaymentsWrite(sref) {
   }, 300);
 }
 
+/* A2.1: log de invoice/pagamento (financeiro), deduplicado para não poluir o
+   Journal com os re-saves do sync. invoice: 1× por ref; payment: por nº de
+   pagamentos (loga só quando aumenta). */
+const _finSeen = { invoice: new Set(), paymentCount: {} };
+function _logFinanceWrite(kind, sref, value) {
+  if (typeof window.__logEvent !== 'function') return;
+  const id = _idFromRef(sref);
+  try {
+    if (kind === 'invoice') {
+      if (_finSeen.invoice.has(sref)) return;
+      _finSeen.invoice.add(sref);
+      window.__logEvent('UPDATE', 'financeiro', { entity_id: id || sref, field_changed: 'invoice_emise' });
+    } else {
+      const arr = typeof value === 'string' ? JSON.parse(value) : value;
+      const n = Array.isArray(arr) ? arr.filter(p => (Number(p && p.amount) || 0) > 0).length : 0;
+      if (n <= (_finSeen.paymentCount[sref] || 0)) { _finSeen.paymentCount[sref] = n; return; }
+      _finSeen.paymentCount[sref] = n;
+      window.__logEvent('UPDATE', 'financeiro', { entity_id: id || sref, field_changed: 'paiement', new_value: 'paiement #' + n });
+    }
+  } catch (e) {}
+}
+
 function _installWatcher() {
   if (Storage.prototype.__dealStatusWatcher__) return;
   const _prevSet = Storage.prototype.setItem;
@@ -284,9 +312,13 @@ function _installWatcher() {
           else if (!_toCanon(d.status)) _scheduleReconcile(id); // legado: persiste canônico
         }
       } else if (key.startsWith('expatur_payments_')) {
-        _onPaymentsWrite(key.slice('expatur_payments_'.length));
+        const sref = key.slice('expatur_payments_'.length);
+        _onPaymentsWrite(sref);
+        _logFinanceWrite('payment', sref, value);
       } else if (key.startsWith('expatur_em_invoice_')) {
-        _scheduleReconcile(_idFromRef(key.slice('expatur_em_invoice_'.length)), { source: 'invoice' });
+        const sref = key.slice('expatur_em_invoice_'.length);
+        _scheduleReconcile(_idFromRef(sref), { source: 'invoice' });
+        _logFinanceWrite('invoice', sref, value);
       } else if (key.startsWith('expatur_booked_')) {
         _scheduleReconcile(key.slice('expatur_booked_'.length), { source: 'payout' });
       } else if (key.startsWith('billetFrozen_')) {
@@ -538,12 +570,13 @@ async function reassignDeal(id, toUserId) {
   const target = users.find(u => u.id === toUserId);
   const toEmail = (target && target.email) || null;
   const fromId = (d.assignedTo && d.assignedTo.id) || null;
+  const fromEmail = (d.assignedTo && d.assignedTo.email) || null;
   if (fromId === toUserId) return;
 
   const u = await _getUser();
   d.assignedTo = { id: toUserId, email: toEmail };
   if (!Array.isArray(d.assignmentHistory)) d.assignmentHistory = [];
-  d.assignmentHistory.push({ from: (d.assignedTo && fromId) || null, to: toEmail, at: _now(), by: (u && u.email) || null });
+  d.assignmentHistory.push({ from: fromEmail, to: toEmail, at: _now(), by: (u && u.email) || null });
   if (d.assignmentHistory.length > 100) d.assignmentHistory = d.assignmentHistory.slice(-100);
   _writeDossier(id, d);
 
@@ -554,6 +587,9 @@ async function reassignDeal(id, toUserId) {
       by_user_email: (u && u.email) || null,
     }).then(({ error }) => { if (error) console.warn('[deal-status] assignment:', error.message); });
   }
+  // A2.1: log da reatribuição
+  if (typeof window.__logEvent === 'function')
+    window.__logEvent('ASSIGN', 'ticketing', { entity_id: id, field_changed: 'assigned_to', old_value: fromEmail, new_value: toEmail });
   _toast('Deal réattribué à ' + (toEmail || toUserId), 'success');
   _renderAssign(id);
 }

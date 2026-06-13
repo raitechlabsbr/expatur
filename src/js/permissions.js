@@ -211,6 +211,8 @@ window.__permSave = async function (uid, field, value) {
     const { error } = await supabase.from('profiles').update({ [field]: value }).eq('id', uid);
     if (error) throw error;
     if (_usersCache[uid]) _usersCache[uid][field] = value;
+    if (typeof window.__logEvent === 'function')
+      window.__logEvent('PERMISSION_CHANGE', 'usuarios', { entity_id: uid, field_changed: field, new_value: value });
     _toast('Enregistré', 'success');
     renderAdminUsersPanel();
   } catch (e) { _toast('Erreur: ' + (e.message || ''), 'error'); }
@@ -225,6 +227,8 @@ window.__permSaveModule = async function (uid, mod, on) {
     const { error } = await supabase.from('profiles').update({ permissions: next }).eq('id', uid);
     if (error) throw error;
     if (_usersCache[uid]) _usersCache[uid].permissions = next;
+    if (typeof window.__logEvent === 'function')
+      window.__logEvent('PERMISSION_CHANGE', 'usuarios', { entity_id: uid, field_changed: mod, new_value: on ? 'on' : 'off' });
     _toast('Enregistré', 'success');
   } catch (e) { _toast('Erreur: ' + (e.message || ''), 'error'); renderAdminUsersPanel(); }
 };

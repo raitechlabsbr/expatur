@@ -83,7 +83,9 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
       real, can_assign_deals, deal_visibility com RLS no backend. ✅ 2026-06-13 —
       `src/js/permissions.js` + reatribuição no painel do `deal-status.js` + migration 007
       (is_admin(), is_supreme vira alias). *Ops: aplicar migration 007 no SQL Editor.*
-- [ ] **Fase 7 — Log geral** (A2): system_log imutável + painel Journal com filtros.
+- [x] **Fase 7 — Log geral** (A2): system_log imutável + painel Journal com filtros. ✅ 2026-06-13 —
+      `src/js/system-log.js` (`window.__logEvent` + painel Journal) instrumentando
+      deal-status/permissions/documents/auth; leitura por admin (migration 007).
 - [ ] **Fase 8 — Dashboard/Tarefas/Disponibilidade** (5, 6, 7): widget TÂCHES 3 colunas + modal
       (corrigir redirecionamento), Vols de la semaine (ticketed + PNR), Tarefas Kanban 4 funis +
       filtro categoria, B2B embed.

@@ -301,6 +301,8 @@ window.__openAdminPanel = function() {
   document.getElementById('admin-panel-overlay')?.classList.add('open');
   __adminFetchUsers();
   __adminFetchAudit();
+  // Fase 7: painel Journal (log geral A2)
+  if (typeof window.__renderJournal === 'function') window.__renderJournal();
 };
 window.__closeAdminPanel = function() {
   document.getElementById('admin-panel-overlay')?.classList.remove('open');

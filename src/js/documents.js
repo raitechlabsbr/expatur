@@ -84,6 +84,8 @@ async function uploadDealDoc(file, meta) {
       uploaded_by:  await _email(),
     }, { onConflict: 'dossier_ref,pax_index,doc_key' }).select().single();
     if (error) throw error;
+    if (typeof window.__logEvent === 'function')
+      window.__logEvent('UPLOAD', 'documentos', { entity_id: slot.dossier_ref, new_value: meta.filename || file.name });
     _toast('Document archivé sur le serveur ✓');
     return data;
   } catch (e) {
@@ -125,6 +127,8 @@ async function openDoc(docId, action) {
 async function deleteDocRow(row) {
   await supabase.storage.from(BUCKET).remove([row.storage_path]);
   await supabase.from('doc_files').delete().eq('id', row.id);
+  if (typeof window.__logEvent === 'function')
+    window.__logEvent('DELETE', 'documentos', { entity_id: row.dossier_ref, old_value: row.filename });
 }
 
 async function deleteDocSlot(ref, paxIndex, docKey) {
