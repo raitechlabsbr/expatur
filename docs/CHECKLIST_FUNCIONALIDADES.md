@@ -87,12 +87,12 @@ projeto estão marcados com *(pré-existente)*.
 ### 9. Interconexão entre Módulos → Fases 2-3 (vínculos) e 8 (visões)
 - [x] 9.1 Vendedor discriminado em Ticketing via dropdown *(pré-existente)*
 - [x] 9.2 Fornecedor vinculado via Cost Calculator *(pré-existente; Fournisseur dinâmico — Fase 1)*
-- [ ] 9.2 Visão do fornecedor: dossiers, PNR, rota, data de emissão e valor por fornecedor
-- [ ] 9.3 Visão do vendedor: deals associados com valor, comissão e status
-- [ ] 9.4 Visão do cliente: reservas/serviços vinculados aos deals (nº dossier, tipo, datas, status, valor)
+- [x] 9.2 Visão do fornecedor: dossiers, PNR, rota, data de emissão e valor por fornecedor *(pré-existente — `openFornDetails330`/`renderFornDetails330`; confirmado na validação 2026-06-13)*
+- [x] 9.3 Visão do vendedor: deals associados com valor, comissão e status *(pré-existente — `vendDetailOpen`: tabela Date/PNR/Client/Départ/Arrivée/Valeur + card Comissão + dossiê clicável)*
+- [x] 9.4 Visão do cliente: reservas/serviços vinculados aos deals (nº dossier, tipo, datas, status, valor) *(pré-existente — modal de perfil do cliente, aba "reservas" via `cpmodPopulateBookings`)*
 - [x] 9.4 Documentos arquivados acessíveis no perfil do cliente (Fase 5 — bloco "Documents archivés" no modal do menu Clientes, busca por dossier e por nome)
 - [x] 9.5 Tarefas geradas mantêm referência ao deal de origem *(pré-existente)*
-- [ ] 9.5 Navegar da tarefa diretamente ao deal correspondente
+- [x] 9.5 Navegar da tarefa diretamente ao deal correspondente *(pré-existente — `openTaskTarget`/`openTaskInTarefas` abrem o dossiê de origem)*
 
 ### 10. Backup Diário → Fase 10 ✅
 - [x] 10.1 Backup diário do banco completo (deals, clientes, fornecedores, tarefas, invoices, pagamentos) (Fase 10 — `scripts/backup.mjs`, dump REST de 16 tabelas; testado com 942 dossiers)
@@ -160,7 +160,7 @@ projeto estão marcados com *(pré-existente)*.
 ## DOC 2 — Anexo 3
 
 ### A7. Cost Calculator & P&L — Dropdowns → Fase 1 (parcial) e Fase 2/3
-- [ ] A7.1 Dropdown TRECHO alimentado exclusivamente pelos trechos da aba Itinéraire do deal corrente (rota, voo, data), sem entrada manual; vazio quando não há trechos; reflete alterações sem reload
+- [x] A7.1 Dropdown TRECHO alimentado exclusivamente pelos trechos da aba Itinéraire do deal corrente (rota, voo, data), sem entrada manual; vazio quando não há trechos; reflete alterações sem reload *(pré-existente — coluna SELECT "Trecho" no Cost Calculator, patches v3.17/v3.18; confirmado na validação 2026-06-13)*
 - [x] A7.2 Dropdown FOURNISSEUR alimentado pelo banco de Fornecedores *(pré-existente)* + grupo Programas (Fase 1)
 - [x] A7.3 SOUS-TOTAL calculado automaticamente em tempo real *(pré-existente)*
 

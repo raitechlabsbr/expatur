@@ -71,7 +71,7 @@ function _renderTasks() {
   _tasks().forEach((t) => {
     const due = _taskDue(t); if (!due) return;
     const ms = due.getTime();
-    if (ms === t0.getTime()) buckets.today.push(t);
+    if (ms <= t0.getTime()) buckets.today.push(t);          // hoje + atrasadas (não some)
     else if (ms === t1.getTime()) buckets.tomorrow.push(t);
     else if (ms > t1.getTime() && ms <= tEnd.getTime()) buckets.upcoming.push(t);
   });

@@ -124,7 +124,10 @@ async function main() {
   verifyChecksum();
   extract();
 
-  const wantDb = flag('--import-db') || opt('--import-table');
+  const tblArg = opt('--import-table');
+  const tblName = typeof tblArg === 'string' ? tblArg : null;
+  if (tblArg === true) { console.error('❌ --import-table exige o nome da tabela.'); process.exit(1); }
+  const wantDb = flag('--import-db') || !!tblName;
   const wantStorage = flag('--import-storage');
   if (!wantDb && !wantStorage) {
     console.log('\nExtração concluída. Para reimportar (DESTRUTIVO), use --import-db / --import-table <nome> / --import-storage com --yes.');
@@ -133,7 +136,7 @@ async function main() {
   if (!flag('--yes')) { console.error('\n⚠️  Operação destrutiva. Reexecute com --yes para confirmar.'); process.exit(1); }
   requireCreds();
 
-  if (opt('--import-table')) { console.log('Importando tabela:'); await importTable(String(opt('--import-table'))); }
+  if (tblName) { console.log('Importando tabela:'); await importTable(tblName); }
   else if (flag('--import-db')) {
     console.log('Importando tabelas:');
     for (const t of Object.keys(PK)) await importTable(t);

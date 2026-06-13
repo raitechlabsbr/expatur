@@ -206,7 +206,8 @@ async function main() {
   }
 
   // 8) Log de sucesso
-  await logRow('BACKUP_OK', `${Object.keys(manifest.tables).length} tabelas, ${manifest.storage_files} docs, sha256 ${sum.slice(0, 12)}…`);
+  const okTables = Object.values(manifest.tables).filter((v) => v != null).length;
+  await logRow('BACKUP_OK', `${okTables}/${TABLES.length} tabelas, ${manifest.storage_files} docs, sha256 ${sum.slice(0, 12)}…`);
   log('✅ backup concluído.');
 }
 

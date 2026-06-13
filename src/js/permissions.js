@@ -139,7 +139,7 @@ async function renderAdminUsersPanel() {
   const table = tbody.closest('table');
   const viewerIsAdmin = !!(window.__perm && window.__perm.isAdmin);
 
-  tbody.innerHTML = '<tr><td colspan="8" class="admin-hint">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="admin-hint">Loading…</td></tr>';
   let users = [];
   try {
     const { data, error } = await supabase.from('profiles')
@@ -148,7 +148,7 @@ async function renderAdminUsersPanel() {
     if (error) throw error;
     users = data || [];
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="8" class="admin-hint">Impossible de charger les utilisateurs: ' + _esc(e.message || '') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="admin-hint">Impossible de charger les utilisateurs: ' + _esc(e.message || '') + '</td></tr>';
     return;
   }
 
@@ -200,7 +200,7 @@ async function renderAdminUsersPanel() {
       + '<td>' + _visibilitySelect(uid, u.deal_visibility || 'own', locked) + '</td>'
       + '<td style="display:flex;gap:.35rem;flex-wrap:wrap;">' + actions + '</td>'
       + '</tr>';
-  }).join('') || '<tr><td colspan="8" class="admin-hint">No users found.</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="admin-hint">No users found.</td></tr>';
 }
 window.__renderAdminUsersPanel = renderAdminUsersPanel;
 
@@ -253,7 +253,8 @@ function _subscribeRealtime() {
         if (row.id) _usersCache[row.id] = Object.assign(_usersCache[row.id] || {}, payload.new || {});
         // mudou o meu perfil → reaplica menus em tempo real
         if (_session && row.id === _session.id && payload.new) {
-          _profile = payload.new;
+          // merge (não substitui) — payloads de realtime podem vir parciais
+          _profile = Object.assign({}, _profile || {}, payload.new);
           _publishPerm();
           applyMenuPermissions();
         }
