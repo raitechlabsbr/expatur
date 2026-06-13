@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 — **spec completa**
 
 ---
 
@@ -94,14 +94,14 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 9.5 Tarefas geradas mantêm referência ao deal de origem *(pré-existente)*
 - [ ] 9.5 Navegar da tarefa diretamente ao deal correspondente
 
-### 10. Backup Diário → Fase 10
-- [ ] 10.1 Backup diário do banco completo (deals, clientes, fornecedores, tarefas, invoices, pagamentos)
-- [ ] 10.1 Backup dos documentos de viagem (Storage)
-- [ ] 10.1 Backup de configurações e logs de acesso/auditoria
-- [ ] 10.2 Diário em horário de baixo tráfego (~02h), retenção ≥30 dias
-- [ ] 10.2 Armazenado fora do servidor principal, criptografado em repouso
-- [ ] 10.2 Verificação de integridade (checksum) + alerta ao admin em falha
-- [ ] 10.3 Procedimento de restauração documentado e testado (restaurar por data)
+### 10. Backup Diário → Fase 10 ✅
+- [x] 10.1 Backup diário do banco completo (deals, clientes, fornecedores, tarefas, invoices, pagamentos) (Fase 10 — `scripts/backup.mjs`, dump REST de 16 tabelas; testado com 942 dossiers)
+- [x] 10.1 Backup dos documentos de viagem (Storage) (Fase 10 — download recursivo do bucket via Storage REST)
+- [x] 10.1 Backup de configurações e logs de acesso/auditoria (Fase 10 — system_log/audit_log/doc_access_log no dump)
+- [x] 10.2 Diário em horário de baixo tráfego (~02h), retenção ≥30 dias (Fase 10 — cron + `BACKUP_RETENTION_DAYS`, ver docs/BACKUP.md)
+- [x] 10.2 Armazenado fora do servidor principal, criptografado em repouso (Fase 10 — openssl aes-256-cbc/pbkdf2 + `BACKUP_REMOTE` rsync off-site)
+- [x] 10.2 Verificação de integridade (checksum) + alerta ao admin em falha (Fase 10 — sha256 + system_log BACKUP_FAILED + webhook + exit 1/MAILTO)
+- [x] 10.3 Procedimento de restauração documentado e testado (restaurar por data) (Fase 10 — `scripts/restore.mjs` + docs/BACKUP.md; restore testado: checksum→decrypt→extract)
 
 ---
 

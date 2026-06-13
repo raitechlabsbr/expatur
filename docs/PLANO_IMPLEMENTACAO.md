@@ -94,8 +94,10 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
       layout único, flag persistida; search bar com "+ Créer un nouveau client" e modo leitura/lápis.
       ✅ 2026-06-13 — `merge-segments.js` (A10, render single + flag no billet do app.js) e
       `client-picker.js` (A6, form oculto/leitura/edição + opção criar).
-- [ ] **Fase 10 — Backup diário** (10.x): cron na VPS, export criptografado, checksum, retenção
-      30d, alerta em falha, restauração documentada.
+- [x] **Fase 10 — Backup diário** (10.x): cron na VPS, export criptografado, checksum, retenção
+      30d, alerta em falha, restauração documentada. ✅ 2026-06-13 — `scripts/backup.mjs` +
+      `scripts/restore.mjs` + `docs/BACKUP.md` (fetch puro, sem supabase-js). *Ops: criar
+      `/var/backups/expatur`, definir `BACKUP_PASSPHRASE`/`BACKUP_REMOTE` e instalar o cron das 02h.*
 - [x] **Correção doc4**: gatilho Volta Cancelada = qualquer trecho partindo de CMN (hoje CMN→GRU).
       ✅ 2026-06-12 — junto com a Fase 2.
 
