@@ -3570,7 +3570,11 @@ function openBilletModal() {
   const nChd     = Math.max(0, parseInt(document.getElementById('pax-enfants')?.value) || 0);
   const nInf     = Math.max(0, parseInt(document.getElementById('pax-bebes')?.value)   || 0);
   const clientName = document.getElementById('pax-name-1')?.value?.trim() || '';
-  const isMC     = tripType === 'multicity';
+  // A10: "Juntar os Segmentos" — em multi-city, colapsa para 1 PNR/billet único.
+  // Quando ligado, o billet é renderizado como modo single (master PNR).
+  const isMcTrip = tripType === 'multicity';
+  const juntarSeg = isMcTrip && typeof window.__readJuntarSeg === 'function' && window.__readJuntarSeg(ref);
+  const isMC     = isMcTrip && !juntarSeg;
 
   // Derive default franchise bagages from quote inputs
   const _bQty = parseInt(document.getElementById('bags-qty')?.value) || 0;
@@ -3803,7 +3807,20 @@ function openBilletModal() {
     }
   }
 
-  let bodyHTML = flightSummaryHTML + mergeOptHTML;
+  // A10.1: checkbox "Joindre les segments" — visível apenas em multi-city
+  let juntarOptHTML = '';
+  if (isMcTrip) {
+    juntarOptHTML = '<div style="margin:-0.4rem 0 1.2rem;padding:0.6rem 1rem;background:rgba(201,162,39,0.07);border:1px solid var(--gold);border-radius:7px;display:flex;align-items:center;gap:0.65rem;">'
+      +'<input type="checkbox" id="bl-juntar-seg"'+(juntarSeg ? ' checked' : '')
+      +' style="width:15px;height:15px;cursor:pointer;accent-color:var(--navy);flex-shrink:0;"'
+      +' onchange="window.__toggleJuntarSeg && window.__toggleJuntarSeg(this)">'
+      +'<label for="bl-juntar-seg" style="font-size:0.72rem;font-weight:600;color:var(--navy);cursor:pointer;user-select:none;">'
+      +'Joindre les segments <span style="font-size:0.64rem;color:var(--navy-faint);font-weight:400;">(un seul PNR / billet / réservation pour tous les tronçons)</span>'
+      +'</label>'
+      +'</div>';
+  }
+
+  let bodyHTML = flightSummaryHTML + juntarOptHTML + mergeOptHTML;
 
   if (!isMC) {
     // ONE-WAY / RETURN: master PNR + flat pax table

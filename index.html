@@ -1647,8 +1647,8 @@
       <button id="cli-scan-apply-btn" class="scan-apply-btn" disabled onclick="cliApplyScanData()" style="margin-top:0.85rem;">&#10003; Appliquer au client</button>
     </div>
     
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:0.5rem;">
-      
+    <div id="cli-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:0.5rem;">
+
       <div>
         <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.9rem;padding-bottom:0.5rem;border-bottom:1px solid var(--light);">Identité</div>
         <div class="row">
@@ -1703,7 +1703,7 @@
       </div>
     </div>
     
-    <div style="margin-top:1.25rem;">
+    <div id="cli-form-notes" style="margin-top:1.25rem;">
       <label>Notes client</label>
       <textarea id="cli-notes" style="width:100%;background:var(--light);border:1px solid rgba(6,32,59,0.2);border-radius:4px;color:var(--navy);padding:0.58rem 0.8rem;font-size:0.88rem;font-family:inherit;outline:none;resize:vertical;min-height:72px;" placeholder="Préférences, allergies, informations particulières…"></textarea>
     </div>

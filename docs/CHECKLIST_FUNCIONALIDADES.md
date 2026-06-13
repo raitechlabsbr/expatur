@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8
+Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 ---
 
@@ -149,11 +149,11 @@ projeto estão marcados com *(pré-existente)*.
 - [x] A5.7 Tabela completa ordenável: nome, qtd. passagens emitidas, volume total de milhas; programas sem emissão exibem 0 (Fase 1)
 - [x] A5.8 Detalhe do programa: lista de passagens emitidas (dossier clicável → abre deal, volume, PNR, fournisseur), ordenável, filtro por período, somente leitura (Fase 1)
 
-### A6. Busca e Criação de Cliente em Ticketing → Fase 9
+### A6. Busca e Criação de Cliente em Ticketing → Fase 9 ✅
 - [x] Busca de clientes na aba Cliente *(pré-existente)*
-- [ ] A6.1 Primeira opção fixa e destacada: "+ Créer un nouveau client" antes de qualquer resultado
-- [ ] A6.2 Campos de preenchimento ocultos por padrão; aparecem só ao clicar em criar
-- [ ] A6.3 Cliente existente carrega em modo somente leitura, com ícone de lápis para habilitar edição
+- [x] A6.1 Primeira opção fixa e destacada: "+ Créer un nouveau client" antes de qualquer resultado (Fase 9 — `client-picker.js`, aparece ao focar/buscar)
+- [x] A6.2 Campos de preenchimento ocultos por padrão; aparecem só ao clicar em criar (Fase 9 — form oculto em deal sem cliente; scan de passaporte também revela o form)
+- [x] A6.3 Cliente existente carrega em modo somente leitura, com ícone de lápis para habilitar edição (Fase 9 — campos `readonly`/`disabled` + botão ✏️)
 
 ---
 
@@ -181,12 +181,12 @@ projeto estão marcados com *(pré-existente)*.
 
 ## DOC 3 — Anexo 4
 
-### A10. Multi-City — "Juntar os Segmentos" → Fase 9
-- [ ] A10.1 Checkbox JUNTAR OS SEGMENTOS na aba TICKETS, visível apenas em multi-city
+### A10. Multi-City — "Juntar os Segmentos" → Fase 9 ✅
+- [x] A10.1 Checkbox JUNTAR OS SEGMENTOS na aba TICKETS, visível apenas em multi-city (Fase 9 — "Joindre les segments" no billet modal)
 - [x] A10.2 Comportamento desmarcado: reserva/ticket/PNR individuais por trecho *(pré-existente — comportamento atual)*
-- [ ] A10.3 Marcado: colapsa para UM conjunto único (reserva, ticket, PNR) vinculado a todos os trechos
-- [ ] A10.4/A10.5 PDF de confirmação com layout único: 1 cabeçalho PAX + PNR/TKT únicos + trechos sequenciais
-- [ ] A10.6 Flag juntar_segmentos persistida no deal com auto-save, acessível ao gerador de PDF
+- [x] A10.3 Marcado: colapsa para UM conjunto único (reserva, ticket, PNR) vinculado a todos os trechos (Fase 9 — billet renderiza em modo single/master PNR quando ligado)
+- [x] A10.4/A10.5 PDF de confirmação com layout único: 1 cabeçalho PAX + PNR/TKT únicos + trechos sequenciais (Fase 9 — `body.dataset.isMultiCity='0'` → gerador usa o layout single)
+- [x] A10.6 Flag juntar_segmentos persistida no deal com auto-save, acessível ao gerador de PDF (Fase 9 — `merge-segments.js`: `fields['juntar-segmentos']` no dossier, sync via storage.js)
 
 ---
 
