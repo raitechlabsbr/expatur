@@ -495,7 +495,7 @@ async function _renderComments(id) {
 }
 
 /* ── A9.3 — Reatribuição manual ──────────────────────────────────────────── */
-// supremo reatribui qualquer deal; quem tem can_assign_deals só os próprios.
+// admin reatribui qualquer deal; quem tem can_assign_deals só os próprios.
 function _isMyDeal(d) {
   const me = (window.__perm && window.__perm.userId) || null;
   if (!me || !d) return false;
@@ -504,7 +504,7 @@ function _isMyDeal(d) {
 function _canReassign(d) {
   const p = window.__perm;
   if (!p) return false;
-  if (p.isSupreme) return true;
+  if (p.isAdmin) return true;
   return !!p.canAssign && _isMyDeal(d);
 }
 

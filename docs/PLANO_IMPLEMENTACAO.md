@@ -78,11 +78,11 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
 - [x] **Fase 5 — Documentos persistentes + scan→cliente** (4.x, doc4 §5): Storage privado,
       doc_files, nomeação automática por PAX, arquivamento no cliente, log de acesso.
       ✅ 2026-06-12 — `src/js/documents.js`.
-- [x] **Fase 6 — Permissões/atribuição/visibilidade** (A1, A9.3-5): supremo, checkboxes por menu
-      em tempo real, can_assign_deals, deal_visibility com RLS no backend. ✅ 2026-06-13 —
-      `src/js/permissions.js` + reatribuição no painel do `deal-status.js` + migration 006
-      (trigger supremo) + supremo no `setup-users.mjs`. *Ops: aplicar migration 006 e rodar o
-      setup-users para criar administration@expaturtravel.com.*
+- [x] **Fase 6 — Permissões/atribuição/visibilidade** (A1, A9.3-5): dois níveis por role
+      (admin/agent — **sem usuário supremo**, decisão 2026-06-13), checkboxes por menu em tempo
+      real, can_assign_deals, deal_visibility com RLS no backend. ✅ 2026-06-13 —
+      `src/js/permissions.js` + reatribuição no painel do `deal-status.js` + migration 007
+      (is_admin(), is_supreme vira alias). *Ops: aplicar migration 007 no SQL Editor.*
 - [ ] **Fase 7 — Log geral** (A2): system_log imutável + painel Journal com filtros.
 - [ ] **Fase 8 — Dashboard/Tarefas/Disponibilidade** (5, 6, 7): widget TÂCHES 3 colunas + modal
       (corrigir redirecionamento), Vols de la semaine (ticketed + PNR), Tarefas Kanban 4 funis +

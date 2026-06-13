@@ -55,14 +55,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 // ── Utilizadores a criar ──────────────────────────────────────────────────────
 const USERS = [
   {
-    // Usuário supremo (A1.1) — acesso irrestrito; is_supreme() é resolvido pelo
-    // email na migration 003. ⚠️ troque a senha após o primeiro login.
-    email:    'administration@expaturtravel.com',
-    password: 'Expatur#2026',
-    role:     'admin',
-    name:     'Administration (Suprême)',
-  },
-  {
+    // Nível superior (admin) — gerencia permissões/atribuição e lê o Journal.
     email:    'admin@expatur.com.br',
     password: '123123',
     role:     'admin',

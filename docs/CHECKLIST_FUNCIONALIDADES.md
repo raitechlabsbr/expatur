@@ -109,8 +109,8 @@ projeto estão marcados com *(pré-existente)*.
 
 ### A1. Painel de Gestão de Usuários → Fase 6 ✅
 - [x] Painel de gestão de usuários existe (roles admin/agent) *(pré-existente)*
-- [x] A1.1 Usuário supremo administration@expaturtravel.com com acesso irrestrito (Fase 6 — `is_supreme()` por email na migration 003; lógica no app em `permissions.js` via `window.__perm.isSupreme`; usuário criado por `scripts/setup-users.mjs`)
-- [x] A1.1 Apenas o supremo gerencia acessos; ninguém altera os acessos dele (Fase 6 — painel só editável pelo supremo, demais em modo leitura; reforço no backend pela trigger da migration 006)
+- [x] A1.1 Dois níveis por role (decisão 2026-06-13: sem usuário supremo) — `admin` (topo, acesso total + gerencia acessos + lê o Journal) e `agent` (padrão). Backend `is_admin()` na migration 007; app em `permissions.js` via `window.__perm.isAdmin`
+- [x] A1.1 Apenas admin gerencia acessos (Fase 6 — painel só editável por admin, agents em modo leitura; reforço no backend pela trigger das migrations 006+007)
 - [x] A1.2 Checkboxes por módulo: access_ticketing, access_bookings, access_fornecedores, access_vendedores, access_disponibilidades, access_tarefas, access_clientes, access_financeiro (Fase 6 — colunas migration 003; UI no painel Gestion utilisateurs)
 - [x] A1.2 Usuário sem acesso não vê o menu na sidebar (Fase 6 — `applyMenuPermissions`; Financeiro segue restrito a admin/supremo por regra de negócio)
 - [x] A1.2 Permissões aplicadas em tempo real (sem relogin) (Fase 6 — Supabase Realtime no canal profiles reaplica os menus do usuário ao vivo)
@@ -215,5 +215,5 @@ projeto estão marcados com *(pré-existente)*.
 - [x] Migration 003 — permissões em profiles, is_supreme(), RLS de visibilidade (aplicada 2026-06-12)
 - [x] Migration 004 — system_log + doc_access_log imutáveis (aplicada 2026-06-12)
 - [x] Migration 005 — doc_files + bucket privado documents (aplicada 2026-06-12; bucket validado)
-- [ ] Migration 006 — trigger enforce_supreme_permission_edits (Fase 6) — **aplicar no SQL Editor**
-- [ ] Usuário supremo no auth — `node scripts/setup-users.mjs` (cria administration@expaturtravel.com; **trocar senha após 1º login**)
+- [x] Migration 006 — trigger enforce de edição de permissões (aplicada 2026-06-13)
+- [ ] Migration 007 — modelo de dois níveis por role (is_admin(), is_supreme alias) — **aplicar no SQL Editor** (substitui o conceito de supremo das 003/006)

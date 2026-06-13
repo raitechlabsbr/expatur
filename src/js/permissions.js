@@ -1,28 +1,28 @@
 /**
- * permissions.js — Permissões por menu, usuário supremo, atribuição e
+ * permissions.js — Permissões por menu, dois níveis por role, atribuição e
  * visibilidade de deals (spec A1, A9.3-9.5 — Fase 6)
  *
- * - A1.1 Usuário supremo (administration@expaturtravel.com): acesso irrestrito;
- *   ninguém (nem ele mesmo via UI) altera os acessos dele. Só o supremo edita
- *   permissões de outros — para os demais o painel é somente leitura.
+ * Modelo de dois níveis (não há "usuário supremo"):
+ *   - role `admin`  → nível superior: gerencia permissões/atribuição/
+ *     visibilidade, reatribui qualquer deal, vê todos os deals, lê o Journal.
+ *   - role `agent`  → usuário padrão.
+ *   (backend: is_admin() na migration 007; RLS/trigger seguem essa função.)
+ *
  * - A1.2 Checkboxes por módulo (permissions jsonb em profiles, migration 003):
  *   menu escondido na sidebar quando sem acesso, aplicado em tempo real via
  *   Supabase Realtime no canal profiles (sem relogin).
  * - A9.5 Painel de usuários ganha "Pode atribuir deals" (can_assign_deals) e
  *   "Visibilidade de deals" (deal_visibility: own/team/all).
  * - A9.3 Reatribuição manual: o seletor "Assigné à" no painel do deal
- *   (deal-status.js) usa window.__perm/__usersList expostos aqui; supremo
+ *   (deal-status.js) usa window.__perm/__usersList expostos aqui; admin
  *   reatribui qualquer deal, quem tem can_assign_deals só os próprios.
  * - A9.4 Visibilidade aplicada no backend (RLS, migration 003); ao trocar o
  *   seletor, a próxima hidratação já vem filtrada pelo Postgres.
  *
- * Financeiro permanece restrito a admin/supremo (regra de negócio anterior):
- * a checkbox access_financeiro só pode restringir um admin, nunca conceder
- * acesso a um não-admin.
+ * Financeiro permanece restrito a admin (regra de negócio anterior): a checkbox
+ * access_financeiro só pode restringir um admin, nunca conceder a um agent.
  */
 import { supabase, SUPABASE_ENABLED } from './supabase-client.js';
-
-const SUPREME_EMAIL = 'administration@expaturtravel.com';
 
 // módulo → id do botão na sidebar
 const MENU_MAP = {
@@ -53,7 +53,6 @@ function _esc(s) {
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 function _toast(msg, kind) { if (typeof window.toast === 'function') window.toast(msg, kind || 'success'); }
-function _isSupremeEmail(email) { return String(email || '').trim().toLowerCase() === SUPREME_EMAIL; }
 
 /* ── Sessão / perfil corrente ────────────────────────────────────────────── */
 let _session = null;          // { id, email }
@@ -81,13 +80,13 @@ async function _loadProfile(uid) {
 }
 
 function _publishPerm() {
-  const isSupreme = _isSupremeEmail(_session && _session.email);
+  const isAdmin = (_profile && _profile.role) === 'admin';
   window.__perm = {
     userId:     _session && _session.id,
     email:      _session && _session.email,
     role:       (_profile && _profile.role) || 'agent',
-    isSupreme,
-    canAssign:  isSupreme || !!(_profile && _profile.can_assign_deals),
+    isAdmin,
+    canAssign:  isAdmin || !!(_profile && _profile.can_assign_deals),
     visibility: (_profile && _profile.deal_visibility) || 'own',
     permissions: (_profile && _profile.permissions) || {},
   };
@@ -96,15 +95,15 @@ function _publishPerm() {
 
 /* ── A1.2 — esconder menus sem acesso ────────────────────────────────────── */
 function applyMenuPermissions() {
-  const isSupreme = _isSupremeEmail(_session && _session.email);
   const role  = (_profile && _profile.role) || 'agent';
+  const isAdmin = role === 'admin';
   const perms = (_profile && _profile.permissions) || {};
   Object.keys(MENU_MAP).forEach((mod) => {
     const el = document.getElementById(MENU_MAP[mod]);
     if (!el) return;
-    let allowed = isSupreme || perms[mod] !== false;
-    // Financeiro nunca é concedido a um não-admin (regra de negócio anterior)
-    if (mod === 'access_financeiro') allowed = (isSupreme || role === 'admin') && perms[mod] !== false;
+    let allowed = isAdmin || perms[mod] !== false;
+    // Financeiro nunca é concedido a um agent (regra de negócio anterior)
+    if (mod === 'access_financeiro') allowed = isAdmin && perms[mod] !== false;
     el.style.display = allowed ? '' : 'none';
   });
 }
@@ -113,7 +112,7 @@ window.__applyMenuPermissions = applyMenuPermissions;
 /* ══════════════════════════════════════════════════════════════════════════
    Painel "Gestion utilisateurs" — colunas de permissões (A1.2 / A9.5)
    Substitui o corpo da tabela via hook __renderAdminUsersPanel (chamado por
-   __adminFetchUsers em app.js).
+   __adminFetchUsers em app.js). Editável apenas por admins.
    ══════════════════════════════════════════════════════════════════════════ */
 function _visibilitySelect(uid, value, disabled) {
   const opts = [['own', 'Seuls les miens'], ['team', 'Moi + équipe'], ['all', 'Tous']];
@@ -138,7 +137,7 @@ async function renderAdminUsersPanel() {
   const tbody = document.getElementById('admin-users-body');
   if (!tbody) return;
   const table = tbody.closest('table');
-  const viewerSupreme = !!(window.__perm && window.__perm.isSupreme);
+  const viewerIsAdmin = !!(window.__perm && window.__perm.isAdmin);
 
   tbody.innerHTML = '<tr><td colspan="8" class="admin-hint">Loading…</td></tr>';
   let users = [];
@@ -161,15 +160,15 @@ async function renderAdminUsersPanel() {
       + '<th>Visibilité</th><th>Actions</th></tr>';
   }
 
-  // banner para quem não é supremo (somente leitura)
+  // banner para quem não é admin (somente leitura)
   let banner = document.getElementById('perm-readonly-hint');
-  if (!viewerSupreme) {
+  if (!viewerIsAdmin) {
     if (!banner && table) {
       banner = document.createElement('div');
       banner.id = 'perm-readonly-hint';
       banner.className = 'admin-hint';
       banner.style.marginBottom = '0.5rem';
-      banner.textContent = 'Lecture seule — seul l’utilisateur suprême gère les accès.';
+      banner.textContent = 'Lecture seule — seuls les administrateurs gèrent les accès.';
       table.parentNode.insertBefore(banner, table);
     }
   } else if (banner) { banner.remove(); }
@@ -178,30 +177,23 @@ async function renderAdminUsersPanel() {
     _usersCache[u.id] = u;
     const uid = String(u.id);
     const email = u.email || '';
-    const targetSupreme = _isSupremeEmail(email);
     const active = u.is_active !== false;
     const role = u.role || 'agent';
     const perms = u.permissions || {};
-    // ninguém edita o supremo; não-supremo vê tudo em modo leitura
-    const locked = !viewerSupreme || targetSupreme;
+    const locked = !viewerIsAdmin;
     const safeEmail = email.replace(/'/g, "\\'");
 
-    const roleBadge = targetSupreme
-      ? '<span class="admin-status active" title="Accès irrestreint">Suprême</span>'
-      : role;
     const canAssign = '<input type="checkbox"' + (u.can_assign_deals ? ' checked' : '') + (locked ? ' disabled' : '')
       + ' onchange="window.__permSave(\'' + uid + '\',\'can_assign_deals\',this.checked)">';
 
-    const actions = (locked && !viewerSupreme)
-      ? ''
-      : (targetSupreme ? '' :
-          '<button class="admin-mini-btn" type="button" onclick="__resetInvite(\'' + safeEmail + '\')">Reset</button>'
-        + '<button class="admin-mini-btn" type="button" onclick="window.__permSave(\'' + uid + '\',\'is_active\',' + (active ? 'false' : 'true') + ')">' + (active ? 'Disable' : 'Enable') + '</button>'
-        + '<button class="admin-mini-btn" type="button" onclick="window.__permSave(\'' + uid + '\',\'role\',\'' + (role === 'admin' ? 'agent' : 'admin') + '\')">' + (role === 'admin' ? 'Make agent' : 'Make admin') + '</button>');
+    const actions = locked ? '' :
+        '<button class="admin-mini-btn" type="button" onclick="__resetInvite(\'' + safeEmail + '\')">Reset</button>'
+      + '<button class="admin-mini-btn" type="button" onclick="window.__permSave(\'' + uid + '\',\'is_active\',' + (active ? 'false' : 'true') + ')">' + (active ? 'Disable' : 'Enable') + '</button>'
+      + '<button class="admin-mini-btn" type="button" onclick="window.__permSave(\'' + uid + '\',\'role\',\'' + (role === 'admin' ? 'agent' : 'admin') + '\')">' + (role === 'admin' ? 'Make agent' : 'Make admin') + '</button>';
 
     return '<tr>'
       + '<td>' + _esc(email) + '</td>'
-      + '<td>' + roleBadge + '</td>'
+      + '<td>' + _esc(role) + '</td>'
       + '<td><span class="admin-status ' + (active ? 'active' : 'off') + '">' + (active ? 'Active' : 'Disabled') + '</span></td>'
       + '<td>' + _modulesCell(uid, perms, locked) + '</td>'
       + '<td style="text-align:center;">' + canAssign + '</td>'
@@ -214,7 +206,7 @@ window.__renderAdminUsersPanel = renderAdminUsersPanel;
 
 /* salvar um campo escalar (can_assign_deals / deal_visibility / role / is_active) */
 window.__permSave = async function (uid, field, value) {
-  if (!window.__perm || !window.__perm.isSupreme) { _toast('Action réservée à l’utilisateur suprême', 'error'); return; }
+  if (!window.__perm || !window.__perm.isAdmin) { _toast('Action réservée aux administrateurs', 'error'); return; }
   try {
     const { error } = await supabase.from('profiles').update({ [field]: value }).eq('id', uid);
     if (error) throw error;
@@ -226,7 +218,7 @@ window.__permSave = async function (uid, field, value) {
 
 /* salvar uma checkbox de módulo dentro do jsonb permissions */
 window.__permSaveModule = async function (uid, mod, on) {
-  if (!window.__perm || !window.__perm.isSupreme) { _toast('Action réservée à l’utilisateur suprême', 'error'); return; }
+  if (!window.__perm || !window.__perm.isAdmin) { _toast('Action réservée aux administrateurs', 'error'); return; }
   const cur = (_usersCache[uid] && _usersCache[uid].permissions) || {};
   const next = Object.assign({}, cur, { [mod]: !!on });
   try {
