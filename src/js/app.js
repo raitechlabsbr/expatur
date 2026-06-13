@@ -246,6 +246,8 @@ async function _changePasswordSubmit() {
 //  Criação de utilizadores: node scripts/setup-users.mjs (precisa da service key)
 // ─────────────────────────────────────────────────────────────────────────────
 async function __adminFetchUsers() {
+  // Fase 6: painel enriquecido (permissões/atribuição/visibilidade) em permissions.js
+  if (typeof window.__renderAdminUsersPanel === 'function') return window.__renderAdminUsersPanel();
   const tbody = document.getElementById('admin-users-body');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="4" class="admin-hint">Loading…</td></tr>';

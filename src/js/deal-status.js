@@ -376,6 +376,8 @@ function _ensurePanelDom() {
     + '<button type="button" class="tlc-close" onclick="window.dealPanelClose()">✕</button>'
     + '</div>'
     + '<div class="tlc-body">'
+    + '<div class="tlc-sec-title">Assignation</div>'
+    + '<div id="tlc-assign" class="tlc-assign"><div class="tlc-empty">—</div></div>'
     + '<div class="tlc-sec-title">Timeline du statut</div>'
     + '<div id="tlc-timeline" class="tlc-timeline"><div class="tlc-empty">Chargement…</div></div>'
     + '<div class="tlc-sec-title">Commentaires</div>'
@@ -427,7 +429,11 @@ function _injectPanelCss() {
   display:flex; gap:0.5rem; align-items:flex-end; }
 #deal-tlc-panel .tlc-foot textarea { flex:1; resize:none; border:1px solid rgba(6,32,59,0.18);
   border-radius:8px; padding:0.45rem 0.6rem; font-size:0.76rem; font-family:inherit; }
-#deal-tlc-panel .tlc-foot button { padding:0.5rem 0.9rem; font-size:0.72rem; }`;
+#deal-tlc-panel .tlc-foot button { padding:0.5rem 0.9rem; font-size:0.72rem; }
+.tlc-assign { font-size:0.76rem; }
+.tlc-assign .tlc-assign-cur { color:rgba(6,32,59,0.7); }
+.tlc-assign select { width:100%; margin-top:0.35rem; border:1px solid rgba(6,32,59,0.18);
+  border-radius:8px; padding:0.4rem 0.5rem; font-size:0.76rem; font-family:inherit; background:#fff; }`;
   document.head.appendChild(css);
 }
 
@@ -488,10 +494,75 @@ async function _renderComments(id) {
   host.scrollTop = host.scrollHeight;
 }
 
+/* ── A9.3 — Reatribuição manual ──────────────────────────────────────────── */
+// supremo reatribui qualquer deal; quem tem can_assign_deals só os próprios.
+function _isMyDeal(d) {
+  const me = (window.__perm && window.__perm.userId) || null;
+  if (!me || !d) return false;
+  return (d.createdBy && d.createdBy.id === me) || (d.assignedTo && d.assignedTo.id === me);
+}
+function _canReassign(d) {
+  const p = window.__perm;
+  if (!p) return false;
+  if (p.isSupreme) return true;
+  return !!p.canAssign && _isMyDeal(d);
+}
+
+function _renderAssign(id) {
+  const host = document.getElementById('tlc-assign');
+  if (!host) return;
+  const d = _readDossier(id);
+  const cur = d && d.assignedTo;
+  const curEmail = (cur && cur.email) || null;
+  const curLine = '<div class="tlc-assign-cur">Assigné à : <strong>' + _esc(curEmail || '—') + '</strong></div>';
+
+  if (!_canReassign(d)) { host.innerHTML = curLine; return; }
+
+  const users = window.__usersList || [];
+  const curId = (cur && cur.id) || '';
+  // garante que o assignee atual aparece na lista mesmo sem __usersList carregado
+  const opts = users.slice();
+  if (curId && !opts.some(u => u.id === curId)) opts.unshift({ id: curId, email: curEmail || curId });
+  host.innerHTML = curLine
+    + '<select onchange="window.dealReassign(\'' + _esc(id) + '\', this.value)">'
+    + (curId ? '' : '<option value="">— Choisir —</option>')
+    + opts.map(u => '<option value="' + _esc(u.id) + '"' + (u.id === curId ? ' selected' : '') + '>' + _esc(u.email) + '</option>').join('')
+    + '</select>';
+}
+
+async function reassignDeal(id, toUserId) {
+  if (!id || !toUserId) return;
+  const d = _readDossier(id);
+  if (!d || !_canReassign(d)) { _toast('Réattribution non autorisée', 'error'); return; }
+  const users = window.__usersList || [];
+  const target = users.find(u => u.id === toUserId);
+  const toEmail = (target && target.email) || null;
+  const fromId = (d.assignedTo && d.assignedTo.id) || null;
+  if (fromId === toUserId) return;
+
+  const u = await _getUser();
+  d.assignedTo = { id: toUserId, email: toEmail };
+  if (!Array.isArray(d.assignmentHistory)) d.assignmentHistory = [];
+  d.assignmentHistory.push({ from: (d.assignedTo && fromId) || null, to: toEmail, at: _now(), by: (u && u.email) || null });
+  if (d.assignmentHistory.length > 100) d.assignmentHistory = d.assignmentHistory.slice(-100);
+  _writeDossier(id, d);
+
+  if (SUPABASE_ENABLED && supabase) {
+    _updateColumns(id, { assigned_to: toUserId });
+    supabase.from('deal_assignments').insert({
+      dossier_id: id, assigned_from: fromId, assigned_to: toUserId,
+      by_user_email: (u && u.email) || null,
+    }).then(({ error }) => { if (error) console.warn('[deal-status] assignment:', error.message); });
+  }
+  _toast('Deal réattribué à ' + (toEmail || toUserId), 'success');
+  _renderAssign(id);
+}
+
 async function refreshDealPanel() {
   const id = _activeId();
   if (!id) return;
   await _getUser();
+  _renderAssign(id);
   await Promise.all([_renderTimeline(id), _renderComments(id)]);
 }
 
@@ -533,7 +604,8 @@ function _syncPanelVisibility() {
     return;
   }
   const id = _activeId();
-  const show = !!id && getDealStatus(id) === 'ticketed';
+  // A3.3: timeline/comments a partir de ticketed; A9.3: ou quando pode reatribuir
+  const show = !!id && (getDealStatus(id) === 'ticketed' || _canReassign(_readDossier(id)));
   btn.style.display = show ? '' : 'none';
   if (!show && panel) panel.classList.remove('open');
 }
@@ -552,6 +624,14 @@ function _hookPanelTriggers() {
   });
   document.addEventListener('deal-status-changed', (ev) => {
     if (ev.detail && ev.detail.id === _activeId()) setTimeout(_syncPanelVisibility, 0);
+  });
+  // permissões carregadas/alteradas (permissions.js) → reavalia botão e painel
+  document.addEventListener('perm-loaded', () => {
+    setTimeout(() => {
+      _syncPanelVisibility();
+      const panel = document.getElementById('deal-tlc-panel');
+      if (panel && panel.classList.contains('open')) refreshDealPanel();
+    }, 0);
   });
 }
 
@@ -595,3 +675,4 @@ window.dealPanelToggle      = toggleDealPanel;
 window.dealPanelClose       = () => toggleDealPanel(false);
 window.dealPanelRefresh     = refreshDealPanel;
 window.dealPanelSendComment = sendDealComment;
+window.dealReassign         = reassignDeal;

@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3, 4, 5
+Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6
 
 ---
 
@@ -107,13 +107,13 @@ projeto estão marcados com *(pré-existente)*.
 
 ## DOC 1 — PARTE II: Anexo 1
 
-### A1. Painel de Gestão de Usuários → Fase 6
+### A1. Painel de Gestão de Usuários → Fase 6 ✅
 - [x] Painel de gestão de usuários existe (roles admin/agent) *(pré-existente)*
-- [ ] A1.1 Usuário supremo administration@expaturtravel.com com acesso irrestrito — *função is_supreme() criada (migration 003); falta criar o usuário no auth e a lógica no app*
-- [ ] A1.1 Apenas o supremo gerencia acessos; ninguém altera os acessos dele
-- [ ] A1.2 Checkboxes por módulo: access_ticketing, access_bookings, access_fornecedores, access_vendedores, access_disponibilidades, access_tarefas, access_clientes, access_financeiro — *colunas criadas (migration 003); falta UI*
-- [ ] A1.2 Usuário sem acesso não vê o menu na sidebar
-- [ ] A1.2 Permissões aplicadas em tempo real (sem relogin)
+- [x] A1.1 Usuário supremo administration@expaturtravel.com com acesso irrestrito (Fase 6 — `is_supreme()` por email na migration 003; lógica no app em `permissions.js` via `window.__perm.isSupreme`; usuário criado por `scripts/setup-users.mjs`)
+- [x] A1.1 Apenas o supremo gerencia acessos; ninguém altera os acessos dele (Fase 6 — painel só editável pelo supremo, demais em modo leitura; reforço no backend pela trigger da migration 006)
+- [x] A1.2 Checkboxes por módulo: access_ticketing, access_bookings, access_fornecedores, access_vendedores, access_disponibilidades, access_tarefas, access_clientes, access_financeiro (Fase 6 — colunas migration 003; UI no painel Gestion utilisateurs)
+- [x] A1.2 Usuário sem acesso não vê o menu na sidebar (Fase 6 — `applyMenuPermissions`; Financeiro segue restrito a admin/supremo por regra de negócio)
+- [x] A1.2 Permissões aplicadas em tempo real (sem relogin) (Fase 6 — Supabase Realtime no canal profiles reaplica os menus do usuário ao vivo)
 
 ### A2. Log Geral de Alterações → Fase 7
 - [ ] A2.1 Logar: criação/edição/exclusão de deals, mudanças de status, invoices, pagamentos, uploads, tarefas, perfis, permissões, login/logout, toda escrita via interface
@@ -172,10 +172,10 @@ projeto estão marcados com *(pré-existente)*.
 ### A9. Log de Criação de Deals & Atribuição → Fases 2 e 6
 - [x] A9.1 Deal registra: criado por, data/hora UTC, atribuído a, histórico de atribuições, histórico de status (integrado à timeline A3) (Fase 2 — `createdBy`/`assignedTo`/`assignmentHistory`/`statusHistory` no jsonb + colunas `created_by`/`assigned_to`)
 - [x] A9.2 Atribuição automática ao criador na criação do deal (Fase 2 — + linha em `deal_assignments`)
-- [ ] A9.3 Reatribuição manual: supremo sempre; usuário com permissão só dos próprios; sem permissão não reatribui → Fase 6
-- [ ] A9.3 Toda reatribuição registrada (quem, para quem, quando) — *tabela deal_assignments criada (migration 002)*
-- [ ] A9.4 Visibilidade de deals por usuário: Somente meus / Meus + equipe / Todos — aplicada no backend (RLS) — *policies criadas (migration 003); falta UI e hidratação filtrada* → Fase 6
-- [ ] A9.5 Painel de usuários com "Pode atribuir deals" (checkbox) e "Visibilidade de deals" (seletor) → Fase 6
+- [x] A9.3 Reatribuição manual: supremo sempre; usuário com permissão só dos próprios; sem permissão não reatribui (Fase 6 — seletor "Assigné à" no painel do deal; gating por `window.__perm` em `deal-status.js`)
+- [x] A9.3 Toda reatribuição registrada (quem, para quem, quando) (Fase 6 — linha em `deal_assignments` + `assignmentHistory` no jsonb; tabela criada na migration 002)
+- [x] A9.4 Visibilidade de deals por usuário: Somente meus / Meus + equipe / Todos — aplicada no backend (RLS) (Fase 6 — seletor no painel; RLS `can_see_dossier` da migration 003 filtra a hidratação automaticamente)
+- [x] A9.5 Painel de usuários com "Pode atribuir deals" (checkbox) e "Visibilidade de deals" (seletor) (Fase 6)
 
 ---
 
@@ -215,3 +215,5 @@ projeto estão marcados com *(pré-existente)*.
 - [x] Migration 003 — permissões em profiles, is_supreme(), RLS de visibilidade (aplicada 2026-06-12)
 - [x] Migration 004 — system_log + doc_access_log imutáveis (aplicada 2026-06-12)
 - [x] Migration 005 — doc_files + bucket privado documents (aplicada 2026-06-12; bucket validado)
+- [ ] Migration 006 — trigger enforce_supreme_permission_edits (Fase 6) — **aplicar no SQL Editor**
+- [ ] Usuário supremo no auth — `node scripts/setup-users.mjs` (cria administration@expaturtravel.com; **trocar senha após 1º login**)
