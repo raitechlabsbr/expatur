@@ -75,8 +75,9 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
       do `app.js` atualizado in-place (o watcher de re-render usa o closure interno).
 - [x] **Fase 4 — Auto-save global + indicador** (2.x). ✅ 2026-06-12 — `src/js/autosave.js` +
       retry/alerta de sync no `storage.js`.
-- [ ] **Fase 5 — Documentos persistentes + scan→cliente** (4.x, doc4 §5): Storage privado,
+- [x] **Fase 5 — Documentos persistentes + scan→cliente** (4.x, doc4 §5): Storage privado,
       doc_files, nomeação automática por PAX, arquivamento no cliente, log de acesso.
+      ✅ 2026-06-12 — `src/js/documents.js`.
 - [ ] **Fase 6 — Permissões/atribuição/visibilidade** (A1, A9.3-5): supremo, checkboxes por menu
       em tempo real, can_assign_deals, deal_visibility com RLS no backend.
 - [ ] **Fase 7 — Log geral** (A2): system_log imutável + painel Journal com filtros.

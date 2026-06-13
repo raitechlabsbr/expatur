@@ -1,3 +1,4 @@
+
 # Checklist de Funcionalidades — Backoffice Expatur
 
 Fonte: `doc1` (especificações v1.3 + Anexos 1-2) · `doc2` (Anexo 3) · `doc3` (Anexo 4) · `doc4` (R.D./Suriname).
@@ -7,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3, 4
+Última atualização: 2026-06-12 · Fases concluídas: 0, 1, 2, 3, 4, 5
 
 ---
 
@@ -45,17 +46,17 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 3.3 Número do dossier visualmente distinguível como clicável (sublinhado/cor) (Fase 3)
 - [x] 3.4 Rota Ticketing sem parâmetro cria deal novo; abrir deal existente NÃO instancia novo *(pré-existente)*
 
-### 4. Ticketing — Upload & Gestão de Documentos de Viagem → Fase 5
+### 4. Ticketing — Upload & Gestão de Documentos de Viagem → Fase 5 ✅
 - [x] Scan de passaporte com extração de dados (worker) *(pré-existente)*
-- [ ] 4.1 Extrair nome completo do PAX do passaporte e nomear o arquivo automaticamente
-- [ ] 4.1 Arquivar automaticamente o documento no perfil do cliente (sem ação manual)
-- [ ] 4.1 Vínculo do documento pelo deal aberto E pelo nome extraído
-- [ ] 4.1 Regra aplicada a todos os pontos de upload (Scan Passport, Tickets/Scan, aba cliente)
+- [x] 4.1 Extrair nome completo do PAX do passaporte e nomear o arquivo automaticamente (Fase 5 — "NOM PRENOM PASSPORT.ext" no Tickets/Scan *(pré-existente)* e no Scan da aba Client *(novo)*)
+- [x] 4.1 Arquivar automaticamente o documento no perfil do cliente (sem ação manual) (Fase 5 — upload ao bucket + doc_files no "Appliquer" do scan)
+- [x] 4.1 Vínculo do documento pelo deal aberto E pelo nome extraído (Fase 5 — colunas dossier_ref/client_ref + pax_name)
+- [x] 4.1 Regra aplicada a todos os pontos de upload (Fase 5 — anexos da aba Documents, arquivos por pax da aba Tickets, Scan Passport da aba Client; corrigidos handlers da aba Documents que estavam quebrados — sem export no window e elemento doc-annexe-card inexistente)
 - [x] 4.2 Upload via HTTPS/TLS *(site já servido via HTTPS)*
-- [ ] 4.2 Armazenamento em storage criptografado (bucket privado Supabase) — *bucket criado (migration 005)*
-- [ ] 4.2 Acesso restrito por perfil de usuário
-- [ ] 4.2 Nenhum documento acessível via URL pública direta
-- [ ] 4.2 Log de acesso: quem acessou/baixou cada documento, com timestamp — *tabela criada (migration 004)*
+- [x] 4.2 Armazenamento em storage criptografado (Fase 5 — bucket privado `documents`, criptografia em repouso do Supabase Storage)
+- [x] 4.2 Acesso restrito por perfil de usuário (Fase 5 — RLS somente autenticados; granularidade por módulo chega com as permissões da Fase 6)
+- [x] 4.2 Nenhum documento acessível via URL pública direta (Fase 5 — download só por signed URL de 120s)
+- [x] 4.2 Log de acesso: quem acessou/baixou cada documento, com timestamp (Fase 5 — doc_access_log a cada download; leitura só pelo supremo)
 
 ### 5. Dashboard — Welcome Page → Fase 8
 - [x] 5.1 Widget TÂCHES existe no dashboard *(pré-existente)*
@@ -89,7 +90,7 @@ projeto estão marcados com *(pré-existente)*.
 - [ ] 9.2 Visão do fornecedor: dossiers, PNR, rota, data de emissão e valor por fornecedor
 - [ ] 9.3 Visão do vendedor: deals associados com valor, comissão e status
 - [ ] 9.4 Visão do cliente: reservas/serviços vinculados aos deals (nº dossier, tipo, datas, status, valor)
-- [ ] 9.4 Documentos arquivados acessíveis no perfil do cliente → Fase 5
+- [x] 9.4 Documentos arquivados acessíveis no perfil do cliente (Fase 5 — bloco "Documents archivés" no modal do menu Clientes, busca por dossier e por nome)
 - [x] 9.5 Tarefas geradas mantêm referência ao deal de origem *(pré-existente)*
 - [ ] 9.5 Navegar da tarefa diretamente ao deal correspondente
 
@@ -200,11 +201,11 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 6.2 Volta Cancelada: gatilhos (tarificação/Cost Calc, CMN, partida R.D.) com dedupe, prazo 36h
 - [x] 6.2 ⚠️ Correção: gatilho = qualquer trecho partindo de CMN (Fase 2 — tarefa automática e linha do Cost Calculator; QR Privilege Club continua restrito a CMN→GRU+GRU→MCP)
 
-### Seção 5 — Persistência dos documentos → Fase 5
-- [ ] 5.2 Upload da aba Documentos enviado ao servidor e vinculado ao booking-ref
-- [ ] 5.2 Metadados salvos (nome, passageiro, tipo, chave) — *tabela doc_files criada (migration 005)*
-- [ ] 5.2 Ao reabrir dossier, documentos carregados automaticamente (nome + exclusão ativos)
-- [ ] 5.2 Exclusão remove o arquivo do servidor além do DOM
+### Seção 5 — Persistência dos documentos → Fase 5 ✅
+- [x] 5.2 Upload da aba Documentos enviado ao servidor e vinculado ao booking-ref (Fase 5 — `documents.js`)
+- [x] 5.2 Metadados salvos (nome, passageiro, tipo, chave) (Fase 5 — doc_files)
+- [x] 5.2 Ao reabrir dossier, documentos carregados automaticamente (Fase 5 — hidratação dos slots + bloco "Documents archivés" com download/exclusão)
+- [x] 5.2 Exclusão remove o arquivo do servidor além do DOM (Fase 5 — Storage remove + delete em doc_files)
 
 ---
 

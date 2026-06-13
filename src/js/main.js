@@ -20,6 +20,7 @@ import './task-import.js';
 import './programs.js';
 import './deal-status.js';
 import './autosave.js';
+import './documents.js';
 
 // Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
 initI18n();

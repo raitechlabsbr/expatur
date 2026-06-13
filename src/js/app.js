@@ -130,6 +130,13 @@
   if (typeof sidebarOpen === 'function') window.sidebarOpen = sidebarOpen;
   if (typeof switchDossier === 'function') window.switchDossier = switchDossier;
   if (typeof _dossierSave === 'function') window._dossierSave = _dossierSave;
+  // Aba Documentos (annexes) — handlers usados em HTML inline; sem estes
+  // exports os botões de upload/delete das linhas de anexos quebram (Fase 5)
+  if (typeof docAnnexeFileChange === 'function') window.docAnnexeFileChange = docAnnexeFileChange;
+  if (typeof docAnnexeDeleteFile === 'function') window.docAnnexeDeleteFile = docAnnexeDeleteFile;
+  if (typeof switchDocAnnexeTab === 'function') window.switchDocAnnexeTab = switchDocAnnexeTab;
+  if (typeof generateSurinameItinerary === 'function') window.generateSurinameItinerary = generateSurinameItinerary;
+  if (typeof _getPaxDisplayName === 'function') window._getPaxDisplayName = _getPaxDisplayName;
   if (typeof syncDateMins === 'function') window.syncDateMins = syncDateMins;
   if (typeof syncPaxPriceBoxes === 'function') window.syncPaxPriceBoxes = syncPaxPriceBoxes;
   if (typeof tarefasRender === 'function') window.tarefasRender = tarefasRender;
@@ -5854,9 +5861,10 @@ function switchDocAnnexeTab(pi) {
 function docAnnexeFileChange(pi, key, input) {
   const file = input.files[0];
   const fn   = file?.name || '';
-  const card = document.getElementById('doc-annexe-card');
-  if (!card._files) card._files = {};
-  card._files[pi + '-' + key] = fn || undefined;
+  // o estado vive em dv-panel-docs (o id legado doc-annexe-card não existe)
+  const card = document.getElementById('dv-panel-docs');
+  if (card && !card._files) card._files = {};
+  if (card) card._files[pi + '-' + key] = fn || undefined;
   const nameEl = document.getElementById('doc-fname-' + pi + '-' + key);
   if (nameEl) nameEl.textContent = fn ? ('\u2713 ' + fn) : '';
   let delBtn = document.getElementById('doc-del-' + pi + '-' + key);
@@ -5880,7 +5888,7 @@ function docAnnexeDeleteFile(pi, key) {
   if (!confirm('Are you sure? This cannot be undone.')) return;
   const input = document.getElementById('doc-file-' + pi + '-' + key);
   if (input) input.value = '';
-  const card = document.getElementById('doc-annexe-card');
+  const card = document.getElementById('dv-panel-docs');
   if (card?._files) delete card._files[pi + '-' + key];
   const nameEl = document.getElementById('doc-fname-' + pi + '-' + key);
   if (nameEl) nameEl.textContent = '';
