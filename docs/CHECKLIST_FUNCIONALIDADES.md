@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7
+Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8
 
 ---
 
@@ -58,24 +58,24 @@ projeto estão marcados com *(pré-existente)*.
 - [x] 4.2 Nenhum documento acessível via URL pública direta (Fase 5 — download só por signed URL de 120s)
 - [x] 4.2 Log de acesso: quem acessou/baixou cada documento, com timestamp (Fase 5 — doc_access_log a cada download; leitura só pelo supremo)
 
-### 5. Dashboard — Welcome Page → Fase 8
+### 5. Dashboard — Welcome Page → Fase 8 ✅
 - [x] 5.1 Widget TÂCHES existe no dashboard *(pré-existente)*
-- [ ] 5.1 TÂCHES em 3 colunas: Hoje / Amanhã / Prochains Jours (7 dias)
-- [ ] 5.1 Pendentes no topo; completadas abaixo, acinzentadas com check
-- [ ] 5.1 Clicar no card abre popup/modal com a tarefa completa SEM redirecionar (corrigir bug de navegação)
+- [x] 5.1 TÂCHES em 3 colunas: Hoje / Amanhã / Prochains Jours (7 dias) (Fase 8 — `dashboard.js`, fonte canônica `window.getAllTasks`)
+- [x] 5.1 Pendentes no topo; completadas abaixo, acinzentadas com check (Fase 8)
+- [x] 5.1 Clicar no card abre popup/modal com a tarefa completa SEM redirecionar (Fase 8 — `window.openTaskDetail`)
 - [x] 5.2 Widget VOLS DE LA SEMAINE existe *(pré-existente)*
-- [ ] 5.2 Vols: somente deals ticketed com PNR confirmado, semana corrente
-- [ ] 5.2 Card do voo: origem, destino, data, PNR e companhia
+- [x] 5.2 Vols: somente deals ticketed com PNR confirmado, semana corrente (Fase 8 — status canônico `DEAL_STATUS` + PNR de `expatur_billet_*`, semana lun→dim)
+- [x] 5.2 Card do voo: origem, destino, data, PNR e companhia (Fase 8 — logo IATA quando disponível)
 
-### 6. Menu Tarefas → Fase 8
+### 6. Menu Tarefas → Fase 8 ✅
 - [x] 6.1 Visualização em lista, ordenável e filtrável *(pré-existente)*
-- [ ] 6.2 Visualização Kanban com 4 funis: Hoje / Amanhã / Essa Semana / Próximas Semanas
-- [ ] 6.2 Filtro por categoria transversal a todos os funis
-- [ ] 6.2 Limpar filtro volta à visualização completa
-- [ ] 6.2 Card kanban simples: apenas nome + categoria
+- [x] 6.2 Visualização Kanban com 4 funis: Hoje / Amanhã / Essa Semana / Próximas Semanas (Fase 8 — `tasks-kanban.js`, toggle Liste/Kanban persistido; atrasadas caem em Hoje, sem data em Semaines suivantes)
+- [x] 6.2 Filtro por categoria transversal a todos os funis (Fase 8 — dropdown alimentado pelas categorias presentes)
+- [x] 6.2 Limpar filtro volta à visualização completa (Fase 8 — "Effacer le filtre" / opção Toutes)
+- [x] 6.2 Card kanban simples: apenas nome + categoria (Fase 8 — clique abre o detalhe sem sair da página)
 
-### 7. Menu Disponibilidade — Página B2B → Fase 8
-- [ ] 7.1 Integrar/embutir www.expaturtravel.com/b2b no menu Disponibilidade
+### 7. Menu Disponibilidade — Página B2B → Fase 8 ✅
+- [x] 7.1 Integrar/embutir www.expaturtravel.com/b2b no menu Disponibilidade (Fase 8 — iframe em `section-disponibilidades` + fallback "Ouvrir dans un nouvel onglet" e aviso se o site bloquear via X-Frame-Options)
 
 ### 8. Módulo Finance — Interconexão Ticketing ↔ Financeiro
 - [x] 8.1 Lógica de invoices, pagamentos e parcelamentos *(pré-existente — premissa: não recriar)*
@@ -216,4 +216,4 @@ projeto estão marcados com *(pré-existente)*.
 - [x] Migration 004 — system_log + doc_access_log imutáveis (aplicada 2026-06-12)
 - [x] Migration 005 — doc_files + bucket privado documents (aplicada 2026-06-12; bucket validado)
 - [x] Migration 006 — trigger enforce de edição de permissões (aplicada 2026-06-13)
-- [ ] Migration 007 — modelo de dois níveis por role (is_admin(), is_supreme alias) — **aplicar no SQL Editor** (substitui o conceito de supremo das 003/006)
+- [x] Migration 007 — modelo de dois níveis por role (is_admin(), is_supreme alias) (aplicada 2026-06-13; substitui o conceito de supremo das 003/006)

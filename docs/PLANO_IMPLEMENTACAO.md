@@ -86,9 +86,10 @@ Supabase via `storage.js` (tabelas `dossiers`, `dossier_list`, `clients`, `clien
 - [x] **Fase 7 — Log geral** (A2): system_log imutável + painel Journal com filtros. ✅ 2026-06-13 —
       `src/js/system-log.js` (`window.__logEvent` + painel Journal) instrumentando
       deal-status/permissions/documents/auth; leitura por admin (migration 007).
-- [ ] **Fase 8 — Dashboard/Tarefas/Disponibilidade** (5, 6, 7): widget TÂCHES 3 colunas + modal
+- [x] **Fase 8 — Dashboard/Tarefas/Disponibilidade** (5, 6, 7): widget TÂCHES 3 colunas + modal
       (corrigir redirecionamento), Vols de la semaine (ticketed + PNR), Tarefas Kanban 4 funis +
-      filtro categoria, B2B embed.
+      filtro categoria, B2B embed. ✅ 2026-06-13 — `src/js/dashboard.js` (5.x), `src/js/tasks-kanban.js`
+      (6.2), iframe B2B + fallback em `index.html` (7.1).
 - [ ] **Fase 9 — Juntar os Segmentos + busca de cliente** (A10, A6): checkbox multicity, PDF com
       layout único, flag persistida; search bar com "+ Créer un nouveau client" e modo leitura/lápis.
 - [ ] **Fase 10 — Backup diário** (10.x): cron na VPS, export criptografado, checksum, retenção

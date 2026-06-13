@@ -23,6 +23,8 @@ import './autosave.js';
 import './documents.js';
 import './permissions.js';
 import './system-log.js';
+import './dashboard.js';
+import './tasks-kanban.js';
 
 // Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
 initI18n();
