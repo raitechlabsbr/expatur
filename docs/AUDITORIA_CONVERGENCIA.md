@@ -80,7 +80,14 @@ Fora do escopo do passe fino (override de fase / muitas defs → provável inten
 
 *(Os patches `_v354*`, `_v343*`, `_v118*` etc. são drift de linhagem — comparar por versão nos passes dos outros módulos.)*
 
-### 4.4 Passe fino — módulos restantes (worklist, PENDENTE)
+### 4.5 Passe fino — Ticketing/Devis (persistência do dossier)
+
+| # | Função | Achado | Estado |
+|---|---|---|---|
+| R8 ✅ | `_dossierSerializeCustomLines` + `_dossierLoad` + `_dossierResetUI` | **Cluster de id errado**: 3 funções buscavam `custom-line-row-` (não existe; o real é `custom-line-`, criado por `addCustomLine`). Consequência: **linhas custom (formalidades/extras) não eram persistidas, hidratadas nem resetadas**. **CORRIGIDA** (5 ocorrências → `custom-line-` + dedup NFC no serializer). | Corrigida |
+| R9 ⚠️ | `_dossierSerializeMultiLegs` (+ reconstrução no load) | **Persistência multi-city quebrada nas duas pontas**: (a) serialize consultava ids inexistentes `#multi-legs-list`/`ml-*` → salvava `[]` (o comentário de produção confirma); (b) a plataforma **não tem** o bloco de reconstrução dos cards no load (monólito 13906-13925) **nem o modelo `flightSel`** (0 refs). É **divergência arquitetural** de como voos selecionados são persistidos — precisa de **passe dedicado**, não port cego. | **Aberto** |
+
+### 4.6 Passe fino — módulos restantes (worklist, PENDENTE)
 
 Próximos módulos a rastrear par-a-par (divergências das 188 por prefixo). Método: achar a versão
 efetiva (última def / `window.X=` / override de fase) nos dois lados antes de editar.

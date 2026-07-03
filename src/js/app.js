@@ -7376,8 +7376,8 @@ function _dossierSerializeMultiLegs() {
 // Serialize custom lines
 function _dossierSerializeCustomLines() {
   const lines = [];
-  document.querySelectorAll('[id^="custom-line-row-"]').forEach(function(row) {
-    const id = row.id.replace('custom-line-row-','');
+  document.querySelectorAll('[id^="custom-line-"]').forEach(function(row) {
+    const id = row.id.replace('custom-line-','');
     lines.push({
       id: id,
       name: (document.getElementById('cl-name-'+id)||{}).value || '',
@@ -7386,7 +7386,16 @@ function _dossierSerializeCustomLines() {
       price:(document.getElementById('cl-price-'+id)||{}).value || ''
     });
   });
-  return lines;
+  /* safety net: collapse exact-duplicate lines (same name/cat/qty/price) so a
+     mis-fire can never grow the list without bound across save/restore cycles */
+  var _seen = {}, _out = [];
+  lines.forEach(function (l) {
+    var sig = (l.name||'').trim().toLowerCase().normalize('NFC') + '|' + (l.cat||'') + '|' + (l.qty||'') + '|' + (l.price||'');
+    if (l.name && _seen[sig]) return;
+    if (l.name) _seen[sig] = true;
+    _out.push(l);
+  });
+  return _out;
 }
 
 // Serialize passenger rows
@@ -7455,10 +7464,10 @@ function _dossierLoad(id) {
     data.customLines.forEach(function(cl) {
       if (typeof addCustomLine === 'function') addCustomLine();
       // get last added row id
-      const rows = document.querySelectorAll('[id^="custom-line-row-"]');
+      const rows = document.querySelectorAll('[id^="custom-line-"]');
       if (!rows.length) return;
       const lastRow = rows[rows.length-1];
-      const lid = lastRow.id.replace('custom-line-row-','');
+      const lid = lastRow.id.replace('custom-line-','');
       if (document.getElementById('cl-name-'+lid))  document.getElementById('cl-name-'+lid).value  = cl.name;
       if (document.getElementById('cl-cat-'+lid))   document.getElementById('cl-cat-'+lid).value   = cl.cat;
       if (document.getElementById('cl-qty-'+lid))   document.getElementById('cl-qty-'+lid).value   = cl.qty;
@@ -7491,7 +7500,7 @@ function _dossierResetUI() {
     else el.value = '';
   });
   // Remove custom lines
-  document.querySelectorAll('[id^="custom-line-row-"]').forEach(function(r){ r.remove(); });
+  document.querySelectorAll('[id^="custom-line-"]').forEach(function(r){ r.remove(); });
   //  Restore tarification defaults 
   var _setVal = function(id, val) {
     var el = document.getElementById(id);
