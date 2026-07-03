@@ -7428,19 +7428,27 @@ function _dossierSetTripType(v) {
   if (r) { r.checked = true; if (typeof changeTripType === 'function') changeTripType(v); }
 }
 
-// Serialize multi-legs rows
+// Serialize multi-city legs from the live `multiLegs` global (single source of
+// truth). The previous version queried #multi-legs-list / ml-* ids that never
+// existed, so multi-city legs were never saved (R9). `sel` keeps the chosen flight
+// minus its bulky raw SerpAPI payload so selections survive a reopen.
 function _dossierSerializeMultiLegs() {
-  const rows = [];
-  document.querySelectorAll('#multi-legs-list .multi-leg-row').forEach(function(row) {
-    const idx = row.dataset.legIndex;
-    rows.push({
-      dep: (document.getElementById('ml-dep-'+idx)||{}).value || '',
-      arr: (document.getElementById('ml-arr-'+idx)||{}).value || '',
-      date: (document.getElementById('ml-date-'+idx)||{}).value || '',
-      label: (document.getElementById('ml-label-'+idx)||{}).value || ''
-    });
-  });
-  return rows;
+  try {
+    if (typeof multiLegs !== 'undefined' && Array.isArray(multiLegs)) {
+      return multiLegs.map(function (l) {
+        var sel = l.sel ? Object.assign({}, l.sel) : null;
+        if (sel) delete sel.raw;
+        return {
+          id:   l.id,
+          dep:  (document.getElementById('multi-dep-'  + l.id) || {}).value || l.dep  || '',
+          arr:  (document.getElementById('multi-arr-'  + l.id) || {}).value || l.arr  || '',
+          date: (document.getElementById('multi-date-' + l.id) || {}).value || l.date || '',
+          sel:  sel
+        };
+      });
+    }
+  } catch (e) {}
+  return [];
 }
 
 // Serialize custom lines
@@ -7544,6 +7552,38 @@ function _dossierLoad(id) {
       if (document.getElementById('cl-price-'+lid)) document.getElementById('cl-price-'+lid).value = cl.price;
     });
   }
+  // Restore multi-city legs (R9): rebuild the leg cards + `multiLegs` global from
+  // saved data so reopening a multi-city quote restores its itinerary (legs,
+  // dep/arr/date and the chosen flight per leg). Clear first to avoid a previously
+  // open dossier leaking its legs into this one.
+  try {
+    var _mcWrap = document.getElementById('multicity-legs');
+    if (_mcWrap) _mcWrap.innerHTML = '';
+    if (typeof multiLegs !== 'undefined' && Array.isArray(multiLegs)) multiLegs.length = 0;
+    if (data.tripType === 'multicity' && typeof addMultiLeg === 'function') {
+      var _savedLegs = Array.isArray(data.multiLegs) ? data.multiLegs : [];
+      if (_savedLegs.length) {
+        _savedLegs.forEach(function (ml) {
+          addMultiLeg();
+          var last = multiLegs[multiLegs.length - 1];
+          if (!last) return;
+          var nid = last.id;
+          var dEl = document.getElementById('multi-dep-'  + nid); if (dEl) dEl.value = ml.dep  || '';
+          var aEl = document.getElementById('multi-arr-'  + nid); if (aEl) aEl.value = ml.arr  || '';
+          var tEl = document.getElementById('multi-date-' + nid); if (tEl) tEl.value = ml.date || '';
+          last.dep = ml.dep || ''; last.arr = ml.arr || ''; last.date = ml.date || '';
+          if (ml.sel) last.sel = ml.sel;
+          if (typeof updateMultiLeg === 'function') updateMultiLeg(nid);
+        });
+      } else {
+        addMultiLeg(); // no saved legs → seed one empty leg (matches setTripType)
+      }
+      if (typeof renumberMultiLegs === 'function') renumberMultiLegs();
+      if (typeof syncDateMins === 'function') syncDateMins();
+      if (typeof updateLegTitles === 'function') updateLegTitles();
+      if (typeof _itinWidgetRefreshIfOpen === 'function') _itinWidgetRefreshIfOpen();
+    }
+  } catch (e) { console.warn('[R9] multi-city restore error', e); }
   // Trigger recalc if available
   if (typeof updateRecap === 'function') updateRecap();
   if (typeof updateDevis === 'function') updateDevis();
