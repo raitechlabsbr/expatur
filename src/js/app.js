@@ -1413,27 +1413,55 @@ function removeCustomLine(id) {
 function autoInjectFormalites(allCodes, totalPax) {
   const hasPBM = allCodes.includes('PBM');
   const hasDOM = allCodes.includes('SDQ') || allCodes.includes('PUJ');
+
+  // ── Auto-remove previously injected formality lines that no longer apply ──
+  // Each managed line maps to the condition under which it must REMAIN present.
+  // If the itinerary changed so the condition is false, delete the stale line.
+  const _managedFormalites = {
+    'vfs suriname': hasPBM,                               // PBM-only line
+    'déclaration icf / qr code': hasPBM || hasDOM    // PBM or DR (SDQ/PUJ)
+  };
+  document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
+    const _id = row.id.replace('custom-line-', '');
+    const _nm = (document.getElementById(`cl-name-${_id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
+    if (Object.prototype.hasOwnProperty.call(_managedFormalites, _nm) && !_managedFormalites[_nm]) {
+      try { removeCustomLine(_id); } catch(e) {}
+    }
+  });
+
+  // Keep the quantity of the auto-managed formality lines locked to the current passenger
+  // count, so changing pax (even after a quote was generated, or on a fresh one) updates
+  // the "Récapitulatif tarifaire" line quantities instead of keeping a stale number.
+  document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
+    const _id = row.id.replace('custom-line-', '');
+    const _nm = (document.getElementById(`cl-name-${_id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
+    if (Object.prototype.hasOwnProperty.call(_managedFormalites, _nm)) {
+      const _q = document.getElementById(`cl-qty-${_id}`);
+      if (_q && String(_q.value) !== String(totalPax)) _q.value = totalPax;
+    }
+  });
+
   if (!hasPBM && !hasDOM) return;
 
   // Collect existing designation names to avoid duplicates
   const existing = new Set();
   document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
     const id = row.id.replace('custom-line-', '');
-    const name = document.getElementById(`cl-name-${id}`)?.value?.trim().toLowerCase() || '';
+    const name = (document.getElementById(`cl-name-${id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
     if (name) existing.add(name);
   });
 
   // PBM: VFS Suriname (Visa/ETA) + ICF declaration
   if (hasPBM) {
-    if (!existing.has('vfs suriname')) {
+    if (!existing.has('vfs suriname'.normalize('NFC'))) {
       addCustomLine('VFS Suriname', 'Visa / ETA', totalPax, 'OFFERT');
     }
-    if (!existing.has('déclaration icf / qr code')) {
+    if (!existing.has('déclaration icf / qr code'.normalize('NFC'))) {
       addCustomLine('Déclaration ICF / QR Code', 'Formalités adm.', totalPax, 'OFFERT');
     }
   } else if (hasDOM) {
     // SDQ/PUJ only (no PBM): ICF/QR Code declaration only
-    if (!existing.has('déclaration icf / qr code')) {
+    if (!existing.has('déclaration icf / qr code'.normalize('NFC'))) {
       addCustomLine('Déclaration ICF / QR Code', 'Formalités adm.', totalPax, 'OFFERT');
     }
   }
@@ -2404,6 +2432,44 @@ function _buildInvoiceItems() {
     return items;
   }
 
+  /* Itemize the single invoice to mirror the Récapitulatif tarifaire — one line per
+     passenger fare plus each custom line, offers and zero-price excluded — but only
+     when those lines add up to the invoice total. If a discount, override or other
+     component makes them diverge, fall back to a single line so the charged total
+     always stays exactly right. */
+  var _offlineNow = _isOfflineMethod(_getPaymentMethodLive());
+  try {
+    var _chk = document.getElementById('inv-diff-check');
+    var _customOverride = !!(_chk && _chk.checked);
+    if (!_customOverride && typeof window._buildPaxInvoiceItems119 === 'function') {
+      var _li = window._buildPaxInvoiceItems119() || [];
+      if (_li.length > 0) {
+        var _sum = _roundMoney(_li.reduce(function(s, x){
+          var q = parseInt(x.quantity) || 1;
+          var lt = (x.total != null) ? x.total : ((parseFloat(x.unitPrice) || 0) * q);
+          return s + _roundMoney(lt);
+        }, 0));
+        if (Math.abs(_sum - total) < 0.01) {
+          return _li.map(function(x){
+            var q = parseInt(x.quantity) || 1;
+            var unit = _roundMoney(parseFloat(x.unitPrice) != null ? parseFloat(x.unitPrice) : 0) || _roundMoney((parseFloat(x.total) || 0) / q);
+            var lt = _roundMoney(x.total != null ? x.total : unit * q);
+            return {
+              description: x.description,
+              quantity: q,
+              unitPrice: unit,
+              amount: lt,
+              amount_value: lt,
+              total: lt,
+              currency: cur,
+              invoice_status: _offlineNow ? 'paid' : 'open'
+            };
+          });
+        }
+      }
+    }
+  } catch(e) {}
+
   return [{
     description: baseDesc,
     quantity: 1,
@@ -2411,7 +2477,7 @@ function _buildInvoiceItems() {
     amount_value: total,
     total: total,
     currency: cur,
-    invoice_status: _isOfflineMethod(_getPaymentMethodLive()) ? 'paid' : 'open'
+    invoice_status: _offlineNow ? 'paid' : 'open'
   }];
 }
 
@@ -2706,14 +2772,20 @@ function _buildInvoicePayload(pw, amountOverride, installmentLabel) {
   } else {
     /* ── Single invoice: use preview articles from _buildInvoiceItems ── */
     const previewItems = _buildInvoiceItems();
-    /* Convert each item's amount to Stripe cents (×100) */
+    /* Convert each item to Stripe cents. When a line carries an explicit quantity and
+       unit price (itemized quote), send cents-per-unit × quantity; otherwise treat the
+       line total as a single unit (legacy lump / installment lines). */
     items = previewItems.map(function(it) {
-      const decimalAmt = _roundMoney(it.total ?? it.amount_value ?? it.amount ?? 0);
+      const q = parseInt(it.quantity) || 1;
+      const lineTotal = _roundMoney(it.total ?? it.amount_value ?? it.amount ?? 0);
+      const unit = (it.unitPrice != null && it.unitPrice !== '')
+        ? _roundMoney(it.unitPrice)
+        : _roundMoney(lineTotal / q);
       return {
         description: it.description || baseDesc,
-        amount: Math.round(decimalAmt * 100),
-        quantity: 1,
-        total: decimalAmt
+        amount: Math.round(unit * 100),
+        quantity: q,
+        total: _roundMoney(unit * q)
       };
     });
   }
@@ -4013,6 +4085,7 @@ function openBilletModal() {
   body.dataset.isReturn    = tripType === 'return' ? '1' : '0';
   body.dataset.isMultiCity = isMC ? '1' : '0';
   body.dataset.legsJson    = JSON.stringify(legs);
+  try { body.dataset.legsRef = ((document.getElementById('booking-ref') || {}).value || '').trim(); } catch (e) {}
 
   // Auto-load last saved données for this dossier
   setTimeout(function() {
@@ -15791,6 +15864,42 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
   };
 
   window.deleteTask = function (ref, taskId) {
+    // Backward-compat: inline buttons call deleteTask(id) with a single argument.
+    // Detect that case and resolve which dossier the task belongs to.
+    if (taskId === undefined || taskId === null) {
+      var soleId = ref;
+      try {
+        if (typeof _tpGetAllDossierRefs === 'function' && window.taskStore) {
+          var refs = _tpGetAllDossierRefs() || [];
+          for (var ri = 0; ri < refs.length; ri++) {
+            var list = window.taskStore.getTasksByDossier(refs[ri]) || [];
+            if (list.some(function (t) { return String(t.id) === String(soleId); })) {
+              window.taskStore.deleteTask(refs[ri], soleId);
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+      // Universal sweep across all tasks_v2_* stores (covers standalone / unexpected ref)
+      try {
+        for (var _ki = 0; _ki < localStorage.length; _ki++) {
+          var _k = localStorage.key(_ki);
+          if (!_k || _k.indexOf('tasks_v2_') !== 0) continue;
+          var _arr; try { _arr = JSON.parse(localStorage.getItem(_k) || '[]'); } catch (e) { continue; }
+          if (!Array.isArray(_arr)) continue;
+          var _f = _arr.filter(function (t) { return String(t.id) !== String(soleId); });
+          if (_f.length !== _arr.length) localStorage.setItem(_k, JSON.stringify(_f));
+        }
+      } catch (e) {}
+      // Last resort: old in-memory list
+      try {
+        if (typeof _tasks !== 'undefined') { _tasks = _tasks.filter(function (t) { return String(t.id) !== String(soleId); }); if (typeof _saveTasks === 'function') _saveTasks(); }
+      } catch (e) {}
+      try { if (window.taskStore && typeof window.taskStore.refreshAllTaskUIs === 'function') window.taskStore.refreshAllTaskUIs(); } catch (e) {}
+      if (typeof window.tarefasRender === 'function') window.tarefasRender();
+      if (typeof renderTasks === 'function') renderTasks();
+      return;
+    }
     if (window.taskStore && typeof window.taskStore.deleteTask === 'function') {
       window.taskStore.deleteTask(ref, taskId);
     } else {
@@ -21056,10 +21165,14 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
 
   /* ── Leg data source ─────────────────────────────────────────────────── */
   function _getMilesLegs317() {
-    // Priority 1: live DOM (billet panel rendered)
+    // Priority 1: live DOM (billet panel rendered) — but ONLY if it belongs to the
+    // active quote. The #bl-body cache is shared, so a previously previewed quote
+    // would otherwise leak its flights into this quote's Trecho dropdown.
     try {
       var blBody = document.getElementById('bl-body');
-      if (blBody && blBody.dataset.legsJson) {
+      var _curRef = ((document.getElementById('booking-ref') || {}).value || '').trim();
+      var _domRef = (blBody && blBody.dataset) ? (blBody.dataset.legsRef || '') : '';
+      if (blBody && blBody.dataset.legsJson && (!_domRef || _domRef === _curRef)) {
         var legs = JSON.parse(blBody.dataset.legsJson);
         if (Array.isArray(legs) && legs.length > 0) return legs;
       }
@@ -21202,6 +21315,43 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
           ext:     extEl   ? (extEl.value || '')          : ''
         });
       });
+      /* Preserve real values that momentarily revert during a programmatic
+         rebuild/restore: the supplier <select> can lag an async fournisseur
+         load, the Trecho <select> resets to -1 when the live itinerary isn't
+         ready yet, and inputs can read empty mid-teardown. Rows are matched by
+         INDEX — rids are regenerated on every rebuild, so a rid match (the old
+         approach) never hit and never preserved anything. The supplier guard
+         always applies (its async race also occurs on first load); the Trecho
+         and EXTRA guards apply only while a restore is in flight, so a genuine
+         user clear outside that window is still honoured. */
+      try {
+        var _prevCC = JSON.parse(localStorage.getItem(_ccStorageKey317()) || '[]');
+        var _restoring = !!window._ccRestoringV32;
+        if (Array.isArray(_prevCC) && _prevCC.length) {
+          saved.forEach(function (nr, _i) {
+            var pr = _prevCC[_i]; if (!pr) return;
+            var _nf = String(nr.forn || '');
+            if (_nf === '' || _nf.indexOf('lectionner') >= 0) {
+              var _ofr = String(pr.forn || '');
+              if (_ofr && _ofr.indexOf('lectionner') < 0) nr.forn = pr.forn;
+            }
+            if (_restoring) {
+              if ((nr.leg_idx == null || nr.leg_idx < 0) && pr.leg_idx != null && pr.leg_idx >= 0) nr.leg_idx = pr.leg_idx;
+              if ((nr.ext == null || nr.ext === '') && pr.ext != null && pr.ext !== '') nr.ext = pr.ext;
+            }
+          });
+        }
+      } catch (e) {}
+      /* CRITICAL: never overwrite stored cost rows with an empty array. The
+         widget may not be rendered right now (e.g. a price edit on another tab
+         triggers a save) — writing [] here would clobber real data locally AND
+         on the server. Only persist when we actually collected rows, OR when no
+         data exists yet for this key. */
+      if (saved.length === 0) {
+        var _existing = null;
+        try { _existing = localStorage.getItem(_ccStorageKey317()); } catch (e) {}
+        if (_existing && _existing !== '[]' && _existing !== 'null') return; /* preserve */
+      }
       localStorage.setItem(_ccStorageKey317(), JSON.stringify(saved));
     } catch(e) { console.warn('[v3.17] saveCCRows error', e); }
   }
@@ -21209,6 +21359,12 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
   /* ── Restore CC row state (populate leg selects on existing rows) ─────── */
   function _restoreCCRows317() {
     try {
+      /* Mark a restore in flight so _saveCCRows317 preserves Trecho/EXTRA that
+         momentarily revert while selects/itinerary settle (cleared after 700ms,
+         each restore call refreshes the timer). */
+      window._ccRestoringV32 = true;
+      try { clearTimeout(window._ccRestoreClrT); } catch (e) {}
+      window._ccRestoreClrT = setTimeout(function () { window._ccRestoringV32 = false; }, 700);
       var saved = JSON.parse(localStorage.getItem(_ccStorageKey317()) || 'null');
       var container = document.getElementById('miles-rows');
       if (!container) { _injectLegHeader317(); return; }
@@ -21227,13 +21383,42 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
         }
       });
 
-      // Then restore saved selections
+      // Then restore saved values + leg selections.
+      // Rows are matched by INDEX (rids are regenerated on every load), and any
+      // missing rows are added so manually-entered rows reappear too.
       if (Array.isArray(saved)) {
-        saved.forEach(function(rowData) {
-          if (!rowData.rid) return;
-          _populateLegSel317(rowData.rid,
-            (rowData.leg_idx >= 0) ? rowData.leg_idx : undefined);
+        try {
+          while (container.querySelectorAll('.miles-row-wrap').length < saved.length
+                 && typeof addMilesRow === 'function') { addMilesRow(); }
+        } catch (_e0) {}
+        var _cur = container.querySelectorAll('.miles-row-wrap');
+        saved.forEach(function(rowData, _i) {
+          var _rowEl = _cur[_i];
+          var _rid = _rowEl ? (_rowEl.id || '').replace('miles-row-', '').trim() : rowData.rid;
+          if (_rowEl && _rid) {
+            try {
+              var _sel = document.getElementById('mc-sel-' + _rid);
+              if (_sel && rowData.prog != null && rowData.prog !== '') {
+                _sel.value = rowData.prog;
+                if (typeof onMilesIssuerChange === 'function') { try { onMilesIssuerChange(_rid); } catch (_e1) {} }
+              }
+              var _forn = document.getElementById('mc-forn-' + _rid);
+              if (_forn && rowData.forn != null && rowData.forn !== '' && String(rowData.forn).indexOf('lectionner') < 0) {
+                var _fh = false;
+                for (var _fo = 0; _fo < _forn.options.length; _fo++) { if (_forn.options[_fo].value === rowData.forn) { _fh = true; break; } }
+                if (!_fh) { var _fopt = document.createElement('option'); _fopt.value = rowData.forn; _fopt.textContent = rowData.forn; _forn.appendChild(_fopt); }
+                _forn.value = rowData.forn;
+              }
+              var _vol  = document.getElementById('mc-vol-'  + _rid); if (_vol  && rowData.vol) _vol.value  = rowData.vol;
+              var _cpm  = document.getElementById('mc-cpm-'  + _rid); if (_cpm  && rowData.cpm) _cpm.value  = rowData.cpm;
+              var _fee  = document.getElementById('mc-fee-'  + _rid); if (_fee  && rowData.fee != null && rowData.fee !== '') { _fee.readOnly = false; _fee.value = rowData.fee; }
+              var _ext  = document.getElementById('mc-ext-'  + _rid); if (_ext  && rowData.ext != null) _ext.value = rowData.ext;
+              if (typeof calcMilesRow === 'function') { try { calcMilesRow(_rid); } catch (_e2) {} }
+            } catch (_e3) {}
+          }
+          _populateLegSel317(_rid, (rowData.leg_idx >= 0) ? rowData.leg_idx : undefined);
         });
+        if (typeof calcMilesTotal === 'function') { try { calcMilesTotal(); } catch (_e4) {} }
       } else {
         // No saved data — still populate options if billet is available
         container.querySelectorAll('.miles-row-wrap').forEach(function(rowEl) {
@@ -58376,6 +58561,40 @@ function _canIssueTicketsAgainstInvoices() {
         }
       } catch(e) {}
     }
+
+    /* Exclude passenger items that are offers / price 0 (not charged on Stripe). */
+    items = items.filter(function(it){ return (parseFloat(it.unitPrice) || parseFloat(it.total) || 0) > 0; });
+
+    /* Append the custom invoice lines from the Récapitulatif tarifaire, keeping the
+       exact name / quantity / unit price, and skipping offers and zero-price lines. */
+    try {
+      if (typeof getCustomLines === 'function') {
+        var _seenCL119 = {};
+        getCustomLines().forEach(function(cl){
+          if (!cl || cl.isOffert) return;
+          var price = parseFloat(cl.price) || 0;
+          var qty = parseInt(cl.qty) || 1;
+          if (price <= 0) return;
+          /* Guard against duplicate custom lines (sync round-trips can re-inject
+             the same formality line with a different Unicode form). Dedup by
+             normalized name + price + qty so the invoice never doubles a line. */
+          var _sigCL = String(cl.name || '').normalize('NFC').trim().toLowerCase() + '|' + price + '|' + qty;
+          if (_seenCL119[_sigCL]) return;
+          _seenCL119[_sigCL] = 1;
+          items.push({
+            description: cl.name,
+            quantity: qty,
+            unitPrice: price,
+            amount: price,
+            amount_value: price,
+            total: price * qty,
+            currency: cur,
+            isCustomLine: true,
+            invoice_status: 'open'
+          });
+        });
+      }
+    } catch(e) {}
 
     return items;
   }
