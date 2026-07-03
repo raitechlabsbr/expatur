@@ -87,7 +87,47 @@ Fora do escopo do passe fino (override de fase / muitas defs → provável inten
 | R8 ✅ | `_dossierSerializeCustomLines` + `_dossierLoad` + `_dossierResetUI` | **Cluster de id errado**: 3 funções buscavam `custom-line-row-` (não existe; o real é `custom-line-`, criado por `addCustomLine`). Consequência: **linhas custom (formalidades/extras) não eram persistidas, hidratadas nem resetadas**. **CORRIGIDA** (5 ocorrências → `custom-line-` + dedup NFC no serializer). | Corrigida |
 | R9 ⚠️ | `_dossierSerializeMultiLegs` (+ reconstrução no load) | **Persistência multi-city quebrada nas duas pontas**: (a) serialize consultava ids inexistentes `#multi-legs-list`/`ml-*` → salvava `[]` (o comentário de produção confirma); (b) a plataforma **não tem** o bloco de reconstrução dos cards no load (monólito 13906-13925) **nem o modelo `flightSel`** (0 refs). É **divergência arquitetural** de como voos selecionados são persistidos — precisa de **passe dedicado**, não port cego. | **Aberto** |
 
-### 4.6 Passe fino — módulos restantes (worklist, PENDENTE)
+### 4.5b Passe fino — Ticketing/itinerário + money-adjacent
+
+| Função | Achado | Estado |
+|---|---|---|
+| `parseSerpFlight` (R10) ✅ | Data de chegada vinha do flag `overnight` do SerpAPI ("não-confiável, frequentemente ausente") → **datas de chegada erradas**. Produção usa o datetime autoritativo `arrival_airport.time`. **CORRIGIDA** (função inteira portada; `_serpDeriveCity` removido — inexistente na plataforma). | Corrigida |
+| `_syncPaiementClientFromDossier` | Plataforma guarda contra vazio (`&& fullName`) — não apaga nome/email/tel do pagamento se o cliente do dossier está vazio. **Provável melhoria intencional** (mais segura). | Não mexer (rever c/ usuário) |
+| `_syncPayoutButton` | Divergência **intencional documentada** (hidratação Supabase + ui-fixes.js). | Intencional |
+| `autoSyncOpenInvoices` | Só falta guard `__persistOff('DISABLE_BACKGROUND_JOBS')` (feature-flag). | Baixo impacto |
+| `_syncCostCalcRows313` | Só texto do campo `nota` (cosmético). | Cosmético |
+| `_dossierSave`, `quotingSwitch`, `switchDossier` | Override de fase (autosave/deal-status/ui-fixes/documents) — intencional. | Intencional |
+| `searchLeg` + `addMultiLeg` + `_legAirlineFilter` | **Feature ausente**: filtro de busca de voos por companhia (por trecho). Não é bug. | Feature (backlog) |
+| `pushLeg` | `depName`/`arrName` para o template de email FR — **dependência do COMMS**. | Portar c/ COMMS |
+
+### 4.5c Passe fino — Tarefas / Clientes / Dashboard / Bookings
+
+| Função | Achado | Estado |
+|---|---|---|
+| `toggleTask` + `_toggleTaskDoneFromPopup` (R11) ✅ | Não sincronizavam `status` com `done` → tarefa concluída ficava inconsistente em views por status (kanban/dashboard). **CORRIGIDA** (bidirecional done↔status + `updatedAt` + `_propagateTaskChange` guardado). | Corrigida |
+| `_renderVolsSemaine104` | Widget "Vols de la semaine" lê do **CSV compartilhado** (feature Vols) na produção; a plataforma deriva de bookings. **Acoplado à feature Vols** — converge quando Vols for portada. | Feature (Vols) |
+| `_taskCardHtml` (ícone de categoria), `_cardData` (mais fallbacks pax×preço) | **Melhorias da plataforma.** | Intencional |
+| `clientsViewProfile`, `cpmodSwitchTab` | Override de fase (documents.js/ui-fixes.js). | Intencional |
+| `_tpBuildToolbarHTML` | Evolução de UI (filtros por chips vs dropdowns) — funcional, não é bug. | Intencional |
+
+### 4.7 Conclusão do passe fino
+
+**11 regressões corrigidas** (commits nesta branch): autoInjectFormalites, deleteTask, `_saveCCRows317`,
+`_restoreCCRows317`, `_getMilesLegs317`, `_buildInvoiceItems`, `_buildInvoicePayload`,
+`_buildPaxInvoiceItems119`, cluster custom-lines (R8), parseSerpFlight (R10), task status↔done (R11).
+
+**Aberto (divergência arquitetural):** R9 — persistência multi-city (serialize salva `[]` + sem
+reconstrução no load + modelo `flightSel` inexistente). Precisa de passe dedicado.
+
+**Acoplado a features a portar:** `blSyncPnr`/`pushLeg`/`_renderVolsSemaine104` (COMMS/Vols);
+`searchLeg`+`addMultiLeg` (filtro de voo por companhia — feature).
+
+**A rever com o usuário:** `_syncPaiementClientFromDossier` (plataforma mais defensiva — manter?).
+
+O restante das 188 divergências é majoritariamente **intencional** (override de fase, melhorias da
+plataforma, cosmético) ou **plumbing de sync Cloudflare** que não se aplica ao backend Supabase.
+
+### 4.6 Worklist original (referência)
 
 Próximos módulos a rastrear par-a-par (divergências das 188 por prefixo). Método: achar a versão
 efetiva (última def / `window.X=` / override de fase) nos dois lados antes de editar.

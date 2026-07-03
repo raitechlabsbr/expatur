@@ -1273,6 +1273,52 @@ function parseSerpFlight(f, dateVal) {
   const last  = segs[segs.length-1] || first;
   const durMin = f.total_duration || 0;
   let curDate = dateVal;
+
+  // ── Robust arrival-date computation ──────────────────────────────────────
+  // SerpAPI's `overnight` flag is unreliable (often missing). The departure/
+  // arrival `time` fields are full datetime strings ("YYYY-MM-DD HH:MM"), so we
+  // compute the true arrival date by extracting the date portion directly, and
+  // only fall back to the overnight flag / duration heuristic if dates are absent.
+  function _datePart(t) {
+    var m = String(t||'').match(/(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+  const _depDatePart = _datePart(first.departure_airport && first.departure_airport.time);
+  const _arrDatePart = _datePart(last.arrival_airport && last.arrival_airport.time);
+  var _toClock = function(t){ var m=String(t||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):NaN; };
+  var _depC = _toClock(first.departure_airport && first.departure_airport.time);
+  var _arrC = _toClock(last.arrival_airport && last.arrival_airport.time);
+
+  // ── AUTHORITATIVE: use SerpAPI's actual arrival date when it provides one ──
+  // SerpAPI's arrival_airport.time is a full 'YYYY-MM-DD HH:MM' string and is the
+  // single source of truth. If present, we use that exact date — no heuristics.
+  // We also keep the raw values around (rawArrDateTime / rawDepDateTime) as a
+  // hidden background record so nothing has to be re-derived downstream.
+  const _rawDepDateTime = (first.departure_airport && first.departure_airport.time) || '';
+  const _rawArrDateTime = (last.arrival_airport && last.arrival_airport.time) || '';
+  let _computedArrDate;
+  if (_arrDatePart) {
+    // SerpAPI gave a real arrival date → trust it verbatim.
+    _computedArrDate = _arrDatePart;
+  } else {
+    // SerpAPI omitted the date portion → derive the day offset from departure date
+    // using clock rollback / duration / overnight flag (fallback only).
+    let _dayOffset = 0;
+    if (_depDatePart && _arrDatePart) {
+      var _ddiff = Math.round((new Date(_arrDatePart+'T00:00:00Z') - new Date(_depDatePart+'T00:00:00Z')) / 86400000);
+      if (!isNaN(_ddiff) && _ddiff > 0) _dayOffset = _ddiff;
+    }
+    if (_dayOffset === 0) {
+      var _crossClock = (!isNaN(_depC) && !isNaN(_arrC) && _arrC < _depC);
+      var _durCross = (!isNaN(_depC) && durMin > 0 && (_depC + durMin) >= 24*60);
+      if (segs.some(s=>s.overnight) || _crossClock || _durCross) _dayOffset = 1;
+    }
+    _computedArrDate = _dayOffset > 0 ? addDays(dateVal, _dayOffset) : dateVal;
+  }
+  // Departure date: trust SerpAPI's date if present, else the search date.
+  const _computedDepDate = _depDatePart || dateVal;
+  const _isOvernightLeg = _computedArrDate > _computedDepDate;
+
   return {
     raw: f,
     fn:       segs.map(s => s.flight_number||'').filter(Boolean).join(' + ') || '—',
@@ -1285,33 +1331,57 @@ function parseSerpFlight(f, dateVal) {
     depCode: first.departure_airport?.id   || '',
     depName: first.departure_airport?.name || '',
     depTime: first.departure_airport?.time || '—',
-    depDate: dateVal,
-    depDateDisplay: fmtDateLong(dateVal),
+    depDate: _computedDepDate,
+    depDateDisplay: fmtDateLong(_computedDepDate),
     arrCode: last.arrival_airport?.id   || '',
     arrName: last.arrival_airport?.name || '',
     arrTime: last.arrival_airport?.time || '—',
-    arrDate: segs.some(s=>s.overnight) ? addDays(dateVal,1) : dateVal,
-    arrDateDisplay: fmtDateLong(segs.some(s=>s.overnight) ? addDays(dateVal,1) : dateVal),
-    overnight: segs.some(s=>s.overnight),
+    arrDate: _computedArrDate,
+    arrDateDisplay: fmtDateLong(_computedArrDate),
+    overnight: _isOvernightLeg,
+    // Hidden background records — raw SerpAPI datetime strings (source of truth)
+    rawDepDateTime: _rawDepDateTime,
+    rawArrDateTime: _rawArrDateTime,
     segments: segs.map(s => {
-      const dep = curDate;
-      const arr = s.overnight ? addDays(dep,1) : dep;
+      var _segDP = _datePart(s.departure_airport && s.departure_airport.time);
+      var _segAP = _datePart(s.arrival_airport && s.arrival_airport.time);
+      var _clk = function(t){var m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?parseInt(m[1])*60+parseInt(m[2]):NaN;};
+      var _dc = _clk(s.departure_airport && s.departure_airport.time);
+      var _ac = _clk(s.arrival_airport && s.arrival_airport.time);
+      var _sDur = s.duration || 0;
+      // AUTHORITATIVE: trust SerpAPI's segment dates when present.
+      var dep, arr;
+      if (_segDP) { dep = _segDP; } else { dep = curDate; }
+      if (_segAP) {
+        arr = _segAP; // SerpAPI gave the real arrival date — use it verbatim
+      } else {
+        // Fallback: derive from clock rollback / duration / overnight flag
+        var _segCross = s.overnight
+          || (!isNaN(_dc) && !isNaN(_ac) && _ac < _dc)
+          || (!isNaN(_dc) && _sDur > 0 && (_dc + _sDur) >= 24*60);
+        arr = _segCross ? addDays(dep, 1) : dep;
+      }
       curDate = arr;
       return {
-        fn:       s.flight_number || '',
         airline:  s.airline || '',
         aircraft: s.airplane || '',
+        fn:       s.flight_number || '',
         depCode:  s.departure_airport?.id   || '',
         depName:  s.departure_airport?.name || '',
         depTime:  s.departure_airport?.time || '—',
+        depDate:  dep,
         depDateDisplay: fmtDateLong(dep),
         arrCode:  s.arrival_airport?.id   || '',
         arrName:  s.arrival_airport?.name || '',
         arrTime:  s.arrival_airport?.time || '—',
+        arrDate:  arr,
         arrDateDisplay: fmtDateLong(arr),
         durMin:   s.duration || 0,
         durStr:   fmtMin(s.duration),
-        overnight: s.overnight || false
+        overnight: (arr > dep),
+        // Hidden background — raw SerpAPI datetime strings for this segment
+        rawDepDateTime: (s.departure_airport && s.departure_airport.time) || '',
+        rawArrDateTime: (s.arrival_airport && s.arrival_airport.time) || ''
       };
     })
   };
@@ -7104,7 +7174,7 @@ function addTask(){
   if(dueSel) { dueSel.value=''; }
   renderTasks();
 }
-function toggleTask(id){var t=_tasks.find(function(t){return t.id===id;});if(t){t.done=!t.done;_saveTasks();renderTasks();}}
+function toggleTask(id){var t=_tasks.find(function(t){return t.id===id;});if(t){t.done=!t.done; if(t.done){t.status='completed';} else if((t.status||'').toLowerCase()==='completed'||(t.status||'').toLowerCase()==='done'){t.status='open';} t.updatedAt=new Date().toISOString(); _saveTasks();renderTasks(); if(typeof window._propagateTaskChange==='function') window._propagateTaskChange();}}
 function deleteTask(id){
   _tasks=_tasks.filter(function(t){return t.id!==id;});
   if(typeof _deleteTaskFiles==='function') _deleteTaskFiles(id);
@@ -8614,9 +8684,14 @@ function _toggleTaskDoneFromPopup() {
   var t = _tasks.find(function(x){ return x.id === _taskDetailId; });
   if (!t) return;
   t.done = !t.done;
+  /* keep status field bidirectional with done (never assume completion is permanent) */
+  if (t.done) { t.status = 'completed'; }
+  else if ((t.status||'').toLowerCase()==='completed' || (t.status||'').toLowerCase()==='done') { t.status = 'open'; }
+  t.updatedAt = new Date().toISOString();
   _saveTasks();
   renderTasks();
   _refreshTaskDoneBtn(_taskDetailId);
+  if (typeof window._propagateTaskChange === 'function') window._propagateTaskChange();
 }
 
 // Update the done-button label/style inside an open popup
