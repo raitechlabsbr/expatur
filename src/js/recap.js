@@ -339,3 +339,177 @@
 
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', _inject); else setTimeout(_inject, 0);
 })();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Recap — Bulk Edit / Bulk Delete (seleção múltipla). Port fiel de
+// docs/monolito.html §16 (linhas ~78930–79125): um segundo IIFE top-level
+// (hookado por window._recapBulkHooked, como no monólito, onde vivia num
+// <script> próprio), que injeta a coluna de checkboxes no relatório — via
+// _enhance(), reexecutado após cada recapRefresh/_recapRender — e o botão
+// "Delete Selected".
+//
+// DROP integral do delete no Worker Cloudflare/D1: a função que fazia o DELETE
+// remoto do booking, e a que buscava por GET o mapa de ids remotos (usada só
+// para decidir se um ref também existia do lado do banco na nuvem), foram
+// removidas por completo, assim como os helpers de URL/token que só serviam a
+// elas — nenhuma chamada de rede sobrou neste arquivo.
+// _doDelete agora só chama _deleteLocal(ref) (localStorage:
+// expatur_dossier_list + expatur_dossier_<id> + expatur_deals_meta) e conta
+// o sucesso direto, sem a ramificação por ids[ref] nem a cadeia de promises
+// que essa ramificação exigia.
+// ═══════════════════════════════════════════════════════════════════════════
+(function () {
+  if (window._recapBulkHooked) return; window._recapBulkHooked = true;
+
+  var _bulkOn = false;
+  var _sel = {};   /* ref -> true */
+
+  window._recapBulkToggle = function(){ _bulkOn = !_bulkOn; if(!_bulkOn) _sel = {}; window.__recapBulkOn = _bulkOn; if(window._recapMenuClose) window._recapMenuClose(); _enhance(); };
+
+  function _j(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
+  function _set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  function _selCount() { return Object.keys(_sel).filter(function (r) { return _sel[r]; }).length; }
+
+  /* ── deletion helpers ──────────────────────────────────────────────────── */
+  function _deleteLocal(ref) {
+    var list = _j('expatur_dossier_list', []); if (!Array.isArray(list)) return false;
+    var hit = null;
+    for (var i = 0; i < list.length; i++) {
+      var d = list[i]; if (!d || !d.id) continue;
+      var dd = _j('expatur_dossier_' + d.id, null);
+      var r = (dd && dd.fields && dd.fields['booking-ref']) || d.label || '';
+      if (String(r) === String(ref) || String(d.id) === String(ref)) { hit = d; break; }
+    }
+    if (!hit) return false;
+    _set('expatur_dossier_list', list.filter(function (d) { return d.id !== hit.id; }));
+    try { localStorage.removeItem('expatur_dossier_' + hit.id); } catch (e) {}
+    var tomb = _j('expatur_deals_tombstones', {}) || {}; tomb[hit.id] = { ref: String(ref), updated_at: new Date().toISOString() }; _set('expatur_deals_tombstones', tomb);
+    var meta = _j('expatur_deals_meta', {}) || {}; delete meta[hit.id]; _set('expatur_deals_meta', meta);
+    try { if (localStorage.getItem('expatur_active_dossier') === hit.id) localStorage.removeItem('expatur_active_dossier'); } catch (e) {}
+    return true;
+  }
+
+  function _doDelete() {
+    var refs = Object.keys(_sel).filter(function (r) { return _sel[r]; });
+    if (!refs.length) return;
+    if (!window.confirm('Delete ' + refs.length + ' selected booking(s)? This action cannot be undone.')) return;
+    var n = 0;
+    refs.forEach(function (ref) {
+      var did = _deleteLocal(ref);
+      if (did) n++;
+    });
+    _sel = {}; _bulkOn = false;
+    try { if (window._dealsSyncNow) window._dealsSyncNow(); } catch (e) {}
+    /* recap re-render (recomputes all totals) */
+    try { if (window.recapRefresh) window.recapRefresh(); } catch (e) {}
+    setTimeout(function () { _enhance(); }, 60);
+    if (window.toast) toast(n + ' bookings deleted successfully.', 'success');
+  }
+
+  /* ── DOM enhancement (runs after every recap render) ───────────────────── */
+  function _enhance() {
+    var view = document.getElementById('recap-view'); if (!view) return;
+    var table = view.querySelector('table'); if (!table) return;
+
+    /* Delete-Selected button — Bulk Edit toggle now lives in the ⋮ Actions menu */
+    var bar = view.querySelector('.recap-menu-wrap');
+    if (bar && bar.parentNode && !bar.parentNode.querySelector('#recap-bulk-del')) {
+      var wrap = document.createElement('span');
+      wrap.style.cssText = 'display:inline-flex;gap:8px;align-items:center;margin-right:8px;';
+      wrap.innerHTML =
+        '<button id="recap-bulk-del" type="button" style="display:none;background:#b91c1c;color:#fff;border:none;border-radius:6px;font-size:0.7rem;font-weight:700;padding:6px 13px;cursor:pointer;font-family:inherit;">Delete Selected</button>';
+      bar.parentNode.insertBefore(wrap, bar);
+      wrap.querySelector('#recap-bulk-del').onclick = function () { _doDelete(); };
+    }
+    window.__recapBulkOn = _bulkOn;
+    var _bmi = document.getElementById('recap-bulk-mi');
+    if (_bmi) _bmi.innerHTML = _bulkOn ? '✓ Quitter la sélection' : '✎ Sélection multiple (Bulk Edit)';
+    var del = document.getElementById('recap-bulk-del');
+    if (del) {
+      del.style.display = _bulkOn ? 'inline-block' : 'none';
+      var c = _selCount();
+      del.textContent = 'Delete Selected (' + c + ')';
+      del.disabled = (c === 0);
+      del.style.opacity = c === 0 ? '0.5' : '1';
+      del.style.cursor = c === 0 ? 'not-allowed' : 'pointer';
+    }
+
+    /* checkbox column — add only in bulk mode, and only once per render */
+    var hasCb = !!table.querySelector('th.recap-bulk-cb');
+    if (_bulkOn && !hasCb) {
+      var cg = table.querySelector('colgroup');
+      if (cg) { var col = document.createElement('col'); col.style.width = '42px'; col.className = 'recap-bulk-col'; cg.insertBefore(col, cg.firstChild); }
+      var htr = table.querySelector('thead tr');
+      if (htr) {
+        var th = document.createElement('th');
+        th.className = 'recap-bulk-cb';
+        th.style.cssText = 'padding:11px 10px;text-align:center;';
+        th.innerHTML = '<input type="checkbox" id="recap-cb-all" title="Tout sélectionner" style="width:15px;height:15px;cursor:pointer;">';
+        htr.insertBefore(th, htr.firstChild);
+        th.querySelector('#recap-cb-all').onclick = function (e) {
+          e.stopPropagation();
+          var on = this.checked;
+          table.querySelectorAll('tbody tr.recap-row').forEach(function (tr) {
+            var ref = tr.getAttribute('data-ref'); if (!ref) return;
+            _sel[ref] = on; var cb = tr.querySelector('.recap-row-cb'); if (cb) cb.checked = on;
+          });
+          _enhance();
+        };
+      }
+      table.querySelectorAll('tbody tr.recap-row').forEach(function (tr) {
+        var ref = tr.getAttribute('data-ref');
+        var td = document.createElement('td');
+        td.className = 'recap-bulk-cb';
+        td.style.cssText = 'text-align:center;border-top:1px solid #eef1f5;';
+        td.innerHTML = '<input type="checkbox" class="recap-row-cb" ' + (_sel[ref] ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;">';
+        tr.insertBefore(td, tr.firstChild);
+        var cb = td.querySelector('.recap-row-cb');
+        cb.onclick = function (e) { e.stopPropagation(); _sel[ref] = this.checked; _enhance(); };
+      });
+      /* fix empty-state colspan if present */
+      var empty = table.querySelector('tbody tr td[colspan]');
+      if (empty) empty.setAttribute('colspan', String((parseInt(empty.getAttribute('colspan'), 10) || 1) + 1));
+    }
+
+    /* select-all reflects current state */
+    var all = document.getElementById('recap-cb-all');
+    if (all) { var rows = table.querySelectorAll('tbody tr.recap-row'); var sc = _selCount(); all.checked = rows.length > 0 && sc >= rows.length; }
+  }
+
+  /* in bulk mode, intercept row clicks (capture phase) so they toggle instead
+     of opening the dossier */
+  document.addEventListener('click', function (e) {
+    if (!_bulkOn) return;
+    var view = document.getElementById('recap-view'); if (!view || !view.contains(e.target)) return;
+    if (e.target.closest && (e.target.closest('#recap-bulk-btn') || e.target.closest('#recap-bulk-del') || e.target.closest('.recap-menu-wrap'))) return;
+    var row = e.target.closest && e.target.closest('tr.recap-row');
+    if (row) {
+      if (e.target.classList && e.target.classList.contains('recap-row-cb')) return; /* checkbox handles itself */
+      e.preventDefault(); e.stopPropagation();
+      var ref = row.getAttribute('data-ref'); if (!ref) return;
+      _sel[ref] = !_sel[ref];
+      var cb = row.querySelector('.recap-row-cb'); if (cb) cb.checked = _sel[ref];
+      _enhance();
+    }
+  }, true);
+
+  /* re-enhance after any recap render (wrap public fns + observe the view) */
+  ['recapRefresh', '_recapRender'].forEach(function (name) {
+    var orig = window[name];
+    if (typeof orig === 'function' && !orig._bulkWrapped) {
+      var w = function () { var r = orig.apply(this, arguments); setTimeout(_enhance, 0); return r; };
+      w._bulkWrapped = true; window[name] = w;
+    }
+  });
+  function _observe() {
+    var view = document.getElementById('recap-view'); if (!view) { setTimeout(_observe, 600); return; }
+    try {
+      var mo = new MutationObserver(function () { if (_enhanceLock) return; _enhanceLock = true; setTimeout(function () { _enhanceLock = false; _enhance(); }, 30); });
+      mo.observe(view, { childList: true, subtree: true });
+    } catch (e) {}
+    _enhance();
+  }
+  var _enhanceLock = false;
+  setTimeout(_observe, 1200);
+})();
