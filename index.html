@@ -141,6 +141,7 @@
     <button class="sidebar-item" id="snav-quoting" onclick="sidebarGo('quoting')">Ticketing</button>
     <button class="sidebar-item" id="snav-bookings" onclick="sidebarGo('bookings')">Bookings</button>
     <button class="sidebar-item" id="snav-fornecedores" onclick="sidebarGo('fornecedores')">Fornecedores</button>
+    <button class="sidebar-item" id="snav-vols" onclick="sidebarGo('vols')">Vols (Departures)</button>
     <button class="sidebar-item" id="snav-vendedores" onclick="sidebarGo('vendedores')">Vendedores</button>
     <button class="sidebar-item" id="snav-programas" onclick="sidebarGo('programas')">Programas</button>
     <button class="sidebar-item" id="snav-disponibilidades" onclick="sidebarGo('disponibilidades')">Disponibilidades</button>
@@ -323,6 +324,33 @@
   </div>
 </div>
 
+
+<div class="section-page" id="section-vols">
+  <div class="section-page-header" style="flex-direction:row;align-items:center;justify-content:space-between;padding-top:1rem;padding-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:0.85rem;">
+      <button class="sidebar-open-btn" onclick="sidebarOpen()" title="Ouvrir le menu" style="background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;display:flex;align-items:center;opacity:0.88;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="26" width="26" fill="none" stroke="#06203b" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <div class="section-page-title">Vols &mdash; Departures</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;flex-shrink:0;">
+      <span id="vols-count" style="font-size:0.78rem;color:var(--navy-soft);font-weight:600;white-space:nowrap;"></span>
+      <button class="btn btn-sm" onclick="window._volsRowAdd&&window._volsRowAdd();" style="background:#e8f5e9;color:#15803d;border:1px solid #bbe5bf;" title="Ajouter un vol">+ Ajouter</button>
+      <button class="btn btn-sm" onclick="window.volsLoad&&window.volsLoad();" style="background:#eef2f7;color:#06203b;border:1px solid var(--border);" title="Recharger depuis le serveur">&#8635; Rafra&icirc;chir</button>
+      <button class="btn btn-sm" onclick="window._volsClearAll&&window._volsClearAll();" style="background:#fce8e8;color:#b91c1c;border:1px solid #f5c2c2;" title="Vider la liste partag&eacute;e">&#128465; Tout effacer</button>
+    </div>
+  </div>
+  <div class="section-page-body">
+    <div style="font-size:0.78rem;color:var(--navy-soft);margin-bottom:0.75rem;">Liste partag&eacute;e des d&eacute;parts. La suppression retire le vol pour tous les postes.</div>
+    <div class="db-table-wrap">
+      <table class="db-table">
+        <thead><tr>
+          <th>Date</th><th>Vol</th><th>De</th><th>D&eacute;part</th><th>Arriv&eacute;e</th><th>&Agrave;</th><th>PNR</th><th>Client</th>
+          <th style="width:70px;text-align:center;">Action</th>
+        </tr></thead>
+        <tbody id="vols-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <div class="section-page" id="section-fornecedores">
   <div class="section-page-header" style="flex-direction:row;align-items:center;justify-content:space-between;padding-top:1rem;padding-bottom:1rem;">

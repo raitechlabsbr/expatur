@@ -9599,7 +9599,7 @@ function _onDueCustomInput(inp) {
 var _sidebarOpen = false;
 var _currentSection = 'welcome';
 
-var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vendedores','programas','disponibilidades','tarefas','clientes','financeiro'];
+var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vols','vendedores','programas','disponibilidades','tarefas','clientes','financeiro'];
 
 /* v3.69 — sidebar is always visible on desktop via CSS.
    sidebarOpen/Close only affect mobile drawer behavior. */
@@ -9686,6 +9686,7 @@ function sidebarGo(section) {
     if (section === 'quoting')          { if (typeof quotingSwitch === 'function') quotingSwitch(_lastQuotingTab || 'vols'); if (typeof _applyBookingTabState === 'function') _applyBookingTabState(); }
     if (section === 'bookings')         { if (typeof bookingsRender === 'function') bookingsRender(); }
     if (section === 'fornecedores')     fornRender();
+    if (section === 'vols')             { if (typeof window.__volsEnsureLoaded === 'function') window.__volsEnsureLoaded(); }
     if (section === 'vendedores')       vendRender();
     if (section === 'programas')        { if (typeof window.programasRender === 'function') window.programasRender(); }
     if (section === 'disponibilidades') dispRender();
