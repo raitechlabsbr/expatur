@@ -10,6 +10,7 @@ let _volsRows = [];
 let _volsEditIdx = -1;          // índice em edição inline (Task 3); -1 = nenhum
 let _volsLoaded = false;
 window._volsRows = _volsRows;
+window._volsLoaded = false;     // fica true só após uma tentativa de load completar (fix review final)
 
 // ── Helpers de data/hora/nome (portados do monólito) ────────────────────────
 const _MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -65,7 +66,7 @@ window._volsSurname = _surname;
 
 // ── Load: hidrata o cache do Supabase (voos de hoje em diante) ──────────────
 async function volsLoad() {
-  if (!SUPABASE_ENABLED || !supabase) { _volsLoaded = true; volsRender(); return; }
+  if (!SUPABASE_ENABLED || !supabase) { _volsLoaded = true; window._volsLoaded = true; volsRender(); return; }
   try { await _volsSeedIfEmpty(); } catch (e) {}
   try {
     const { data, error } = await supabase
@@ -78,6 +79,7 @@ async function volsLoad() {
     _volsRows = (data || []);
     window._volsRows = _volsRows;
     _volsLoaded = true;
+    window._volsLoaded = true;
   } catch (e) { console.warn('[vols] load', e); }
   volsRender();
   try { if (window.__enhanceDashboard) window.__enhanceDashboard(); } catch (e) {}   // widget converge (Task 7)
@@ -198,12 +200,24 @@ window._volsRowSave = async function (i) {
   try {
     if (existing && existing.id) {
       const { error } = await supabase.from('flights').update(rec).eq('id', existing.id);
-      if (error) console.warn('[vols] update', error.message);
+      if (error) {
+        console.warn('[vols] update', error.message);
+        alert('Erreur lors de l’enregistrement du vol.');
+        return;   // não recarrega: preserva a entrada do usuário na tela
+      }
     } else {
-      const { error } = await supabase.from('flights').insert(Object.assign({ dossier_ref: '', source: 'manual' }, rec));
-      if (error) console.warn('[vols] insert', error.message);
+      // Rota via RPC de merge (não insert cru): colisão na chave de dedupe
+      // enriquece a linha existente em vez de estourar unique-violation (fix review final).
+      const { error } = await supabase.rpc('flights_upsert', {
+        rows: [Object.assign({ dossier_ref: '', source: 'manual' }, rec)],
+      });
+      if (error) {
+        console.warn('[vols] insert', error.message);
+        alert('Erreur lors de l’enregistrement du vol.');
+        return;   // não recarrega: preserva a entrada do usuário na tela
+      }
     }
-  } catch (e) { console.warn('[vols] save', e); }
+  } catch (e) { console.warn('[vols] save', e); alert('Erreur lors de l’enregistrement du vol.'); return; }
   await volsLoad();
 };
 

@@ -161,7 +161,10 @@ function _renderFlights() {
 
   // Convergência (spec §6): se o board Vols já carregou, o widget lê dele
   // (fonte única). Semana corrente lun→dim, agrupada como hoje.
-  const board = Array.isArray(window._volsRows) ? window._volsRows : null;
+  // Só assume o board como fonte quando um load já completou (fix review final):
+  // window._volsRows começa truthy ([]) mesmo antes do load, então checar só
+  // Array.isArray fazia a derivação legada nunca rodar.
+  const board = (window._volsLoaded && Array.isArray(window._volsRows)) ? window._volsRows : null;
   if (board) {
     const t0b = _d0();
     const dowb = (t0b.getDay() + 6) % 7;
@@ -267,6 +270,13 @@ function enhanceDashboard() {
   if (!sec) return;
   try { _renderTasks(); } catch (e) { console.warn('[dashboard] tâches:', e); }
   try { _renderFlights(); } catch (e) { console.warn('[dashboard] vols:', e); }
+  // Dispara o load do board Vols uma única vez, mesmo que o usuário nunca
+  // abra a página Vols — volsLoad() chama __enhanceDashboard() ao concluir,
+  // o que re-renderiza o widget já convergido (fix review final).
+  if (!window._volsLoaded && !window.__volsAutoLoad && typeof window.volsLoad === 'function') {
+    window.__volsAutoLoad = true;
+    window.volsLoad();
+  }
 }
 window.__enhanceDashboard = enhanceDashboard;
 

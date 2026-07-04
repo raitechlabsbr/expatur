@@ -22,10 +22,15 @@ create table if not exists public.flights (
   created_at  timestamptz not null default now()
 );
 
--- Dedupe: uma linha por (data, voo, origem, destino, pnr). Colunas de chave são
--- NOT NULL default '' para o índice unique nunca ver NULL (NULLs são distintos).
+-- Dedupe: uma linha por (data, origem, destino, pnr) — SEM flight_num na chave
+-- (fix review final): um segmento capturado primeiro sem flight_num (seed/emit
+-- incompleto) e depois recapturado com o número real do voo deve enriquecer a
+-- MESMA linha, não duplicar por ter um flight_num diferente. flight_num continua
+-- sendo uma coluna enriquecível (vide flights_upsert), só não faz parte da chave.
+-- Colunas de chave são NOT NULL default '' para o índice unique nunca ver NULL
+-- (NULLs são distintos). Chave: (flight_date, dep_code, arr_code, pnr).
 create unique index if not exists flights_dedupe_key
-  on public.flights (flight_date, flight_num, dep_code, arr_code, pnr);
+  on public.flights (flight_date, dep_code, arr_code, pnr);
 
 -- Query do board e do widget da semana filtram por data.
 create index if not exists flights_flight_date_idx on public.flights (flight_date);
@@ -61,11 +66,13 @@ begin
       coalesce(r->>'dossier_ref',''),
       coalesce(r->>'source','manual')
     )
-    on conflict (flight_date, flight_num, dep_code, arr_code, pnr) do update set
+    on conflict (flight_date, dep_code, arr_code, pnr) do update set
       client      = case when flights.client      = '' then excluded.client      else flights.client      end,
       dossier_ref = case when flights.dossier_ref = '' then excluded.dossier_ref else flights.dossier_ref end,
       dep_time    = case when flights.dep_time     = '' then excluded.dep_time     else flights.dep_time     end,
       arr_time    = case when flights.arr_time     = '' then excluded.arr_time     else flights.arr_time     end,
+      -- flight_num fora da chave de dedupe: este enriquecimento agora é o único
+      -- jeito de um número real de voo preencher uma linha antes vazia (fix review final).
       flight_num  = case when flights.flight_num   = '' then excluded.flight_num   else flights.flight_num   end;
   end loop;
 end;
