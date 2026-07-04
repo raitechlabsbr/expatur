@@ -267,3 +267,94 @@ _volsSubscribeRealtime();
     if (typeof window.sidebarGo === 'function') window.sidebarGo('index');
   });
 })();
+
+// ── Emissão → linhas de segmento (porta de _flightRowsFromBillet) ───────────
+// Cada leg pode ser conexão (segments[]) → 1 linha por segmento. Datas em ISO.
+function _rowsFromBillet(billet, ref, surname) {
+  const rows = [];
+  if (!billet || !billet.legs || !billet.legs.length) return rows;
+  const master = billet.masterPnr || '';
+  billet.legs.forEach(function (leg) {
+    const legDate = leg.date || leg.depDate || leg.departureDate || '';
+    const legPnr = (billet.isMC && leg.pnr) ? leg.pnr : (master || leg.pnr || ref || '');
+    const segs = (leg.segments && leg.segments.length) ? leg.segments : null;
+    const _iso = function (d) { return d.getFullYear() + '-' + _pad2(d.getMonth()+1) + '-' + _pad2(d.getDate()); };
+    if (segs) {
+      segs.forEach(function (s) {
+        const d = _parseDate(s.depDate || s.date || legDate); if (!d) return;
+        rows.push({
+          flight_date: _iso(d), flight_num: String(s.fn || '').trim(),
+          dep_code: String(s.depCode || s.dep || '').toUpperCase().slice(0, 3), dep_time: _hhmm(s.depTime),
+          arr_time: _hhmm(s.arrTime), arr_code: String(s.arrCode || s.arr || '').toUpperCase().slice(0, 3),
+          pnr: legPnr, client: surname, dossier_ref: ref, source: 'emit',
+        });
+      });
+    } else {
+      const d = _parseDate(legDate); if (!d) return;
+      let fn = leg.fn || leg.flightNumber || '';
+      if (!fn && leg.airlineCodes && leg.airlineCodes.length) fn = leg.airlineCodes.join('/');
+      rows.push({
+        flight_date: _iso(d), flight_num: String(fn || '').trim(),
+        dep_code: String(leg.dep || leg.depCode || '').toUpperCase().slice(0, 3), dep_time: _hhmm(leg.depTime),
+        arr_time: _hhmm(leg.arrTime), arr_code: String(leg.arr || leg.arrCode || '').toUpperCase().slice(0, 3),
+        pnr: legPnr, client: surname, dossier_ref: ref, source: 'emit',
+      });
+    }
+  });
+  return rows;
+}
+window._volsRowsFromBillet = _rowsFromBillet;
+
+// Lê o billet do dossier ativo e faz upsert das linhas (merge server-side).
+async function _volsCaptureActive() {
+  if (!SUPABASE_ENABLED || !supabase) return;
+  let ref = '';
+  const refEl = document.getElementById('booking-ref');
+  if (refEl && refEl.value) ref = refEl.value.trim();
+  if (!ref) {
+    try {
+      const aid = localStorage.getItem('expatur_active_dossier');
+      const dd = aid ? JSON.parse(localStorage.getItem('expatur_dossier_' + aid) || 'null') : null;
+      if (dd && dd.fields) ref = (dd.fields['booking-ref'] || '').trim();
+    } catch (e) {}
+  }
+  if (!ref) { console.warn('[vols] sem booking-ref na emissão'); return; }
+
+  let billet = null;
+  try { billet = JSON.parse(localStorage.getItem('expatur_billet_' + ref.replace(/[^a-zA-Z0-9]/g, '_')) || 'null'); } catch (e) {}
+  if (!billet || !billet.legs || !billet.legs.length) {
+    try {
+      const aid2 = localStorage.getItem('expatur_active_dossier');
+      const dd2 = aid2 ? JSON.parse(localStorage.getItem('expatur_dossier_' + aid2) || 'null') : null;
+      if (dd2 && dd2.savedBilletData) billet = dd2.savedBilletData;
+    } catch (e) {}
+  }
+  if (!billet || !billet.legs || !billet.legs.length) { console.warn('[vols] sem legs no billet', ref); return; }
+
+  let surname = '';
+  if (billet.pax && billet.pax[0]) surname = _surname(billet.pax[0].nom || billet.pax[0].prenom || '');
+  if (!surname) { try { surname = _surname((document.getElementById('pax-name-1') || {}).value || ''); } catch (e) {} }
+
+  const rows = _rowsFromBillet(billet, ref, surname);
+  if (!rows.length) { console.warn('[vols] billet sem linhas', ref); return; }
+  try {
+    const { error } = await supabase.rpc('flights_upsert', { rows });
+    if (error) { console.warn('[vols] upsert emit', error.message); return; }
+    console.info('[vols] ' + rows.length + ' segmento(s) capturado(s) para ' + ref);
+    volsLoad();
+  } catch (e) { console.warn('[vols] capture', e); }
+}
+window._volsCaptureActive = _volsCaptureActive;
+
+// Trigger: envolve emettreBillet (roda após a cadeia de emissão salvar o billet).
+(function _volsHookEmit() {
+  if (window._volsEmitHooked) return;
+  const prev = window.emettreBillet;
+  if (typeof prev !== 'function') { setTimeout(_volsHookEmit, 500); return; }
+  window.emettreBillet = function () {
+    const r = prev.apply(this, arguments);
+    setTimeout(function () { try { _volsCaptureActive(); } catch (e) { console.warn('[vols] capture', e); } }, 120);
+    return r;
+  };
+  window._volsEmitHooked = true;
+})();
