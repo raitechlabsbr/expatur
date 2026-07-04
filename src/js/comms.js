@@ -970,4 +970,173 @@ function _blobToBase64(blob) {
 //   • Divide (cm-divide):    one email per passenger; recipient = that passenger's
 //       edited field, or the main client email when the field is left blank.
 // Single passenger always sends one email to the main client email.
-// `_commsSend` (Task 3) is intentionally NOT defined here.
+async function _commsSend() {
+  var status = document.getElementById('cm-status');
+  var btn = document.getElementById('cm-send-btn');
+  var pax = _commsData.pax || [];
+  var nPax = pax.length;
+  var mainEmail = (document.getElementById('cm-email')||{}).value || '';
+  var mergeOn  = !!(document.getElementById('cm-merge')  && document.getElementById('cm-merge').checked  && nPax > 1);
+  var divideOn = !!(document.getElementById('cm-divide') && document.getElementById('cm-divide').checked && nPax > 1);
+
+  function _restoreBtn(){ if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; } }
+
+  if (!mainEmail || mainEmail.indexOf('@') < 0) {
+    if (status) { status.style.color='#dc2626'; status.textContent='Adresse email client invalide.'; }
+    return;
+  }
+
+  // Resolve the recipient for each passenger.
+  function _paxEmail(i) {
+    if (divideOn) {
+      var v = (document.getElementById('cm-pax-email-'+i)||{}).value || '';
+      return (v && v.indexOf('@') > -1) ? v : mainEmail;   // blank/invalid → main client email
+    }
+    return mainEmail;
+  }
+
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.style.cursor = 'wait'; }
+
+  try {
+    // 1) Always generate PER-PASSENGER PDFs (force non-merge) so we can attach the
+    //    correct PDF to each passenger. For "merge" we attach them all to one email.
+    if (status) { status.style.color = 'var(--navy-soft)'; status.textContent = 'Génération des PDF de confirmation…'; }
+    var _savedMerge = window._mergePaxPdf;
+    window._mergePaxPdf = false;
+    // The PDF generator clones the ticket strips from #pdf-preview, so the preview
+    // MUST be rendered in the COMMS language (window._pdfLang) first — otherwise the
+    // PDF keeps whatever language the preview was last shown in (e.g. French airport
+    // names in an English email). Re-render, wait a tick, then generate.
+    var _previewLangBefore = (document.querySelector('.pdf-lang-btn.active') && document.querySelector('.pdf-lang-btn.active').dataset.lang) || 'fr';
+    try { if (typeof buildPreview === 'function') buildPreview(); } catch(e) {}
+    await new Promise(function(res){ setTimeout(res, 150); });
+    if (typeof generateBilletPDFs === 'function') {
+      try { await generateBilletPDFs(); } catch(e) { console.warn('[COMMS] PDF generation issue:', e); }
+    }
+    window._mergePaxPdf = _savedMerge;
+    // Restore the on-screen quote preview to its own toggle language afterwards.
+    try {
+      if (_previewLangBefore !== window._pdfLang) {
+        var _restoreLang = window._pdfLang;
+        window._pdfLang = _previewLangBefore;
+        if (typeof buildPreview === 'function') buildPreview();
+        window._pdfLang = _restoreLang;  // keep COMMS language for the email build below
+      }
+    } catch(e) {}
+
+    // 2) Encode each PDF blob (blobs[i] ↔ passenger i).
+    var blobs = window._lastBilletPDFBlobs || [];
+    var paxAttachments = [];   // paxAttachments[i] = attachment object for passenger i
+    for (var i=0; i<blobs.length; i++) {
+      try {
+        var b64 = await _blobToBase64(blobs[i].blob);
+        paxAttachments.push({ filename: blobs[i].name || ('confirmation_'+(i+1)+'.pdf'), mimeType: 'application/pdf', contentBase64: b64 });
+      } catch(e) { paxAttachments.push(null); console.warn('[COMMS] attachment encode failed:', e); }
+    }
+
+    var inlineImages = [
+      { cid: 'expatur_logo_white', mimeType: 'image/png', contentBase64: EXPATUR_LOGO_WHITE_PNG_B64 },
+      { cid: 'expatur_icon',       mimeType: 'image/png', contentBase64: EXPATUR_ICON_COLOR_PNG_B64 },
+      { cid: 'expatur_whatsapp',   mimeType: 'image/png', contentBase64: EXPATUR_WHATSAPP_PNG_B64 },
+      { cid: 'expatur_instagram',  mimeType: 'image/png', contentBase64: EXPATUR_INSTAGRAM_PNG_B64 },
+      { cid: 'expatur_linkedin',   mimeType: 'image/png', contentBase64: EXPATUR_LINKEDIN_PNG_B64 },
+      { cid: 'expatur_facebook',   mimeType: 'image/png', contentBase64: EXPATUR_FACEBOOK_PNG_B64 },
+      { cid: 'expatur_title',      mimeType: 'image/png', contentBase64: (window._pdfLang==='en' ? EXPATUR_TITLE_EN_PNG_B64 : EXPATUR_TITLE_FR_PNG_B64) }
+    ];
+
+    // Email subject uses the dossier reference number (booking-ref), NOT the PNR.
+    var _dossierRef = (document.getElementById('booking-ref')||{}).value || (document.getElementById('cm-ref')||{}).value || '';
+    var subject = T('cm_subject') + (_dossierRef ? (' — ' + _dossierRef) : '');
+    var ref = (document.getElementById('cm-ref')||{}).value || '';
+
+    // 3) Build the list of sends.
+    var sends = [];
+    if (mergeOn || nPax <= 1) {
+      // One email: all passengers + all PDFs (merge), or the single-pax case.
+      sends.push({
+        to: mainEmail,
+        contactName: (document.getElementById('cm-name')||{}).value || '',
+        html: _commsBuildEmailHTML(),                       // all passengers
+        attachments: paxAttachments.filter(Boolean)         // all PDFs
+      });
+    } else {
+      // Default OR Divide: one email per passenger, only their info + their PDF.
+      for (var k=0; k<nPax; k++) {
+        var att = paxAttachments[k] ? [paxAttachments[k]] : [];
+        sends.push({
+          to: _paxEmail(k),
+          contactName: pax[k].name || '',
+          html: _commsBuildEmailHTML({ onlyPax: pax[k], email: _paxEmail(k) }),
+          attachments: att
+        });
+      }
+    }
+
+    // 4) Send loop.
+    var okCount = 0, failList = [];
+    for (var s=0; s<sends.length; s++) {
+      var snd = sends[s];
+      if (status) {
+        status.style.color = 'var(--navy-soft)';
+        status.textContent = (sends.length > 1)
+          ? ('Envoi ' + (s+1) + '/' + sends.length + ' — ' + (snd.contactName || snd.to) + '…')
+          : ('Envoi en cours… (' + snd.attachments.length + ' PDF joint' + (snd.attachments.length>1?'s':'') + ')');
+      }
+      var payload = {
+        to: snd.to,
+        bcc: 'administration@expaturtravel.com',   // always send a hidden copy to administration
+        contactName: snd.contactName,
+        subject: subject,
+        html: snd.html,
+        ref: ref,
+        pax: _commsData.pax,
+        flights: _commsData.flights,
+        attachments: snd.attachments,
+        inlineImages: inlineImages
+      };
+      try {
+        // PLATAFORMA: envio via Supabase Edge Function (JWT anexado automaticamente).
+        var res;
+        if (!SUPABASE_ENABLED || !supabase) { res = { ok:false, error:'Supabase indisponível' }; }
+        else {
+          try {
+            var inv = await supabase.functions.invoke('send-email', { body: payload });
+            res = inv && inv.data ? inv.data : { ok:false, error:(inv && inv.error && inv.error.message) || 'erreur' };
+          } catch(e) { res = { ok:false, error:(e && e.message) || String(e) }; }
+        }
+        if (res && res.ok) okCount++;
+        else failList.push((snd.contactName || snd.to) + ' (' + ((res&&res.error)||'erreur') + ')');
+      } catch(err) {
+        failList.push((snd.contactName || snd.to) + ' (' + (err && err.message || err) + ')');
+      }
+    }
+
+    if (status) {
+      if (failList.length === 0) {
+        status.style.color = '#16a34a';
+        status.textContent = (sends.length > 1)
+          ? ('✓ ' + okCount + ' email' + (okCount>1?'s':'') + ' envoyé' + (okCount>1?'s':''))
+          : ('✓ Email envoyé à ' + sends[0].to + (sends[0].attachments.length ? ' avec ' + sends[0].attachments.length + ' PDF' : ''));
+        if (typeof toast === 'function') toast('Email de confirmation envoyé ✓', 'success');
+        // Auditoria (fase 4): registra o envio bem-sucedido.
+        try {
+          if (typeof window.__logEvent === 'function') {
+            window.__logEvent('EMAIL_CONFIRMATION', 'comms', {
+              entity_id: (document.getElementById('booking-ref')||{}).value || ref || '',
+              new_value: mainEmail,
+              field_changed: 'lang=' + (window._pdfLang||'fr') + ' pax=' + (_commsData.pax||[]).length + ' envois=' + okCount,
+            });
+          }
+        } catch(e) {}
+      } else {
+        status.style.color = '#dc2626';
+        status.textContent = 'Échec : ' + failList.join(' ; ') + (okCount ? (' — ' + okCount + ' réussi(s)') : '');
+      }
+    }
+  } catch(err) {
+    if (status) { status.style.color = '#dc2626'; status.textContent = 'Échec de l’envoi : ' + (err && err.message || err); }
+  } finally {
+    _restoreBtn();
+  }
+}
+window._commsSend = _commsSend;
