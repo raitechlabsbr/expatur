@@ -33,11 +33,13 @@ serve(async (req) => {
     ...(Array.isArray(p.attachments) ? p.attachments : []).map((a: any) => ({
       filename: a.filename,
       content: a.contentBase64,
+      content_type: a.mimeType,
     })),
     ...(Array.isArray(p.inlineImages) ? p.inlineImages : []).map((im: any) => ({
       filename: im.cid,
       content: im.contentBase64,
       content_id: im.cid,
+      content_type: im.mimeType,
     })),
   ];
 

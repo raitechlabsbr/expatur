@@ -14,6 +14,10 @@
   if (typeof __loginSubmitReal === 'function') window.__loginSubmitReal = __loginSubmitReal;
   if (typeof _applyBookingTabState === 'function') window._applyBookingTabState = _applyBookingTabState;
   if (typeof _blGetAllLegs === 'function') window._blGetAllLegs = _blGetAllLegs;
+  if (typeof fmtMin === 'function') window.fmtMin = fmtMin;
+  if (typeof fmtTimeDisplay === 'function') window.fmtTimeDisplay = fmtTimeDisplay;
+  if (typeof _getAirportTZ === 'function') window._getAirportTZ = _getAirportTZ;
+  if (typeof _tzOffset === 'function') window._tzOffset = _tzOffset;
   if (typeof _blStoreStripeInvoice === 'function') window._blStoreStripeInvoice = _blStoreStripeInvoice;
   if (typeof _blUpdatePaymentSection === 'function') window._blUpdatePaymentSection = _blUpdatePaymentSection;
   if (typeof _changePasswordSubmit === 'function') window._changePasswordSubmit = _changePasswordSubmit;
