@@ -61710,7 +61710,11 @@ function _canIssueTicketsAgainstInvoices() {
             d.ticketing.issuedAt = _now();
             _writeDossier(id, d);
             var billet = _readJSON('expatur_billet_'+id, null) || (d.ticketing.billet || {});
-            var ref = (billet && (billet.ref || billet.reference)) || id;
+            // billets são salvos por booking-ref (nunca por id) e d.ticketing.billet
+            // fica vazio → o lookup acima sempre falhava e ref caía no id, gravando
+            // billetFrozen_<id>. Mas Recap/DXR/deal-status leem billetFrozen_<booking-ref>.
+            // Prioriza o booking-ref do dossiê já carregado (fix Recap vazio).
+            var ref = (d.fields && d.fields['booking-ref']) || (billet && (billet.ref || billet.reference)) || id;
             try { localStorage.setItem('billetFrozen_'+ref, '1'); } catch(_) {}
             _snapshotKeysIntoDossier(id);
             _appendRevision(id, 'emettreBillet', { reason:'ticket issued' });
@@ -61725,6 +61729,33 @@ function _canIssueTicketsAgainstInvoices() {
       console.log('[v3.127] WP-4: emettreBillet finalization wired');
     }
   } catch(_) {}
+
+  // ── Reindex one-time: billetFrozen_<dossierId> → billetFrozen_<booking-ref> ──
+  // Emissões antigas (WP-4 antes do fix) gravaram billetFrozen chaveado por
+  // dossierId; Recap/DXR/deal-status leem por booking-ref. Reindexar por
+  // booking-ref destrava essas reservas nessas telas. Idempotente (guard em
+  // localStorage). Não remove a chave antiga (não quebra nada).
+  // Exposto como window.__reindexBilletFrozen e chamado pelo auth.js APÓS a
+  // hidratação do Supabase (sbHydrate/sbStartSync) — no load do módulo o
+  // localStorage ainda está vazio. O setItem propaga ao Supabase via sbStartSync.
+  window.__reindexBilletFrozen = function(){
+    try {
+      if (_readKey('_billetFrozen_reindex_v1') === '1') return;
+      var _bfList = _readJSON('expatur_dossier_list', []) || [];
+      var _bfN = 0;
+      _bfList.forEach(function(it){
+        var _id = it && it.id; if (!_id) return;
+        if (_readKey('billetFrozen_'+_id) !== '1') return;         // só os gravados por id
+        var _dd = _readDossier(_id);
+        var _bref = _dd && _dd.fields && _dd.fields['booking-ref'];
+        if (_bref && _readKey('billetFrozen_'+_bref) !== '1') {
+          try { localStorage.setItem('billetFrozen_'+_bref, '1'); _bfN++; } catch(_) {}
+        }
+      });
+      try { localStorage.setItem('_billetFrozen_reindex_v1', '1'); } catch(_) {}
+      if (_bfN) console.log('[fix] billetFrozen reindex:', _bfN, 'reserva(s) reindexada(s) por booking-ref');
+    } catch(e) { console.warn('[fix] billetFrozen reindex falhou:', e); }
+  };
 
   // ========================================================================
   // SECTION 4 — One-time migration of legacy keys into dossier.ticketing

@@ -273,6 +273,11 @@ async function applySession(session) {
   await sbHydrate();
   sbStartSync();
 
+  // Reindex one-time de billetFrozen por booking-ref (destrava Recap/DXR das
+  // emissões antigas). Roda aqui pois exige o localStorage já hidratado; o
+  // setItem propaga ao Supabase via sbStartSync (já ativo acima).
+  try { if (typeof window.__reindexBilletFrozen === 'function') window.__reindexBilletFrozen(); } catch (e) {}
+
   _hideLogin();
   _updateAdmin();
   applyRoleUI(_currentRole);
