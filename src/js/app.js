@@ -13,6 +13,11 @@
   if (typeof __adminFetchUsers === 'function') window.__adminFetchUsers = __adminFetchUsers;
   if (typeof __loginSubmitReal === 'function') window.__loginSubmitReal = __loginSubmitReal;
   if (typeof _applyBookingTabState === 'function') window._applyBookingTabState = _applyBookingTabState;
+  if (typeof _blGetAllLegs === 'function') window._blGetAllLegs = _blGetAllLegs;
+  if (typeof fmtMin === 'function') window.fmtMin = fmtMin;
+  if (typeof fmtTimeDisplay === 'function') window.fmtTimeDisplay = fmtTimeDisplay;
+  if (typeof _getAirportTZ === 'function') window._getAirportTZ = _getAirportTZ;
+  if (typeof _tzOffset === 'function') window._tzOffset = _tzOffset;
   if (typeof _blStoreStripeInvoice === 'function') window._blStoreStripeInvoice = _blStoreStripeInvoice;
   if (typeof _blUpdatePaymentSection === 'function') window._blUpdatePaymentSection = _blUpdatePaymentSection;
   if (typeof _changePasswordSubmit === 'function') window._changePasswordSubmit = _changePasswordSubmit;
@@ -436,6 +441,7 @@ function getAirlineLogo(airline) {
 //  STATE
 // 
 let tripType    = 'oneway';
+window.tripType = tripType;
 let selLeg1     = null;
 let selLeg2     = null;
 let multiLegs   = [];   // [{dep, arr, date, sel, id}, …]  for multicity
@@ -878,6 +884,7 @@ function addDays(iso, n) {
 // 
 function setTripType(type) {
   tripType = type;
+  window.tripType = tripType;
   document.querySelectorAll('.trip-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
 
   const isReturn    = type === 'return';

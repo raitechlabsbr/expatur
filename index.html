@@ -1898,6 +1898,7 @@
     </div>
     
     <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.85rem;">
+      <button class="btn btn-sm bl-action-navy" onclick="openCommsPopup()" style="background:#06203b !important;color:#fff !important;border:none;font-size:0.68rem;padding:0.42rem 0.85rem;">COMMS</button>
       <button class="btn btn-sm" onclick="saveBilletData()" style="background:#D80505;color:#fff;border:none;font-size:0.68rem;padding:0.42rem 0.85rem;">Sauvegarder</button>
       <button class="btn btn-sm" onclick="generateBilletPDFs()" style="background:#22c55e;color:#fff;border:none;font-size:0.68rem;padding:0.42rem 0.85rem;">Générer PDF confirmations</button>
       <button class="btn btn-sm btn-red" id="bl-emettre-btn" onclick="emettreBillet()" disabled
@@ -2494,6 +2495,112 @@
       
       <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--navy);opacity:0.55;margin-bottom:0.5rem;border-bottom:2px solid var(--gold);padding-bottom:0.35rem;">Dossiers liés</div>
       <div id="vend-detail-deals" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMS — popup email de confirmation (port fiel de docs/monolito.html 3514–3617) -->
+<div id="comms-popup" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(6,32,59,0.45);backdrop-filter:blur(2px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:2vh 1rem;">
+  <div style="background:#fff;border-radius:12px;max-width:920px;width:100%;box-shadow:0 20px 60px rgba(6,32,59,0.3);font-family:Inter,sans-serif;margin:auto;display:flex;flex-direction:column;max-height:94vh;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.3rem;border-bottom:1px solid var(--border);flex-shrink:0;gap:0.75rem;">
+      <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--navy);">COMMS — Email de confirmation</div>
+      <div style="display:flex;align-items:center;gap:0.65rem;">
+        <div class="cm-lang-switch" style="display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+          <button class="cm-lang-btn active" data-lang="fr" onclick="_commsSetLang('fr')" style="border:none;font-size:0.7rem;font-weight:700;padding:0.35rem 0.7rem;cursor:pointer;background:#06203b;color:#fff;">FR</button>
+          <button class="cm-lang-btn" data-lang="en" onclick="_commsSetLang('en')" style="border:none;font-size:0.7rem;font-weight:700;padding:0.35rem 0.7rem;cursor:pointer;background:#fff;color:#06203b;">EN</button>
+          <button class="cm-lang-btn" data-lang="es" onclick="_commsSetLang('es')" style="border:none;font-size:0.7rem;font-weight:700;padding:0.35rem 0.7rem;cursor:pointer;background:#fff;color:#06203b;">ES</button>
+        </div>
+        <button onclick="closeCommsPopup()" style="border:none;background:transparent;font-size:1.4rem;line-height:1;color:var(--navy-faint);cursor:pointer;padding:0 0.3rem;">&times;</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:0;flex:1;min-height:0;min-width:0;overflow:hidden;">
+      <!-- Sidebar: editable fields -->
+      <div style="width:300px;flex-shrink:0;flex-grow:0;min-width:0;box-sizing:border-box;border-right:1px solid var(--border);overflow-y:auto;overflow-x:hidden;padding:0 0 1rem;background:var(--panel,#f7f9fc);">
+        <div style="padding:0.9rem 1rem 0.3rem;">
+          <div onclick="_commsToggleSection('cm-dest-body','cm-dest-caret')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.6rem;">
+            <span>Destinataire</span>
+            <span id="cm-dest-caret" style="font-size:0.7rem;transform:rotate(90deg);">&#9656;</span>
+          </div>
+          <div id="cm-dest-body" style="display:block;">
+          <div style="margin-bottom:0.5rem;"><label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Nom du contact</label><input id="cm-name" oninput="_commsRender()" style="width:100%;box-sizing:border-box;font-size:0.78rem;padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:5px;"></div>
+          <div style="margin-bottom:0.5rem;"><label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Adresse email</label><input id="cm-email" oninput="_commsRender()" style="width:100%;box-sizing:border-box;font-size:0.78rem;padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:5px;"></div>
+          <div id="cm-perpax-wrap" style="margin-top:0.6rem;padding:0.55rem 0.65rem;background:#fff;border:1px solid var(--border);border-radius:6px;box-sizing:border-box;max-width:100%;overflow:hidden;">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.5rem;">Envoi (multi-passagers)</div>
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.72rem;color:var(--navy);margin-bottom:0.45rem;text-transform:none;letter-spacing:0;opacity:1;">
+              <input type="checkbox" id="cm-merge" onchange="_commsOnSendModeChange('merge')" style="width:15px;height:15px;flex-shrink:0;margin:0;padding:0;cursor:pointer;accent-color:var(--navy);">
+              <strong>Fusionner l'email</strong>
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.72rem;color:var(--navy);text-transform:none;letter-spacing:0;opacity:1;">
+              <input type="checkbox" id="cm-divide" onchange="_commsOnSendModeChange('divide')" style="width:15px;height:15px;flex-shrink:0;margin:0;padding:0;cursor:pointer;accent-color:var(--navy);">
+              <strong>Diviser l'email</strong>
+            </label>
+            <div id="cm-perpax-emails" style="display:none;margin-top:0.6rem;"></div>
+          </div>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:0.5rem 0 0;">
+        <div style="padding:0.7rem 1rem 0.3rem;">
+          <div onclick="_commsToggleIntro()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-faint);">
+            <span>Message d'introduction</span>
+            <span id="cm-intro-caret" style="font-size:0.7rem;transition:transform .15s;">&#9656;</span>
+          </div>
+          <div id="cm-intro-body" style="display:none;margin-top:0.6rem;">
+            <textarea id="cm-intro" oninput="_commsRender()" rows="3" style="width:100%;box-sizing:border-box;font-size:0.75rem;padding:0.4rem 0.5rem;border:1px solid var(--border);border-radius:5px;font-family:inherit;resize:vertical;"></textarea>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:0.5rem 0 0;">
+        <div style="padding:0.7rem 1rem 0.3rem;">
+          <div onclick="_commsToggleSection('cm-bag-body','cm-bag-caret')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.6rem;">
+            <span>Bagages</span>
+            <span id="cm-bag-caret" style="font-size:0.7rem;transform:rotate(90deg);">&#9656;</span>
+          </div>
+          <div id="cm-bag-body" style="display:block;">
+          <div style="margin-bottom:0.5rem;">
+            <label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Cabine</label>
+            <div style="display:flex;align-items:center;gap:0.3rem;">
+              <input id="cm-cabin-qty" type="number" min="0" step="1" value="1" oninput="_commsCabinSync()" style="width:42px;font-size:0.78rem;padding:0.35rem 0.3rem;border:1px solid var(--border);border-radius:5px;text-align:center;" title="Nombre de bagages cabine">
+              <span style="font-size:0.78rem;color:var(--navy-soft);">×</span>
+              <input id="cm-cabin-wt" type="number" min="0" step="0.5" value="10" oninput="_commsCabinSync()" style="width:54px;font-size:0.78rem;padding:0.35rem 0.3rem;border:1px solid var(--border);border-radius:5px;text-align:center;" title="Poids par pièce">
+              <select id="cm-cabin-unit" onchange="_commsCabinUnitChange()" style="font-size:0.74rem;padding:0.35rem 0.25rem;border:1px solid var(--border);border-radius:5px;background:#fff;">
+                <option value="kg">kg</option>
+                <option value="lbs">lbs</option>
+              </select>
+              <span style="font-size:0.7rem;color:var(--navy-soft);white-space:nowrap;">/pers</span>
+            </div>
+            <input id="cm-cabin" type="hidden">
+          </div>
+          <div style="margin-bottom:0.5rem;">
+            <label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Soute</label>
+            <div style="display:flex;align-items:center;gap:0.3rem;">
+              <input id="cm-hold-qty" type="number" min="0" step="1" value="1" oninput="_commsHoldSync()" style="width:42px;font-size:0.78rem;padding:0.35rem 0.3rem;border:1px solid var(--border);border-radius:5px;text-align:center;" title="Nombre de bagages en soute">
+              <span style="font-size:0.78rem;color:var(--navy-soft);">×</span>
+              <input id="cm-hold-wt" type="number" min="0" step="0.5" value="23" oninput="_commsHoldSync()" style="width:54px;font-size:0.78rem;padding:0.35rem 0.3rem;border:1px solid var(--border);border-radius:5px;text-align:center;" title="Poids par pièce">
+              <select id="cm-hold-unit" onchange="_commsHoldUnitChange()" style="font-size:0.74rem;padding:0.35rem 0.25rem;border:1px solid var(--border);border-radius:5px;background:#fff;">
+                <option value="kg">kg</option>
+                <option value="lbs">lbs</option>
+              </select>
+              <span style="font-size:0.7rem;color:var(--navy-soft);white-space:nowrap;">/pers</span>
+            </div>
+            <input id="cm-chk" type="hidden">
+          </div>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:0.5rem 0 0;">
+        <div style="padding:0.7rem 1rem 0.3rem;">
+          <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.6rem;">Récapitulatif</div>
+          <div style="margin-bottom:0.5rem;"><label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Référence (PNR)</label><input id="cm-ref" maxlength="6" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);_commsSyncPnrToTicketing(this.value)" style="width:100%;box-sizing:border-box;font-size:0.78rem;padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:5px;font-family:monospace;"></div>
+          <div style="margin-bottom:0.5rem;"><label style="display:block;font-size:0.62rem;color:var(--navy-soft);margin-bottom:2px;">Date d'émission</label><input id="cm-issued" oninput="_commsRender()" style="width:100%;box-sizing:border-box;font-size:0.78rem;padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:5px;"></div>
+        </div>
+      </div>
+      <!-- Preview -->
+      <div style="flex:1;min-width:0;overflow-y:auto;padding:1rem;background:#eef1f6;">
+        <div id="cm-preview" style="background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;max-width:520px;margin:0 auto;"></div>
+      </div>
+    </div>
+    <div style="padding:0.8rem 1.3rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:0.7rem;flex-shrink:0;">
+      <span id="cm-status" style="font-size:0.75rem;color:var(--navy-soft);margin-right:auto;"></span>
+      <button onclick="closeCommsPopup()" class="btn btn-sm" style="background:#fff;color:var(--navy);border:1px solid var(--border);font-size:0.72rem;padding:0.45rem 0.9rem;">Fermer</button>
+      <button onclick="window._commsSend && window._commsSend()" id="cm-send-btn" class="btn btn-sm bl-action-navy" style="background:#06203b !important;color:#fff !important;border:none;font-size:0.72rem;padding:0.45rem 1.1rem;">✉ Envoyer l'email</button>
     </div>
   </div>
 </div>
