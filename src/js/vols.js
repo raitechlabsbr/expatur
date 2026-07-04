@@ -94,8 +94,27 @@ function volsRender() {
     tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--navy-faint);padding:1.5rem;">Aucun vol enregistré.</td></tr>';
     return;
   }
+  const inp = function (val, key) {
+    return '<input data-fk="' + key + '" value="' + _esc(val) + '" '
+      + 'style="width:100%;box-sizing:border-box;padding:3px 5px;font-size:0.72rem;border:1px solid var(--border);border-radius:4px;font-family:inherit;" />';
+  };
   tb.innerHTML = _volsRows.map(function (r, i) {
-    // linha de leitura (a de edição vem na Task 3)
+    if (i === _volsEditIdx) {
+      return '<tr data-edit="1" style="background:#fffbe6;">'
+        + '<td>' + inp(r.flight_date, 'flight_date') + '</td>'
+        + '<td>' + inp(r.flight_num, 'flight_num') + '</td>'
+        + '<td>' + inp(r.dep_code, 'dep_code') + '</td>'
+        + '<td>' + inp(r.dep_time, 'dep_time') + '</td>'
+        + '<td>' + inp(r.arr_time, 'arr_time') + '</td>'
+        + '<td>' + inp(r.arr_code, 'arr_code') + '</td>'
+        + '<td>' + inp(r.pnr, 'pnr') + '</td>'
+        + '<td>' + inp(r.client, 'client') + '</td>'
+        + '<td style="text-align:center;white-space:nowrap;">'
+        +   '<button title="Enregistrer" onclick="window._volsRowSave(' + i + ')" style="background:none;border:none;cursor:pointer;color:#15803d;font-size:1rem;line-height:1;margin-right:5px;">✓</button>'
+        +   '<button title="Annuler" onclick="window._volsRowCancel()" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:1rem;line-height:1;">✕</button>'
+        + '</td>'
+        + '</tr>';
+    }
     return '<tr data-vols-ref="' + _esc(r.dossier_ref || r.pnr || '') + '" style="cursor:pointer;">'
       + '<td>' + _esc(_fmtDate(r.flight_date)) + '</td>'
       + '<td style="font-weight:700;">' + _esc(r.flight_num || '—') + '</td>'
@@ -105,7 +124,10 @@ function volsRender() {
       + '<td>' + _esc(r.arr_code) + '</td>'
       + '<td>' + _esc(r.pnr || '—') + '</td>'
       + '<td>' + _esc(r.client || '—') + '</td>'
-      + '<td style="text-align:center;white-space:nowrap;color:var(--navy-faint);">—</td>'
+      + '<td style="text-align:center;white-space:nowrap;">'
+      +   '<button title="Modifier" onclick="event.stopPropagation();window._volsRowEdit(' + i + ')" style="background:none;border:none;cursor:pointer;color:#06203b;font-size:0.9rem;line-height:1;margin-right:5px;">✎</button>'
+      +   '<button title="Supprimer" onclick="event.stopPropagation();window._volsRowDelete(' + i + ')" style="background:none;border:none;cursor:pointer;color:#b91c1c;font-size:0.95rem;line-height:1;">✕</button>'
+      + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -114,4 +136,95 @@ window.volsRender = volsRender;
 // ── Bootstrap: carrega ao abrir a seção pela 1ª vez ─────────────────────────
 window.__volsEnsureLoaded = function () {
   if (!_volsLoaded) { volsLoad(); } else { volsRender(); }
+};
+
+// ── CRUD manual (grava no Supabase; recarrega o cache após cada escrita) ────
+function _collectEditRow() {
+  const tr = document.querySelector('#vols-tbody tr[data-edit="1"]');
+  if (!tr) return null;
+  const o = {};
+  Array.prototype.forEach.call(tr.querySelectorAll('input[data-fk]'), function (el) {
+    o[el.getAttribute('data-fk')] = el.value;
+  });
+  return o;
+}
+
+window._volsRowAdd = function () {
+  if (_volsEditIdx >= 0) { alert('Terminez la ligne en cours d’édition d’abord.'); return; }
+  _volsRows.unshift({ id: null, flight_date: '', flight_num: '', dep_code: '', dep_time: '', arr_code: '', arr_time: '', pnr: '', client: '', dossier_ref: '', source: 'manual', _isNew: true });
+  _volsEditIdx = 0;
+  volsRender();
+  try { const f = document.querySelector('#vols-tbody tr[data-edit="1"] input[data-fk="flight_date"]'); if (f) f.focus(); } catch (e) {}
+};
+
+window._volsRowEdit = function (i) {
+  if (_volsEditIdx >= 0 && _volsRows[_volsEditIdx] && _volsRows[_volsEditIdx]._isNew) {
+    _volsRows.splice(_volsEditIdx, 1);         // descarta um add em branco abandonado
+    if (i > _volsEditIdx) i--;
+  }
+  _volsEditIdx = i;
+  volsRender();
+};
+
+window._volsRowCancel = function () {
+  if (_volsEditIdx >= 0 && _volsRows[_volsEditIdx] && _volsRows[_volsEditIdx]._isNew) {
+    _volsRows.splice(_volsEditIdx, 1);         // remove a linha em branco que adicionamos
+  }
+  _volsEditIdx = -1;
+  volsRender();
+};
+
+window._volsRowSave = async function (i) {
+  const o = _collectEditRow();
+  if (!o) return;
+  const d = _parseDate(o.flight_date);
+  const rec = {
+    flight_date: d ? (d.getFullYear() + '-' + _pad2(d.getMonth()+1) + '-' + _pad2(d.getDate())) : '',
+    flight_num: String(o.flight_num || '').trim(),
+    dep_code: String(o.dep_code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3),
+    dep_time: _hhmm(o.dep_time),
+    arr_time: _hhmm(o.arr_time),
+    arr_code: String(o.arr_code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3),
+    pnr: String(o.pnr || '').trim(),
+    client: String(o.client || '').trim(),
+  };
+  if (!rec.flight_date || !rec.dep_code || !rec.arr_code) {
+    alert('Date, De (DEP) et À (ARR) sont obligatoires.'); return;
+  }
+  const existing = _volsRows[i];
+  _volsEditIdx = -1;
+  if (!SUPABASE_ENABLED || !supabase) { volsRender(); return; }
+  try {
+    if (existing && existing.id) {
+      const { error } = await supabase.from('flights').update(rec).eq('id', existing.id);
+      if (error) console.warn('[vols] update', error.message);
+    } else {
+      const { error } = await supabase.from('flights').insert(Object.assign({ dossier_ref: '', source: 'manual' }, rec));
+      if (error) console.warn('[vols] insert', error.message);
+    }
+  } catch (e) { console.warn('[vols] save', e); }
+  await volsLoad();
+};
+
+window._volsRowDelete = async function (i) {
+  const r = _volsRows[i];
+  if (!r) return;
+  if (!window.confirm('Supprimer ce vol ?\n' + (_fmtDate(r.flight_date) || '') + '  ' + (r.flight_num || '') + '  ' + (r.dep_code || '') + '→' + (r.arr_code || ''))) return;
+  if (_volsEditIdx === i) _volsEditIdx = -1;
+  if (r.id && SUPABASE_ENABLED && supabase) {
+    try { const { error } = await supabase.from('flights').delete().eq('id', r.id); if (error) console.warn('[vols] delete', error.message); }
+    catch (e) { console.warn('[vols] delete', e); }
+  }
+  await volsLoad();
+};
+
+window._volsClearAll = async function () {
+  if (!window.confirm('Vider toute la liste des départs ? (action partagée sur tous les postes)')) return;
+  if (SUPABASE_ENABLED && supabase) {
+    // apaga tudo: delete com filtro sempre-verdadeiro (flight_date não nulo)
+    try { const { error } = await supabase.from('flights').delete().not('flight_date', 'is', null); if (error) console.warn('[vols] clear', error.message); }
+    catch (e) { console.warn('[vols] clear', e); }
+  }
+  _volsEditIdx = -1;
+  await volsLoad();
 };
