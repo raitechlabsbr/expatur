@@ -19,6 +19,7 @@
   if (typeof _getAirportTZ === 'function') window._getAirportTZ = _getAirportTZ;
   if (typeof _tzOffset === 'function') window._tzOffset = _tzOffset;
   if (typeof _diDealValue === 'function') window._diDealValue = _diDealValue;
+  if (typeof _diPaxName === 'function') window._diPaxName = _diPaxName;
   if (typeof _blStoreStripeInvoice === 'function') window._blStoreStripeInvoice = _blStoreStripeInvoice;
   if (typeof _blUpdatePaymentSection === 'function') window._blUpdatePaymentSection = _blUpdatePaymentSection;
   if (typeof _changePasswordSubmit === 'function') window._changePasswordSubmit = _changePasswordSubmit;
