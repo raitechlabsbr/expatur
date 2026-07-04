@@ -52589,6 +52589,7 @@ function _canIssueTicketsAgainstInvoices() {
       var ref = k.replace('expatur_payments_', '').replace(/_/g, '-').replace(/^-+|-+$/g, '');
       var arr;
       try { arr = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) { return; }
+      if (!Array.isArray(arr)) return;   // chave com objeto/valor malformado: pula sem abortar o sync das demais
 
       arr.forEach(function(p, idx) {
         if (typeof window.upsertRecebimentoFromInvoicePayment === 'function') {
