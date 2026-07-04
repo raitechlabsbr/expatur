@@ -9,6 +9,9 @@ O projeto não tem acesso DDL via API (somente anon/service key REST). Aplicar c
 3. `003_profiles_permissions.sql` — permissões por menu, usuário supremo, visibilidade com RLS (A1, A9)
 4. `004_system_log.sql` — log geral imutável + log de acesso a documentos (A2, 4.2)
 5. `005_doc_files_storage.sql` — metadados de documentos + bucket privado `documents` (4.x, doc4 §5)
+6. `006_permissions_enforce.sql` — trigger de proteção de colunas de permissão (A1.1, A9.5)
+7. `007_admin_role_model.sql` — modelo de dois níveis por role (admin/agent); is_supreme() vira alias de is_admin() (Fase 3)
+8. `008_flights.sql` — quadro de partidas `flights` (Vols) + RLS aberta p/ authenticated + `flights_upsert` (merge server-side) (feature Vols)
 
 Todos os arquivos são idempotentes — reexecutar não causa erro nem duplica dados.
 
