@@ -228,3 +228,42 @@ window._volsClearAll = async function () {
   _volsEditIdx = -1;
   await volsLoad();
 };
+
+// ── Realtime: qualquer insert/update/delete recarrega o board ao vivo ───────
+function _volsSubscribeRealtime() {
+  if (!SUPABASE_ENABLED || !supabase || _volsSubscribeRealtime.__done) return;
+  _volsSubscribeRealtime.__done = true;
+  try {
+    supabase.channel('vols-flights')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'flights' }, function () {
+        // não recarregar no meio de uma edição inline (a linha em progresso sumiria)
+        if (_volsEditIdx >= 0) return;
+        volsLoad();
+      })
+      .subscribe();
+  } catch (e) { console.warn('[vols] realtime', e); }
+}
+_volsSubscribeRealtime();
+
+// ── Clique numa linha → abre o dossier correspondente (por ref; fallback PNR) ─
+(function _volsDelegateRowClick() {
+  document.addEventListener('click', function (e) {
+    const tr = e.target.closest ? e.target.closest('#vols-tbody tr[data-vols-ref]') : null;
+    if (!tr) return;
+    if (tr.getAttribute('data-edit') === '1') return;    // linha em edição não navega
+    const ref = tr.getAttribute('data-vols-ref');
+    if (!ref) return;
+    // resolve ref → dossierId varrendo a lista local (padrão de app.js:33042)
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('expatur_dossier_list') || '[]'); } catch (ex) {}
+    let targetId = null;
+    for (let i = 0; i < list.length; i++) {
+      let dd = null;
+      try { dd = JSON.parse(localStorage.getItem('expatur_dossier_' + list[i].id) || 'null'); } catch (ex) {}
+      const dRef = (dd && dd.fields && dd.fields['booking-ref']) || list[i].label || '';
+      if (dRef === ref) { targetId = list[i].id; break; }
+    }
+    if (targetId && typeof window.switchDossier === 'function') window.switchDossier(targetId);
+    if (typeof window.sidebarGo === 'function') window.sidebarGo('index');
+  });
+})();
