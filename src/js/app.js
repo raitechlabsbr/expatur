@@ -10052,7 +10052,7 @@ function fornRender() {
   var tbody = document.getElementById('forn-table-body');
   if (!tbody) return;
   // Render header
-  if (thead) thead.innerHTML = '<tr>' + cols.map(function(c){ return '<th>'+c.label+'</th>'; }).join('') + '<th style="width:80px;text-align:center;">Ações</th></tr>';
+  if (thead) thead.innerHTML = '<tr>' + cols.map(function(c){ var ra=(c.key==='valorAberto')?' style="text-align:right;"':''; return '<th'+ra+'>'+c.label+'</th>'; }).join('') + '<th style="width:80px;text-align:center;">Ações</th></tr>';
   if (!data.length) { tbody.innerHTML='<tr><td colspan="'+(cols.length+1)+'" class="db-empty">Nenhum fornecedor encontrado. Clique em "+ Adicionar".</td></tr>'; return; }
   // Cell renderers per key
   function cellForn(f, key) {
@@ -12811,6 +12811,7 @@ window.finPwCancel = function() {
       { key:'whatsapp',label:'WhatsApp',        def:true  },
       { key:'site',    label:'Site',            def:false },
       { key:'notas',   label:'Notas',           def:false },
+      { key:'valorAberto', label:'Valor em Aberto', def:true },
     ],
     vend: [
       { key:'nome',     label:'Nome',          def:true  },
@@ -26834,6 +26835,8 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
     return String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+  /* JS-string quoting for use inside onclick="..." attributes (verbatim monolito _jsq330) */
+  function _jsq330(s) { return "'" + String(s == null ? '' : s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ') + "'"; }
   function _fmtBRL330(v) {
     var n = parseFloat(v) || 0;
     return 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -27011,7 +27014,7 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
         '<td style="text-align:right;">' + (r.volume_miles ? Number(r.volume_miles).toLocaleString('pt-BR') : '\u2014') + '</td>' +
         '<td style="text-align:right;">' + (r.cpm_brl   ? _fmtBRL330(r.cpm_brl)   : '\u2014') + '</td>' +
         '<td style="text-align:right;">' + (r.taxas_brl ? _fmtBRL330(r.taxas_brl) : '\u2014') + '</td>' +
-        '<td style="text-align:right;font-weight:700;">' + _fmtBRL330(r.brl_amount||r.amount||0) + '</td>' +
+        '<td style="text-align:right;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="Clique para alternar Pago / Pendente" onclick="window.fornTogglePago330(' + _jsq330(r.source_id||r.id||'') + ',' + _jsq330(r.dossierRef||'') + ')">' + _fmtBRL330(r.brl_amount||r.amount||0) + '</td>' +
         '<td>' + _badge330(r.pago || r.status) + '</td>' +
         '<td style="white-space:nowrap;">' + _dl330(r.vencimento) + '</td>' +
         '</tr>';
@@ -27028,7 +27031,7 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
         '<td style="font-family:monospace;font-weight:700;font-size:0.68rem;color:var(--red,#c00);">' + _esc330(r.dossierRef||'\u2014') + '</td>' +
         '<td style="max-width:200px;word-break:break-word;">' + _esc330(r.descricao||r.description||'\u2014') + '</td>' +
         '<td style="font-size:0.67rem;color:var(--navy-soft,#3a5068);">' + _esc330(r.categoria||'\u2014') + '</td>' +
-        '<td style="text-align:right;font-weight:700;">' + _fmtBRL330(r.brl_amount||r.amount||r.valor||0) + '</td>' +
+        '<td style="text-align:right;font-weight:700;cursor:pointer;text-decoration:underline dotted;" title="Clique para alternar Pago / Pendente" onclick="window.fornTogglePago330(' + _jsq330(r.source_id||r.id||'') + ',' + _jsq330(r.dossierRef||'') + ')">' + _fmtBRL330(r.brl_amount||r.amount||r.valor||0) + '</td>' +
         '<td>' + _badge330(r.pago || r.status) + '</td>' +
         '<td style="white-space:nowrap;">' + _dl330(r.vencimento) + '</td>' +
         '<td style="font-size:0.67rem;">' + _esc330(leg || '\u2014') + '</td>' +
@@ -27098,6 +27101,14 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
         : '') +
       _sect330('D \u2014 Dados Operacionais (Trecho / PNR / Voo)', opHtml);
   }
+
+  /* Re-render hook for external modules (supplier-ledger.js): the toggle
+     Pago/Pendente lives in its own IIFE and cannot reach _currentForn330 /
+     _renderFornDetails330 directly, so it re-renders the open popup through
+     this bridge (mirrors monolito's own _refreshFornDetails330). */
+  window._refreshFornDetails330 = function () {
+    try { if (_currentForn330) _renderFornDetails330(_currentForn330); } catch (e) {}
+  };
 
   console.log('[Patch v3.30] Fornecedor detail view active.',
     'Stable IDs migrated. Click any supplier row → detail panel.',
