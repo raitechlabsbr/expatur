@@ -12,6 +12,7 @@ O projeto não tem acesso DDL via API (somente anon/service key REST). Aplicar c
 6. `006_permissions_enforce.sql` — trigger de proteção de colunas de permissão (A1.1, A9.5)
 7. `007_admin_role_model.sql` — modelo de dois níveis por role (admin/agent); is_supreme() vira alias de is_admin() (Fase 3)
 8. `008_flights.sql` — quadro de partidas `flights` (Vols) + RLS aberta p/ authenticated + `flights_upsert` (merge server-side) (feature Vols)
+9. `009_supplier_payments.sql` — estado Pago/Pendente por linha de custo (ledger de fornecedores/Abertos) + RLS aberta + Realtime manual (feature Abertos)
 
 Todos os arquivos são idempotentes — reexecutar não causa erro nem duplica dados.
 

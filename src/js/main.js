@@ -31,6 +31,7 @@ import './vols.js';
 import './comms.js';
 import './recap.js';
 import './dxr.js';
+import './supplier-ledger.js';
 
 // Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
 initI18n();

@@ -1,0 +1,496 @@
+/**
+ * supplier-ledger.js — Ledger de Fornecedores ("Abertos") — núcleo + toggle local
+ *
+ * Porta VERBATIM de docs/monolito.html (produção = fonte de verdade):
+ *   - _fornLedgerRowsAll ................ monolito 16958-16970
+ *   - _fornPendingMap .................... monolito 16971-16984
+ *   - _abertoFor / coluna "Em Aberto" + caixa "Total Em Aberto" .. monolito ~16915-16945
+ *   - fornTogglePago330 (flip pago/status no ledger global E nos
+ *     expatur_doss_finance_*) ............ monolito 34657-34701
+ *   - _emSetPago (versão LOCAL apenas) ... adaptado de monolito 78354-78359
+ *     (sem o _push/_apply Cloudflare — essa parte é da Task 3/Supabase)
+ *
+ * NÃO porta nada relativo à integração Cloudflare hoje dropada desta feature
+ * (a API remota de voos, os CSVs de voo, os pulls/pushes de sincronização
+ * remota, nem polling via setInterval).
+ *
+ * Este módulo corre num IIFE separado (não tem acesso às closures do app.js),
+ * por isso qualquer coisa que precise do fornRender / colGetVisible da
+ * plataforma passa exclusivamente por `window.*` (nunca acesso direto).
+ *
+ * Camada Supabase (Task 3): o estado pago/pendente é compartilhado por linha
+ * de custo (source_id) na tabela `supplier_payments` (migration 009), no lugar
+ * do antigo sync Cloudflare. Todo caminho Supabase é guardado por
+ * SUPABASE_ENABLED — sem credenciais, degrada para local-only sem erro.
+ */
+import { supabase, SUPABASE_ENABLED } from './supabase-client.js';
+
+(function () {
+  'use strict';
+  if (window._supplierLedgerLoaded) return;
+  window._supplierLedgerLoaded = true;
+
+  var _GFIN = 'expatur_financeiro_lancamentos';
+  var _FORN_KEY = 'expatur_fornecedores';
+
+  /* ── Formatação BRL (verbatim monolito 16957) ─────────────────────────── */
+  function _fmtBRLForn(n) {
+    n = parseFloat(n) || 0;
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function _normNomeF(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     _fornLedgerRowsAll — verbatim monolito 16958-16970
+     Junta o ledger global + todos os expatur_doss_finance_*, de-duplicado
+     por source_id (o global tem precedência quando o mesmo source_id
+     aparece em ambos).
+     ══════════════════════════════════════════════════════════════════════ */
+  function _fornLedgerRowsAll() {
+    var rows = [], seen = {};
+    try {
+      var g = JSON.parse(localStorage.getItem(_GFIN) || '[]');
+      if (Array.isArray(g)) {
+        g.forEach(function (r) { if (r && r.source_id) seen[r.source_id] = true; rows.push(r); });
+      }
+    } catch (e) {}
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('expatur_doss_finance_') !== 0) return;
+        var d = null; try { d = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+        if (!d || !Array.isArray(d.expenses)) return;
+        d.expenses.forEach(function (e) {
+          if (e && e.source_id && seen[e.source_id]) return;
+          if (e && e.source_id) seen[e.source_id] = true;
+          rows.push(e);
+        });
+      });
+    } catch (e) {}
+    return rows;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     _fornPendingMap — verbatim monolito 16971-16984
+     Total PENDENTE por fornecedor (nome normalizado), somando apenas as
+     linhas do ledger que NÃO estão pagas.
+     ══════════════════════════════════════════════════════════════════════ */
+  function _fornPendingMap(suppliers) {
+    function nm(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+    function paid(p) { p = String(p || '').toLowerCase(); return p === 'pago' || p === 'paid'; }
+    function amt(r) {
+      var m = parseFloat(r.volume_miles != null ? r.volume_miles : r.miles) || 0,
+          c = parseFloat(r.cpm_brl != null ? r.cpm_brl : r.cpm) || 0,
+          t = parseFloat(r.taxas_brl != null ? r.taxas_brl : r.taxas) || 0;
+      return (m > 0 && c > 0) ? (m / 1000 * c + t) : (parseFloat(r.brl_amount != null ? r.brl_amount : (r.amount != null ? r.amount : r.valor)) || 0);
+    }
+    var idToNorm = {}; (suppliers || []).forEach(function (f) { if (f.id) idToNorm[f.id] = nm(f.nome); });
+    var map = {};
+    _fornLedgerRowsAll().forEach(function (r) {
+      if (!r || paid(r.pago || r.status)) return;
+      var key = (r.fornecedor_id && idToNorm[r.fornecedor_id] != null) ? idToNorm[r.fornecedor_id] : nm(r.fornecedor);
+      if (!key) return;
+      map[key] = (map[key] || 0) + amt(r);
+    });
+    return map;
+  }
+
+  function _loadForns() {
+    try { var a = JSON.parse(localStorage.getItem(_FORN_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+    catch (e) { return []; }
+  }
+
+  /* _abertoFor(f) — "Valor em Aberto" de um fornecedor (monolito 16917) */
+  function _abertoFor(f) {
+    var pendMap = _fornPendingMap(_loadForns());
+    return pendMap[_normNomeF(f && f.nome)] || 0;
+  }
+
+  window._fornLedgerRowsAll = _fornLedgerRowsAll;
+  window._fornPendingMap    = _fornPendingMap;
+  window._abertoFor         = _abertoFor;
+
+  /* ══════════════════════════════════════════════════════════════════════
+     fornTogglePago330 — verbatim monolito 34657-34701.
+     Alterna pago ⇄ pendente para uma linha (por source_id/id), gravando em
+     AMBOS: o ledger global (expatur_financeiro_lancamentos) e em TODOS os
+     stores por dossier (expatur_doss_finance_*). Sem push Cloudflare.
+     ══════════════════════════════════════════════════════════════════════ */
+  window.fornTogglePago330 = function (rowId, dossierRef) {
+    if (!rowId) return;
+    function _isPaid(p) { p = (p || '').toLowerCase(); return p === 'pago' || p === 'paid'; }
+    var flip = null; /* decidido a partir da primeira linha encontrada, depois aplicado a todas */
+
+    /* 1. Ledger global */
+    try {
+      var g = JSON.parse(localStorage.getItem(_GFIN) || '[]');
+      var changed = false;
+      g = g.map(function (x) {
+        if ((x.source_id || x.id) === rowId) {
+          if (flip === null) flip = _isPaid(x.pago || x.status) ? 'pendente' : 'pago';
+          changed = true;
+          return Object.assign({}, x, { pago: flip, status: flip });
+        }
+        return x;
+      });
+      if (changed) localStorage.setItem(_GFIN, JSON.stringify(g));
+    } catch (e) {}
+
+    /* 2. Store(s) por dossier */
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('expatur_doss_finance_') !== 0) return;
+        var data = null;
+        try { data = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+        if (!data || !Array.isArray(data.expenses)) return;
+        var ch = false;
+        data.expenses = data.expenses.map(function (x) {
+          if ((x.source_id || x.id) === rowId) {
+            if (flip === null) flip = _isPaid(x.pago || x.status) ? 'pendente' : 'pago';
+            ch = true;
+            return Object.assign({}, x, { pago: flip, status: flip });
+          }
+          return x;
+        });
+        if (ch) localStorage.setItem(k, JSON.stringify(data));
+      });
+    } catch (e) {}
+
+    /* 3. Re-renderiza o popup de detalhe + as vistas de finanças + a lista de
+       fornecedores (para o "Em Aberto" recomputar). Sem push Cloudflare. */
+    try { if (typeof window._refreshFornDetails330 === 'function') window._refreshFornDetails330(); } catch (e) {}
+    ['fornRender', 'finRenderLancamentos', 'finRenderKPIs', 'finRenderFluxo'].forEach(function (fn) {
+      try { if (typeof window[fn] === 'function') window[fn](); } catch (e) {}
+    });
+    try { if (window._reconcileFinanceiro) window._reconcileFinanceiro(); } catch (e) {}
+  };
+
+  /* ══════════════════════════════════════════════════════════════════════
+     _emSetPago(sourceId, pagoStr) — versão LOCAL apenas (adaptado de
+     monolito 78354-78359, retirando o _apply()/_push() Cloudflare — essa
+     parte de sincronização remota entra na Task 3, sobre Supabase).
+     Atualiza o status pago/pendente de UMA linha (por source_id) tanto no
+     ledger global quanto em todos os expatur_doss_finance_*.
+     ══════════════════════════════════════════════════════════════════════ */
+  window._emSetPago = function (sourceId, pagoStr) {
+    if (!sourceId) return;
+    var p = String(pagoStr || '').toLowerCase();
+    var pago = (p === 'pago' || p === 'paid') ? 'pago' : 'pendente';
+
+    try {
+      var g = JSON.parse(localStorage.getItem(_GFIN) || '[]');
+      if (Array.isArray(g)) {
+        var changed = false;
+        g = g.map(function (x) {
+          if (x && (x.source_id || x.id) === sourceId) { changed = true; return Object.assign({}, x, { pago: pago, status: pago }); }
+          return x;
+        });
+        if (changed) localStorage.setItem(_GFIN, JSON.stringify(g));
+      }
+    } catch (e) {}
+
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('expatur_doss_finance_') !== 0) return;
+        var data = null;
+        try { data = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+        if (!data || !Array.isArray(data.expenses)) return;
+        var ch = false;
+        data.expenses = data.expenses.map(function (x) {
+          if (x && (x.source_id || x.id) === sourceId) { ch = true; return Object.assign({}, x, { pago: pago, status: pago }); }
+          return x;
+        });
+        if (ch) localStorage.setItem(k, JSON.stringify(data));
+      });
+    } catch (e) {}
+  };
+
+  /* ══════════════════════════════════════════════════════════════════════
+     Integração com o fornRender da plataforma — coluna "Em Aberto" +
+     caixa "Total Em Aberto" (padrão do monólito ~16915-16945).
+     A plataforma já regista a coluna 'valorAberto' via COLS.forn (app.js) e
+     já expõe window.colGetVisible/window.fornRender; como este módulo corre
+     numa IIFE à parte (sem acesso às closures do app.js), a integração é
+     feita por wrap aditivo de window.fornRender — mesma técnica usada pelo
+     próprio monólito para corrigir a coluna/box a partir de fora da IIFE
+     original (ver monolito ~78472-78479), mas aqui usando o ledger LOCAL
+     (_fornPendingMap), não o mapa vindo do Cloudflare.
+     ══════════════════════════════════════════════════════════════════════ */
+  function _filteredForns() {
+    var data = _loadForns();
+    var q    = ((document.getElementById('forn-search') || {}).value || '').toLowerCase();
+    var tipo = ((document.getElementById('forn-filter-tipo') || {}).value || '');
+    if (q || tipo) {
+      data = data.filter(function (f) {
+        var m = !q || (f.nome || '').toLowerCase().indexOf(q) > -1 || (f.pais || '').toLowerCase().indexOf(q) > -1
+          || (f.cnpj || '').toLowerCase().indexOf(q) > -1 || (f.contato || '').toLowerCase().indexOf(q) > -1 || (f.email || '').toLowerCase().indexOf(q) > -1;
+        return m && (!tipo || f.tipo === tipo);
+      });
+    }
+    return data;
+  }
+
+  function _ensureTotalAbertoBox() {
+    var box = document.getElementById('forn-total-aberto');
+    if (box) return box;
+    var tbody = document.getElementById('forn-table-body');
+    var tableWrap = tbody && tbody.closest ? tbody.closest('.db-table-wrap') : null;
+    if (!tableWrap || !tableWrap.parentNode) return null;
+    box = document.createElement('div');
+    box.id = 'forn-total-aberto';
+    box.style.cssText = 'display:none;align-items:center;gap:0.6rem;margin-bottom:0.75rem;background:linear-gradient(90deg,rgba(192,0,0,0.06),rgba(192,0,0,0.02));border:1px solid rgba(192,0,0,0.18);border-radius:10px;padding:0.55rem 0.95rem;';
+    box.innerHTML =
+      '<span style="font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--navy-soft,#3a5068);">Total Em Aberto Fornecedor</span>' +
+      '<span id="forn-total-aberto-val" style="font-size:1.05rem;font-weight:800;color:var(--red,#c00);margin-left:auto;">R$ 0,00</span>';
+    tableWrap.parentNode.insertBefore(box, tableWrap);
+    return box;
+  }
+
+  function _patchAbertoColumn() {
+    var body = document.getElementById('forn-table-body');
+    if (!body) return;
+
+    var data = _filteredForns();
+    var pendMap = _fornPendingMap(_loadForns());
+
+    /* Caixa "Total Em Aberto" = soma sobre os fornecedores ATUALMENTE exibidos */
+    var box = _ensureTotalAbertoBox();
+    var valEl = document.getElementById('forn-total-aberto-val');
+    if (box && valEl) {
+      var tot = 0; data.forEach(function (f) { tot += pendMap[_normNomeF(f.nome)] || 0; });
+      valEl.textContent = _fmtBRLForn(tot);
+      box.style.display = data.length ? 'flex' : 'none';
+    }
+
+    /* Coluna "Valor em Aberto" — só existe se registada/visível em COLS.forn */
+    var cols = (typeof window.colGetVisible === 'function') ? window.colGetVisible('forn') : [];
+    var valorIdx = -1;
+    cols.forEach(function (c, i) { if (c.key === 'valorAberto') valorIdx = i; });
+    if (valorIdx < 0) return;
+
+    var rows = body.querySelectorAll('tr');
+    rows.forEach(function (tr, i) {
+      if (tr.querySelector('.db-empty')) return;
+      var f = data[i];
+      var cell = tr.cells && tr.cells[valorIdx];
+      if (!f || !cell) return;
+      var v = pendMap[_normNomeF(f.nome)] || 0;
+      cell.innerHTML = (v > 0 ? _fmtBRLForn(v) : '—');
+      cell.style.textAlign = 'right';
+      cell.style.fontWeight = '700';
+      cell.style.whiteSpace = 'nowrap';
+      cell.style.color = (v > 0 ? 'var(--red,#c00)' : 'var(--navy-soft,#3a5068)');
+    });
+  }
+
+  /* Wrap aditivo de window.fornRender: mantido como via secundária (cobre
+     quem chamar window.fornRender() explicitamente), mas NÃO é o caminho
+     principal — app.js é um módulo ESM e sidebarGo/fornSave/fornDelete/o
+     column-picker chamam a fornRender() bare (module-scoped), não
+     window.fornRender(), pelo que este wrap sozinho nunca corria no fluxo
+     normal. O caminho fiável é o MutationObserver abaixo. */
+  function _wrapFornRenderForAberto() {
+    var orig = window.fornRender;
+    if (typeof orig !== 'function' || orig._ledgerAbertoWrapped) return false;
+    var w = function () {
+      var r = orig.apply(this, arguments);
+      try { _patchAbertoColumn(); } catch (e) {}
+      return r;
+    };
+    w._ledgerAbertoWrapped = true;
+    window.fornRender = w;
+    return true;
+  }
+
+  if (!_wrapFornRenderForAberto()) {
+    setTimeout(_wrapFornRenderForAberto, 0);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     MutationObserver — caminho fiável (mesma técnica de dashboard.js:318-328
+     para #section-welcome). Cobre:
+       (a) abertura da secção Fornecedores (sidebarGo → classList.add('open')
+           seguido de fornRender() bare, que a coluna-picker/wrap acima nunca via);
+       (b) re-renders com a secção JÁ aberta (fornSave/fornDelete/toggle de
+           coluna re-escrevem o <tbody> sem reabrir a secção).
+     Guarda de reentrância: _patchAbertoColumn() reescreve células dentro do
+     próprio #forn-table-body que o observer (b) vigia — sem guarda, cada
+     patch dispararia o observer outra vez, num loop infinito. Usa-se um
+     flag _patching: o callback do childList observer ignora mutações
+     disparadas pelo próprio patch.
+     ══════════════════════════════════════════════════════════════════════ */
+  var _patching = false;
+
+  function _runPatchGuarded() {
+    if (_patching) return;
+    _patching = true;
+    try { _patchAbertoColumn(); } catch (e) {}
+    /* liberta o guard só depois do MutationObserver de childList ter tido
+       oportunidade de processar (e ignorar) as mutações do próprio patch —
+       microtask via Promise seria suficiente, mas setTimeout(0) é mais
+       robusto entre browsers para garantir que corre depois do batch de
+       mutation records. */
+    setTimeout(function () { _patching = false; }, 0);
+  }
+
+  function _initFornAbertoObservers() {
+    if (!window.MutationObserver) return;
+
+    var sec = document.getElementById('section-fornecedores');
+    if (sec && !sec._ledgerAbertoSecObserved) {
+      sec._ledgerAbertoSecObserved = true;
+      var wasOpen = sec.classList.contains('open');
+      new MutationObserver(function () {
+        var open = sec.classList.contains('open');
+        if (open && !wasOpen) {
+          setTimeout(_runPatchGuarded, 30);            /* pinta já com o estado local */
+          try { if (typeof window._abertosLoadOnOpen === 'function') window._abertosLoadOnOpen(); } catch (e) {} /* hidrata do Supabase e repinta */
+        }
+        wasOpen = open;
+      }).observe(sec, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    var body = document.getElementById('forn-table-body');
+    if (body && !body._ledgerAbertoBodyObserved) {
+      body._ledgerAbertoBodyObserved = true;
+      new MutationObserver(function () {
+        if (_patching) return; /* mutação provocada pelo próprio patch — ignora */
+        setTimeout(_runPatchGuarded, 30);
+      }).observe(body, { childList: true });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _initFornAbertoObservers);
+  } else {
+    _initFornAbertoObservers();
+  }
+  /* #forn-table-body pode ainda não existir no primeiro DOMContentLoaded se
+     o HTML da secção for injetado depois — tenta de novo, adiado, uma única
+     vez (sem setInterval/polling contínuo). */
+  setTimeout(_initFornAbertoObservers, 500);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TASK 3 — Camada Supabase: estado pago/pendente compartilhado por
+     source_id (tabela supplier_payments, migration 009). Substitui o sync
+     Cloudflare. Tudo guardado por SUPABASE_ENABLED → local-only sem erro.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* _applyStatusMap(map) — o Supabase é a fonte autoritativa do pago:
+     percorre o ledger global + todos os expatur_doss_finance_* e, para cada
+     linha cujo source_id está no mapa, sobrescreve pago/status. Grava de
+     volta só os stores que mudaram. (Porta a ideia do _apply do monólito,
+     mas a fonte é o Supabase, não o worker.) */
+  function _applyStatusMap(map) {
+    if (!map) return false;
+    var touched = false;
+
+    try {
+      var g = JSON.parse(localStorage.getItem(_GFIN) || '[]');
+      if (Array.isArray(g)) {
+        var ch = false;
+        g = g.map(function (x) {
+          var sid = x && (x.source_id || x.id);
+          if (sid && map[sid] != null && (x.pago || x.status) !== map[sid]) {
+            ch = true; return Object.assign({}, x, { pago: map[sid], status: map[sid] });
+          }
+          return x;
+        });
+        if (ch) { localStorage.setItem(_GFIN, JSON.stringify(g)); touched = true; }
+      }
+    } catch (e) {}
+
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('expatur_doss_finance_') !== 0) return;
+        var data = null;
+        try { data = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+        if (!data || !Array.isArray(data.expenses)) return;
+        var ch = false;
+        data.expenses = data.expenses.map(function (x) {
+          var sid = x && (x.source_id || x.id);
+          if (sid && map[sid] != null && (x.pago || x.status) !== map[sid]) {
+            ch = true; return Object.assign({}, x, { pago: map[sid], status: map[sid] });
+          }
+          return x;
+        });
+        if (ch) { localStorage.setItem(k, JSON.stringify(data)); touched = true; }
+      });
+    } catch (e) {}
+
+    return touched;
+  }
+
+  /* _abertosLoadStatus() — carrega o mapa de status do Supabase, aplica sobre
+     o ledger local e re-renderiza (o MutationObserver do tbody repinta a
+     coluna Em Aberto). Sem credenciais → no-op silencioso. */
+  function _abertosLoadStatus() {
+    if (!SUPABASE_ENABLED || !supabase) return Promise.resolve();
+    return supabase.from('supplier_payments').select('source_id, status')
+      .then(function (res) {
+        if (res.error) { console.warn('[abertos] load', res.error.message); return; }
+        var map = {};
+        (res.data || []).forEach(function (r) { if (r.source_id) map[r.source_id] = r.status; });
+        _applyStatusMap(map);
+        try { if (typeof window.fornRender === 'function') window.fornRender(); } catch (e) {}
+        try { if (typeof window._refreshFornDetails330 === 'function') window._refreshFornDetails330(); } catch (e) {}
+      })
+      .catch(function (e) { console.warn('[abertos] load', e); });
+  }
+  window._abertosLoadStatus = _abertosLoadStatus;
+
+  /* Envolve window.fornTogglePago330 (toggle local da Task 2): depois do flip
+     local, lê o status resultante da linha e faz upsert em supplier_payments.
+     Idempotente via flag _abertosWrapped. */
+  (function _abertosWrapToggle() {
+    var orig = window.fornTogglePago330;
+    if (typeof orig !== 'function' || orig._abertosWrapped) return;
+    var wrapped = function (rowId, dossierRef) {
+      var ret = orig.apply(this, arguments); /* flip local (grava localStorage + re-render) */
+      try {
+        if (rowId && SUPABASE_ENABLED && supabase) {
+          var status = 'pendente';
+          try {
+            var g = JSON.parse(localStorage.getItem(_GFIN) || '[]');
+            var row = Array.isArray(g) ? g.filter(function (x) { return x && (x.source_id === rowId || x.id === rowId); })[0] : null;
+            var p = String((row && (row.pago || row.status)) || '').toLowerCase();
+            status = (p === 'pago' || p === 'paid') ? 'pago' : 'pendente';
+          } catch (e) {}
+          supabase.from('supplier_payments').upsert({
+            source_id: rowId,
+            status: status,
+            dossier_ref: dossierRef || '',
+            paid_at: status === 'pago' ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'source_id' }).then(function (r) {
+            if (r && r.error) console.warn('[abertos] upsert', r.error.message);
+          });
+        }
+      } catch (e) { console.warn('[abertos] toggle', e); }
+      return ret;
+    };
+    wrapped._abertosWrapped = true;
+    window.fornTogglePago330 = wrapped;
+  })();
+
+  /* Realtime — marcar Pago num posto reflete nos outros. Idempotente. */
+  function _abertosSubscribeRealtime() {
+    if (!SUPABASE_ENABLED || !supabase || _abertosSubscribeRealtime.__done) return;
+    _abertosSubscribeRealtime.__done = true;
+    try {
+      supabase.channel('abertos-supplier-payments')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'supplier_payments' }, function () {
+          _abertosLoadStatus();
+        })
+        .subscribe();
+    } catch (e) { console.warn('[abertos] realtime', e); }
+  }
+  _abertosSubscribeRealtime();
+
+  /* Load inicial ao abrir Fornecedores — reusa o observer de abertura da
+     secção (já instalado acima) em vez de empilhar mais um wrap de sidebarGo
+     (que já tem vários). Também hidrata uma vez no arranque. */
+  window._abertosLoadOnOpen = _abertosLoadStatus;
+  _abertosLoadStatus();
+
+})();
