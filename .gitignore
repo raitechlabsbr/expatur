@@ -10,3 +10,9 @@ backups/
 tmp-backup-test/
 restore-*/
 expatur-backup-*
+
+# Monólito de produção (~4.7MB) — fonte de verdade, mantido FORA do git
+docs/monolito.html
+
+# Temp do Supabase CLI
+supabase/.temp/
