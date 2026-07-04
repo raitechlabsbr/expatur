@@ -12850,7 +12850,18 @@ window.finPwCancel = function() {
   function loadPrefs(s) {
     try {
       var p = JSON.parse(localStorage.getItem(sk(s)));
-      if (p && p.length) return p;
+      if (p && p.length) {
+        // Migração: colunas novas registadas em COLS[s] depois de o utilizador
+        // já ter gravado prefs (ex.: 'valorAberto' em forn) não existem ainda
+        // no array persistido — acrescenta-as (com o seu def) para não
+        // ficarem invisíveis para sempre por causa de um localStorage antigo.
+        var known = {};
+        p.forEach(function(x) { known[x.key] = true; });
+        (COLS[s] || []).forEach(function(c) {
+          if (!known[c.key]) p.push({ key:c.key, visible:c.def });
+        });
+        return p;
+      }
     } catch(e) {}
     return COLS[s].map(function(c) { return { key:c.key, visible:c.def }; });
   }

@@ -276,8 +276,12 @@
     });
   }
 
-  /* Wrap aditivo de window.fornRender: corre DEPOIS de qualquer outro wrap
-     já instalado (v3.30 detail patch, etc.) sem alterar o seu comportamento. */
+  /* Wrap aditivo de window.fornRender: mantido como via secundária (cobre
+     quem chamar window.fornRender() explicitamente), mas NÃO é o caminho
+     principal — app.js é um módulo ESM e sidebarGo/fornSave/fornDelete/o
+     column-picker chamam a fornRender() bare (module-scoped), não
+     window.fornRender(), pelo que este wrap sozinho nunca corria no fluxo
+     normal. O caminho fiável é o MutationObserver abaixo. */
   function _wrapFornRenderForAberto() {
     var orig = window.fornRender;
     if (typeof orig !== 'function' || orig._ledgerAbertoWrapped) return false;
@@ -292,9 +296,68 @@
   }
 
   if (!_wrapFornRenderForAberto()) {
-    /* fornRender ainda não estava definido (ordem de import) — tenta uma
-       vez mais, adiado, sem polling contínuo (nada de setInterval/Cloudflare). */
     setTimeout(_wrapFornRenderForAberto, 0);
   }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     MutationObserver — caminho fiável (mesma técnica de dashboard.js:318-328
+     para #section-welcome). Cobre:
+       (a) abertura da secção Fornecedores (sidebarGo → classList.add('open')
+           seguido de fornRender() bare, que a coluna-picker/wrap acima nunca via);
+       (b) re-renders com a secção JÁ aberta (fornSave/fornDelete/toggle de
+           coluna re-escrevem o <tbody> sem reabrir a secção).
+     Guarda de reentrância: _patchAbertoColumn() reescreve células dentro do
+     próprio #forn-table-body que o observer (b) vigia — sem guarda, cada
+     patch dispararia o observer outra vez, num loop infinito. Usa-se um
+     flag _patching: o callback do childList observer ignora mutações
+     disparadas pelo próprio patch.
+     ══════════════════════════════════════════════════════════════════════ */
+  var _patching = false;
+
+  function _runPatchGuarded() {
+    if (_patching) return;
+    _patching = true;
+    try { _patchAbertoColumn(); } catch (e) {}
+    /* liberta o guard só depois do MutationObserver de childList ter tido
+       oportunidade de processar (e ignorar) as mutações do próprio patch —
+       microtask via Promise seria suficiente, mas setTimeout(0) é mais
+       robusto entre browsers para garantir que corre depois do batch de
+       mutation records. */
+    setTimeout(function () { _patching = false; }, 0);
+  }
+
+  function _initFornAbertoObservers() {
+    if (!window.MutationObserver) return;
+
+    var sec = document.getElementById('section-fornecedores');
+    if (sec && !sec._ledgerAbertoSecObserved) {
+      sec._ledgerAbertoSecObserved = true;
+      var wasOpen = sec.classList.contains('open');
+      new MutationObserver(function () {
+        var open = sec.classList.contains('open');
+        if (open && !wasOpen) setTimeout(_runPatchGuarded, 30);
+        wasOpen = open;
+      }).observe(sec, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    var body = document.getElementById('forn-table-body');
+    if (body && !body._ledgerAbertoBodyObserved) {
+      body._ledgerAbertoBodyObserved = true;
+      new MutationObserver(function () {
+        if (_patching) return; /* mutação provocada pelo próprio patch — ignora */
+        setTimeout(_runPatchGuarded, 30);
+      }).observe(body, { childList: true });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _initFornAbertoObservers);
+  } else {
+    _initFornAbertoObservers();
+  }
+  /* #forn-table-body pode ainda não existir no primeiro DOMContentLoaded se
+     o HTML da secção for injetado depois — tenta de novo, adiado, uma única
+     vez (sem setInterval/polling contínuo). */
+  setTimeout(_initFornAbertoObservers, 500);
 
 })();
