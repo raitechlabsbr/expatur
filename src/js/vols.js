@@ -66,6 +66,7 @@ window._volsSurname = _surname;
 // ── Load: hidrata o cache do Supabase (voos de hoje em diante) ──────────────
 async function volsLoad() {
   if (!SUPABASE_ENABLED || !supabase) { _volsLoaded = true; volsRender(); return; }
+  try { await _volsSeedIfEmpty(); } catch (e) {}
   try {
     const { data, error } = await supabase
       .from('flights')
@@ -358,3 +359,65 @@ window._volsCaptureActive = _volsCaptureActive;
   };
   window._volsEmitHooked = true;
 })();
+
+// ── Seed único: coleta voos das reservas EMITIDAS do localStorage ───────────
+// Porta de _collectAllFlights104: só dossiers emitidos/booked (não devis puros).
+function _collectSeedRows() {
+  const out = [];
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('expatur_dossier_list') || '[]'); } catch (e) {}
+
+  function _one(k) { try { return localStorage.getItem(k) === '1'; } catch (e) { return false; } }
+  function _has(k) { try { return !!localStorage.getItem(k); } catch (e) { return false; } }
+  function _isIssued(id, dossier, ref) {
+    const sref = ref ? String(ref).replace(/[^a-zA-Z0-9]/g, '_') : '';
+    if (_one('expatur_booked_' + id)) return true;
+    if (ref && (_one('expatur_booked_' + ref) || _one('expatur_booked_' + sref))) return true;
+    if (ref && (_one('billetFrozen_' + ref) || _one('billetFrozen_' + sref))) return true;
+    if (ref && (_has('expatur_bookedAt_' + ref) || _has('expatur_bookedAt_' + sref))) return true;
+    if (dossier && dossier.status === 'issued') return true;
+    return false;
+  }
+
+  list.forEach(function (item) {
+    const id = item.id;
+    const ref = item.label || id;
+    let dossier = null;
+    try { dossier = JSON.parse(localStorage.getItem('expatur_dossier_' + id) || 'null'); } catch (e) { return; }
+    if (!dossier) return;
+    const fields = dossier.fields || {};
+    const dRef = fields['booking-ref'] || ref;
+    if (!_isIssued(id, dossier, dRef)) return;
+
+    let billet = null;
+    try { billet = JSON.parse(localStorage.getItem('expatur_billet_' + String(dRef).replace(/[^a-zA-Z0-9]/g, '_')) || 'null'); } catch (e) {}
+    if ((!billet || !billet.legs || !billet.legs.length) && dossier.savedBilletData) billet = dossier.savedBilletData;
+
+    let surname = '';
+    if (billet && billet.pax && billet.pax[0]) surname = _surname(billet.pax[0].nom || billet.pax[0].prenom || '');
+    if (!surname) surname = _surname(fields['pax-name-1'] || ((fields['cli-prenom'] || '') + ' ' + (fields['cli-nom'] || '')).trim() || dRef);
+
+    if (billet && billet.legs && billet.legs.length) {
+      _rowsFromBillet(billet, dRef, surname).forEach(function (r) { r.source = 'seed'; out.push(r); });
+    }
+    // (dossiers booked sem billet salvo: sem itinerário confiável de segmentos → pulados no seed)
+  });
+  return out;
+}
+
+// Semeia só se a tabela estiver vazia (guardado por count=0). Uma vez.
+async function _volsSeedIfEmpty() {
+  if (!SUPABASE_ENABLED || !supabase || _volsSeedIfEmpty.__done) return;
+  _volsSeedIfEmpty.__done = true;
+  try {
+    const { count, error } = await supabase.from('flights').select('id', { count: 'exact', head: true });
+    if (error) { console.warn('[vols] seed count', error.message); return; }
+    if ((count || 0) > 0) return;                         // já tem dados → não semeia
+    const rows = _collectSeedRows();
+    if (!rows.length) return;                             // nunca escrever seed vazio
+    const { error: upErr } = await supabase.rpc('flights_upsert', { rows });
+    if (upErr) { console.warn('[vols] seed upsert', upErr.message); return; }
+    console.info('[vols] seed: ' + rows.length + ' linha(s) das reservas existentes.');
+  } catch (e) { console.warn('[vols] seed', e); }
+}
+window._volsSeedIfEmpty = _volsSeedIfEmpty;
