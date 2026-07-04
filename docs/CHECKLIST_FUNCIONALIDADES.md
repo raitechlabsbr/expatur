@@ -8,7 +8,7 @@ Plano de fases: [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md) · Branch: `fea
 `[x]` = implementado e testado · `[ ]` = pendente. Itens que já existiam no sistema antes deste
 projeto estão marcados com *(pré-existente)*.
 
-Última atualização: 2026-06-13 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 — **spec completa**
+Última atualização: 2026-07-04 · Fases concluídas: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 — **spec completa** · + **Convergência com o monólito** (5 features portadas — ver seção ao final)
 
 ---
 
@@ -217,3 +217,24 @@ projeto estão marcados com *(pré-existente)*.
 - [x] Migration 005 — doc_files + bucket privado documents (aplicada 2026-06-12; bucket validado)
 - [x] Migration 006 — trigger enforce de edição de permissões (aplicada 2026-06-13)
 - [x] Migration 007 — modelo de dois níveis por role (is_admin(), is_supreme alias) (aplicada 2026-06-13; substitui o conceito de supremo das 003/006)
+- [x] Migration 008 — `flights` + RPC `flights_upsert` (feature Vols; aplicada 2026-07-04)
+- [x] Migration 009 — `supplier_payments` (estado pago compartilhado do Ledger; aplicada 2026-07-04)
+
+---
+
+## Convergência com o monólito de produção → 2026-07-04 ✅
+
+Fonte: `docs/AUDITORIA_CONVERGENCIA.md`. As 5 features de produção que faltavam na plataforma
+(inventário só-no-monólito) foram portadas para a plataforma **preservando o backend Supabase**
+(não re-basear no monólito). Todas mescladas em `main` e verificadas em runtime (Playwright).
+
+- [x] **Vols — Departures**: quadro de partidas compartilhado (`src/js/vols.js` + migration 008). CRUD manual, captura na emissão, seed único das reservas emitidas, resolução de dossiê por PNR, widget "Vols de la semaine" converge. Backend Supabase (`flights` + RPC `flights_upsert`, dedupe por `flight_date/dep_code/arr_code/pnr`) + Realtime. **QA runtime 15/15** (CRUD, Realtime cross-context, filtro de data passada, dedupe no reload).
+- [x] **COMMS — email de confirmação**: popup + i18n FR/EN/ES isolado + autofill + build do HTML (`src/js/comms.js`); envio via **Supabase Edge Function `send-email` + Resend** (`supabase/functions/send-email/`) + auditoria no system_log. **QA runtime UI/i18n/build 20/20.** ⏳ **Pendência humana:** `supabase functions deploy send-email` + secret `RESEND_API_KEY` + verificar domínio no Resend → só então o envio real fica ativo.
+- [x] **DXR — Dossier Command-Center Drawer**: `window.openDossierDrawer(ref)` (`src/js/dxr.js`), painéis travel/finance-ledger/tarefas/histórico/memo/NF/passaporte. Enganchado pelo Recap. *(Débito conhecido no backlog: `_dxrFinPersist` regrava o ledger das linhas exibidas — byte-idêntico à produção.)*
+- [x] **Ledger de fornecedores / "Abertos"**: contas a pagar por fornecedor/emissão (`src/js/supplier-ledger.js` + migration 009). Coluna "Em Aberto" + toggle Pago/Pendente, estado compartilhado via Supabase + Realtime. **QA runtime validado** (toggle + Realtime cross-context).
+- [x] **Recap — relatório de reservas**: em Bookings, colunas configuráveis + bulk delete (`src/js/recap.js`, feature-flag `__RECAP_ENABLED`). Bug de chave `billetFrozen_<id>` vs `billetFrozen_<booking-ref>` corrigido (Recap passou de 0 → reservas listadas). *(Import CSV dropado de propósito — dependia do sync Cloudflare.)*
+- [x] Link **"Quotes"** na sidebar (reusa `sidebarGo('index')`).
+
+**Correção de brinde (QA da Vols):** guard `if(!Array.isArray(arr))return` em `_syncAllPaymentsToFinanceiro105` (`app.js`, commit 44af2d5) — chave `expatur_payments_*` malformada não aborta mais o sync do Financeiro. Débito legado do monólito.
+
+**Backlog remanescente (não são features):** ~159 drifts do `app.js` a rastrear par-a-par (12 regressões já corrigidas); peças dropadas de propósito revíveis (import CSV do Recap, filtro de voo por companhia). Ver `docs/AUDITORIA_CONVERGENCIA.md` §4/§7.

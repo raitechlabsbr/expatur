@@ -4,12 +4,29 @@
 > e o **sistema de produção** `docs/monolito.html` (~4.9 MB), tratado como fonte de verdade.
 > Gerada em 2026-07-03 · Branch `feature/backoffice-specs`.
 
+> ## ⚠️ ATUALIZAÇÃO 2026-07-04 — as 5 features JÁ FORAM PORTADAS
+> Este documento foi gerado **antes** dos ports. Todas as **5 features de produção listadas como
+> ausentes no §5 já estão implementadas e mescladas em `main`** (Vols, COMMS, DXR Drawer, Recap,
+> Ledger de fornecedores) + o link de menu Quotes. Estado por feature:
+> | Feature | Código | QA runtime | Pendência |
+> |---|---|---|---|
+> | Vols — Departures | ✅ `src/js/vols.js` + migration 008 | ✅ 15/15 (CRUD, Realtime, filtro data, dedupe) | — |
+> | COMMS — email | ✅ `src/js/comms.js` + Edge Function `send-email` | ✅ 20/20 UI/i18n/build | **deploy Edge Function + Resend** (ação humana) → só então o envio real |
+> | DXR Drawer | ✅ `src/js/dxr.js` | ✅ | débito `_dxrFinPersist` (backlog, byte-idêntico à produção) |
+> | Ledger de fornecedores | ✅ `src/js/supplier-ledger.js` + migration 009 | ✅ | — |
+> | Recap | ✅ `src/js/recap.js` | ✅ (bug `billetFrozen` de chave corrigido) | import CSV dropado de propósito |
+>
+> **Backlog remanescente** (não são features novas): (1) ~159 drifts do `app.js` ainda a rastrear par-a-par
+> (12 regressões já corrigidas, incl. o guard `arr.forEach` do sync do Financeiro — commit 44af2d5);
+> (2) peças dropadas de propósito que o usuário pode querer reviver (import CSV do Recap, filtro de voo por
+> companhia). Os §§ abaixo permanecem como o **registro histórico** da auditoria original.
+
 ## Sumário executivo
 
 - A refatoração **preservou fielmente** a maior parte do código de produção: **1.587 funções são idênticas** (byte-a-byte, ignorando espaços/comentários).
 - A divergência é **bidirecional**: a plataforma tem patches próprios (`_v378`–`_v399`, o trabalho das 10 fases) que o monólito não tem; o monólito tem patches (`_v346`/`_v354`/`_v360`) e **features inteiras** que a plataforma não tem. **Nenhuma base é superconjunto da outra** — por isso "adotar o monólito" cegamente regrediria as fases, e "ignorar o monólito" mantém regressões de produção.
 - **2 regressões já confirmadas** por leitura de código (ver §4). Há mais **~50 divergências onde o monólito tem mais lógica** que ainda precisam de leitura par-a-par.
-- **5 features de produção ausentes** na plataforma (Vols, COMMS, DXR, Recap, Ledger de fornecedores) + 1 link de menu (Quotes).
+- ~~**5 features de produção ausentes** na plataforma (Vols, COMMS, DXR, Recap, Ledger de fornecedores) + 1 link de menu (Quotes).~~ **✅ TODAS PORTADAS em 2026-07-04** — ver banner no topo.
 
 ## 1. Método e confiança
 
@@ -142,14 +159,14 @@ efetiva (última def / `window.X=` / override de fase) nos dois lados antes de e
 
 ## 5. Inventário só-no-monólito (742) — o que falta portar
 
-### Features completas ausentes
-| Feature | Funções | Núcleo |
-|---|---:|---|
-| **COMMS** — email de confirmação | 28 | `openCommsPopup`, `_commsBuildEmailHTML`, `_commsSend`, `_commsFlightCardHTML`, multi-idioma FR/EN/ES, envio por pax/fundido |
-| **DXR** — Dossier Command-Center Drawer | 28 | `openDossierDrawer`, `_dxrFinAdd/Persist/Recalc` (ledger), `_dxrMemoSave`, `_dxrOpenNF/SaveNF` (nota fiscal), `_dxrOpenTask`, `_dxrPassport` |
-| **Ledger de fornecedores / "Abertos"** | ~29 | `_fornLedgerRowsAll`, `_fornPendingMap`, `_emPullAbertos/_emPushAbertos`, `fornEmissao*330`, `fornBookingRow*330`, `fornTogglePago330` (contas a pagar por fornecedor/emissão) |
-| **Recap** — relatório de reservas | 18 | `_recapRender`, colunas configuráveis (`_recapColMove/Toggle/Cfg`), bulk-edit, import CSV (`_recapApiLoad`) |
-| **Vols — Departures** | 18 | `_flightRowAdd/Save/Delete`, `_flightCsvServerLoad`, quadro compartilhado Cloudflare `ds=vols`, resolução de dossiê por PNR |
+### Features completas ausentes → **✅ TODAS PORTADAS (2026-07-04)**
+| Feature | Funções | Núcleo | Estado |
+|---|---:|---|---|
+| **COMMS** — email de confirmação | 28 | `openCommsPopup`, `_commsBuildEmailHTML`, `_commsSend`, `_commsFlightCardHTML`, multi-idioma FR/EN/ES, envio por pax/fundido | ✅ `comms.js` + Edge Function (falta só deploy+Resend) |
+| **DXR** — Dossier Command-Center Drawer | 28 | `openDossierDrawer`, `_dxrFinAdd/Persist/Recalc` (ledger), `_dxrMemoSave`, `_dxrOpenNF/SaveNF` (nota fiscal), `_dxrOpenTask`, `_dxrPassport` | ✅ `dxr.js` |
+| **Ledger de fornecedores / "Abertos"** | ~29 | `_fornLedgerRowsAll`, `_fornPendingMap`, `_emPullAbertos/_emPushAbertos`, `fornEmissao*330`, `fornBookingRow*330`, `fornTogglePago330` (contas a pagar por fornecedor/emissão) | ✅ `supplier-ledger.js` + migration 009 (estado pago via Supabase, não Cloudflare) |
+| **Recap** — relatório de reservas | 18 | `_recapRender`, colunas configuráveis (`_recapColMove/Toggle/Cfg`), bulk-edit, import CSV (`_recapApiLoad`) | ✅ `recap.js` (import CSV dropado de propósito) |
+| **Vols — Departures** | 18 | `_flightRowAdd/Save/Delete`, `_flightCsvServerLoad`, quadro compartilhado Cloudflare `ds=vols`, resolução de dossiê por PNR | ✅ `vols.js` + migration 008 (backend Supabase, não Cloudflare) |
 
 ### Não são gaps (reimplementados)
 - **FFP → Programas** (17 funções `_ffp*`/`ffp*`): mesma feature, migrada de Cloudflare `ds=ffp` para Supabase (migration 001).
@@ -165,7 +182,9 @@ efetiva (última def / `window.X=` / override de fase) nos dois lados antes de e
 
 ## 7. Próximos passos
 
-1. **Confirmar a estratégia** do §6 (decisão pendente do usuário).
-2. **Passe fino módulo a módulo** dos 170 drifts do `app.js` (começando pelos de dinheiro: Financeiro, Billet/Emissão, Cost Calc) para separar regressão × override intencional — este documento cobre o backbone; o passe fino é o detalhamento.
-3. **Corrigir regressões confirmadas** (§4.1, §4.2) — baixo custo, alto valor.
-4. **Brainstorm + spec por feature** (§5), uma de cada vez, com as regras de negócio.
+1. ~~**Confirmar a estratégia** do §6~~ ✅ confirmada (portar p/ a plataforma, backend Supabase, não re-basear).
+2. **Passe fino módulo a módulo** dos ~159 drifts restantes do `app.js` (começando pelos de dinheiro: Financeiro, Billet/Emissão, Cost Calc) para separar regressão × override intencional — este documento cobre o backbone; o passe fino é o detalhamento. **12 regressões já corrigidas** (§4.7 + guard `arr.forEach` do sync do Financeiro, commit 44af2d5).
+3. ~~**Corrigir regressões confirmadas** (§4.1, §4.2)~~ ✅ feito (§4.7 lista 11 + 1 do Financeiro).
+4. ~~**Brainstorm + spec por feature** (§5)~~ ✅ feito — as 5 features portadas e verificadas em runtime (ver banner do topo).
+
+**Único bloqueio de produto pendente:** deploy da Edge Function `send-email` + config do Resend (API key + domínio verificado) para destravar o **envio real** da COMMS — ação humana, ver `supabase/functions/README.md`.
