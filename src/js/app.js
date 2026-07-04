@@ -38,6 +38,10 @@
   if (typeof _invoiceBeacon === 'function') window._invoiceBeacon = _invoiceBeacon;
   if (typeof _isBookingEnabled === 'function') window._isBookingEnabled = _isBookingEnabled;
   if (typeof _itinWidgetRefreshIfOpen === 'function') window._itinWidgetRefreshIfOpen = _itinWidgetRefreshIfOpen;
+  // _loadTasks: export base genuína — o wrap em ~30472 só lê window._loadTasks
+  // (nunca cria a base), então sem esta linha o wrap fica morto e o
+  // dxr.js (chamada bare em _gather) recebe undefined (drawer não recarrega tarefas).
+  if (typeof _loadTasks === 'function') window._loadTasks = _loadTasks;
   if (typeof _logout === 'function') window._logout = _logout;
   if (typeof _lsSetSafe === 'function') window._lsSetSafe = _lsSetSafe;
   if (typeof _onDueCustomInput === 'function') window._onDueCustomInput = _onDueCustomInput;
