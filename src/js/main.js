@@ -17,6 +17,17 @@ import './auth.js';
 import './ui-fixes.js';
 import { initI18n, currentLang } from './i18n.js';
 import './task-import.js';
+import './programs.js';
+import './deal-status.js';
+import './autosave.js';
+import './documents.js';
+import './permissions.js';
+import './system-log.js';
+import './dashboard.js';
+import './tasks-kanban.js';
+import './merge-segments.js';
+import './client-picker.js';
+import './vols.js';
 
 // Inicializar i18n (aplica língua guardada + inicia MutationObserver se PT)
 initI18n();

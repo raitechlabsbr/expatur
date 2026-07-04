@@ -4,3 +4,9 @@ dist/
 .env.local
 *.local
 legacy/php-export*.json
+
+# Backups (Fase 10) — nunca commitar dados/dumps
+backups/
+tmp-backup-test/
+restore-*/
+expatur-backup-*

@@ -55,6 +55,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 // ── Utilizadores a criar ──────────────────────────────────────────────────────
 const USERS = [
   {
+    // Nível superior (admin) — gerencia permissões/atribuição e lê o Journal.
     email:    'admin@expatur.com.br',
     password: '123123',
     role:     'admin',
@@ -87,7 +88,7 @@ async function createUser({ email, password, role, name }) {
       const { data: list } = await supabase.auth.admin.listUsers();
       const existing = list?.users?.find(u => u.email === email);
       if (existing) {
-        await updateProfile(existing.id, role, name);
+        await updateProfile(existing.id, email, role, name);
         console.log(`  ✓ Role actualizado para '${role}'`);
       }
       return;
@@ -99,14 +100,14 @@ async function createUser({ email, password, role, name }) {
   console.log(`  ✓ Utilizador criado: ${userId}`);
 
   // 2. Upsert no profiles (o trigger também faz isto, mas garantimos o role)
-  await updateProfile(userId, role, name);
+  await updateProfile(userId, email, role, name);
   console.log(`  ✓ Perfil: role='${role}', email='${email}'`);
 }
 
-async function updateProfile(userId, role, name) {
+async function updateProfile(userId, email, role, name) {
   const { error } = await supabase
     .from('profiles')
-    .upsert({ id: userId, email: (USERS.find(u => u.role === role)?.email || ''), role, full_name: name }, {
+    .upsert({ id: userId, email, role, full_name: name }, {
       onConflict: 'id',
     });
   if (error) console.warn(`  ⚠️  Profile upsert: ${error.message}`);

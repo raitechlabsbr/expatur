@@ -363,6 +363,10 @@ window.__loginSubmitReal = async function() {
 
 // ── Override: logout ──────────────────────────────────────────────────────────
 window._logout = async function() {
+  // 0. Log de logout (A2.1) — síncrono antes do reload para não ser abortado
+  if (typeof window.__logEvent === 'function') {
+    try { await window.__logEvent('LOGOUT', 'usuarios', {}); } catch(e) {}
+  }
   // 1. Sinalizar logout imediatamente (antes de qualquer async)
   _currentSession   = null;
   _supabaseResolved = false;

@@ -129,6 +129,14 @@
   if (typeof sidebarGo === 'function') window.sidebarGo = sidebarGo;
   if (typeof sidebarOpen === 'function') window.sidebarOpen = sidebarOpen;
   if (typeof switchDossier === 'function') window.switchDossier = switchDossier;
+  if (typeof _dossierSave === 'function') window._dossierSave = _dossierSave;
+  // Aba Documentos (annexes) — handlers usados em HTML inline; sem estes
+  // exports os botões de upload/delete das linhas de anexos quebram (Fase 5)
+  if (typeof docAnnexeFileChange === 'function') window.docAnnexeFileChange = docAnnexeFileChange;
+  if (typeof docAnnexeDeleteFile === 'function') window.docAnnexeDeleteFile = docAnnexeDeleteFile;
+  if (typeof switchDocAnnexeTab === 'function') window.switchDocAnnexeTab = switchDocAnnexeTab;
+  if (typeof generateSurinameItinerary === 'function') window.generateSurinameItinerary = generateSurinameItinerary;
+  if (typeof _getPaxDisplayName === 'function') window._getPaxDisplayName = _getPaxDisplayName;
   if (typeof syncDateMins === 'function') window.syncDateMins = syncDateMins;
   if (typeof syncPaxPriceBoxes === 'function') window.syncPaxPriceBoxes = syncPaxPriceBoxes;
   if (typeof tarefasRender === 'function') window.tarefasRender = tarefasRender;
@@ -238,6 +246,8 @@ async function _changePasswordSubmit() {
 //  Criação de utilizadores: node scripts/setup-users.mjs (precisa da service key)
 // ─────────────────────────────────────────────────────────────────────────────
 async function __adminFetchUsers() {
+  // Fase 6: painel enriquecido (permissões/atribuição/visibilidade) em permissions.js
+  if (typeof window.__renderAdminUsersPanel === 'function') return window.__renderAdminUsersPanel();
   const tbody = document.getElementById('admin-users-body');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="4" class="admin-hint">Loading…</td></tr>';
@@ -291,6 +301,8 @@ window.__openAdminPanel = function() {
   document.getElementById('admin-panel-overlay')?.classList.add('open');
   __adminFetchUsers();
   __adminFetchAudit();
+  // Fase 7: painel Journal (log geral A2)
+  if (typeof window.__renderJournal === 'function') window.__renderJournal();
 };
 window.__closeAdminPanel = function() {
   document.getElementById('admin-panel-overlay')?.classList.remove('open');
@@ -457,7 +469,12 @@ let milesRowId    = 0;
 let _milesTotalBRL  = 0;   // live numeric total from miles calc
 let _quoteFinalPrice = 0;  // set by buildPreview()
 let _quoteCurrency   = '€';// set by buildPreview()
-const MILES_ISSUERS = ['Smiles','Copa','Latam Pass','Latam Tabela Fixa','Air France','APM','Azul Fidelidade','QR Privilege Club','Consolidator','VISA / E.T.A','Volta Cancelada'];
+// Fallback — a fonte real é a tabela `programs` (menu Programas, spec A5.3);
+// programs.js injeta a lista via window.__setMilesIssuers após carregar do Supabase.
+let MILES_ISSUERS = ['Smiles','Copa','Latam Pass','Latam Tabela Fixa','Air France','APM','Azul Fidelidade','QR Privilege Club','Consolidator','VISA / E.T.A','Volta Cancelada'];
+window.__setMilesIssuers = function(names) {
+  if (Array.isArray(names) && names.length) MILES_ISSUERS = names;
+};
 
 //  Fornecedores list for Billet Cost tab (add/edit here) 
 const COST_FORNECEDORES = [
@@ -575,7 +592,17 @@ function onMilesIssuerChange(id) {
     'Air France':         { cpm: 80,    fee: 33.64 },
     'APM':                { cpm: 28,    fee: 33.64 },
   };
-  const defaults = ISSUER_DEFAULTS[sel];
+  let defaults = ISSUER_DEFAULTS[sel];
+  // Presets cadastrados no menu Programas (tabela programs) têm prioridade
+  const _progRow = (window.EXPATUR_PROGRAMS || []).find(function(p){ return p.name === sel; });
+  if (_progRow && (_progRow.cpm != null || _progRow.fee != null || _progRow.extra != null)) {
+    defaults = {
+      vol: defaults && defaults.vol,
+      cpm: _progRow.cpm   != null ? _progRow.cpm   : (defaults && defaults.cpm),
+      fee: _progRow.fee   != null ? _progRow.fee   : (defaults && defaults.fee),
+      ext: _progRow.extra != null ? _progRow.extra : (defaults && defaults.ext),
+    };
+  }
   if (defaults) {
     const volEl = document.getElementById(`mc-vol-${id}`);
     const cpmEl = document.getElementById(`mc-cpm-${id}`);
@@ -1246,6 +1273,52 @@ function parseSerpFlight(f, dateVal) {
   const last  = segs[segs.length-1] || first;
   const durMin = f.total_duration || 0;
   let curDate = dateVal;
+
+  // ── Robust arrival-date computation ──────────────────────────────────────
+  // SerpAPI's `overnight` flag is unreliable (often missing). The departure/
+  // arrival `time` fields are full datetime strings ("YYYY-MM-DD HH:MM"), so we
+  // compute the true arrival date by extracting the date portion directly, and
+  // only fall back to the overnight flag / duration heuristic if dates are absent.
+  function _datePart(t) {
+    var m = String(t||'').match(/(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+  const _depDatePart = _datePart(first.departure_airport && first.departure_airport.time);
+  const _arrDatePart = _datePart(last.arrival_airport && last.arrival_airport.time);
+  var _toClock = function(t){ var m=String(t||'').match(/(\d{1,2}):(\d{2})/); return m?parseInt(m[1])*60+parseInt(m[2]):NaN; };
+  var _depC = _toClock(first.departure_airport && first.departure_airport.time);
+  var _arrC = _toClock(last.arrival_airport && last.arrival_airport.time);
+
+  // ── AUTHORITATIVE: use SerpAPI's actual arrival date when it provides one ──
+  // SerpAPI's arrival_airport.time is a full 'YYYY-MM-DD HH:MM' string and is the
+  // single source of truth. If present, we use that exact date — no heuristics.
+  // We also keep the raw values around (rawArrDateTime / rawDepDateTime) as a
+  // hidden background record so nothing has to be re-derived downstream.
+  const _rawDepDateTime = (first.departure_airport && first.departure_airport.time) || '';
+  const _rawArrDateTime = (last.arrival_airport && last.arrival_airport.time) || '';
+  let _computedArrDate;
+  if (_arrDatePart) {
+    // SerpAPI gave a real arrival date → trust it verbatim.
+    _computedArrDate = _arrDatePart;
+  } else {
+    // SerpAPI omitted the date portion → derive the day offset from departure date
+    // using clock rollback / duration / overnight flag (fallback only).
+    let _dayOffset = 0;
+    if (_depDatePart && _arrDatePart) {
+      var _ddiff = Math.round((new Date(_arrDatePart+'T00:00:00Z') - new Date(_depDatePart+'T00:00:00Z')) / 86400000);
+      if (!isNaN(_ddiff) && _ddiff > 0) _dayOffset = _ddiff;
+    }
+    if (_dayOffset === 0) {
+      var _crossClock = (!isNaN(_depC) && !isNaN(_arrC) && _arrC < _depC);
+      var _durCross = (!isNaN(_depC) && durMin > 0 && (_depC + durMin) >= 24*60);
+      if (segs.some(s=>s.overnight) || _crossClock || _durCross) _dayOffset = 1;
+    }
+    _computedArrDate = _dayOffset > 0 ? addDays(dateVal, _dayOffset) : dateVal;
+  }
+  // Departure date: trust SerpAPI's date if present, else the search date.
+  const _computedDepDate = _depDatePart || dateVal;
+  const _isOvernightLeg = _computedArrDate > _computedDepDate;
+
   return {
     raw: f,
     fn:       segs.map(s => s.flight_number||'').filter(Boolean).join(' + ') || '—',
@@ -1258,33 +1331,57 @@ function parseSerpFlight(f, dateVal) {
     depCode: first.departure_airport?.id   || '',
     depName: first.departure_airport?.name || '',
     depTime: first.departure_airport?.time || '—',
-    depDate: dateVal,
-    depDateDisplay: fmtDateLong(dateVal),
+    depDate: _computedDepDate,
+    depDateDisplay: fmtDateLong(_computedDepDate),
     arrCode: last.arrival_airport?.id   || '',
     arrName: last.arrival_airport?.name || '',
     arrTime: last.arrival_airport?.time || '—',
-    arrDate: segs.some(s=>s.overnight) ? addDays(dateVal,1) : dateVal,
-    arrDateDisplay: fmtDateLong(segs.some(s=>s.overnight) ? addDays(dateVal,1) : dateVal),
-    overnight: segs.some(s=>s.overnight),
+    arrDate: _computedArrDate,
+    arrDateDisplay: fmtDateLong(_computedArrDate),
+    overnight: _isOvernightLeg,
+    // Hidden background records — raw SerpAPI datetime strings (source of truth)
+    rawDepDateTime: _rawDepDateTime,
+    rawArrDateTime: _rawArrDateTime,
     segments: segs.map(s => {
-      const dep = curDate;
-      const arr = s.overnight ? addDays(dep,1) : dep;
+      var _segDP = _datePart(s.departure_airport && s.departure_airport.time);
+      var _segAP = _datePart(s.arrival_airport && s.arrival_airport.time);
+      var _clk = function(t){var m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?parseInt(m[1])*60+parseInt(m[2]):NaN;};
+      var _dc = _clk(s.departure_airport && s.departure_airport.time);
+      var _ac = _clk(s.arrival_airport && s.arrival_airport.time);
+      var _sDur = s.duration || 0;
+      // AUTHORITATIVE: trust SerpAPI's segment dates when present.
+      var dep, arr;
+      if (_segDP) { dep = _segDP; } else { dep = curDate; }
+      if (_segAP) {
+        arr = _segAP; // SerpAPI gave the real arrival date — use it verbatim
+      } else {
+        // Fallback: derive from clock rollback / duration / overnight flag
+        var _segCross = s.overnight
+          || (!isNaN(_dc) && !isNaN(_ac) && _ac < _dc)
+          || (!isNaN(_dc) && _sDur > 0 && (_dc + _sDur) >= 24*60);
+        arr = _segCross ? addDays(dep, 1) : dep;
+      }
       curDate = arr;
       return {
-        fn:       s.flight_number || '',
         airline:  s.airline || '',
         aircraft: s.airplane || '',
+        fn:       s.flight_number || '',
         depCode:  s.departure_airport?.id   || '',
         depName:  s.departure_airport?.name || '',
         depTime:  s.departure_airport?.time || '—',
+        depDate:  dep,
         depDateDisplay: fmtDateLong(dep),
         arrCode:  s.arrival_airport?.id   || '',
         arrName:  s.arrival_airport?.name || '',
         arrTime:  s.arrival_airport?.time || '—',
+        arrDate:  arr,
         arrDateDisplay: fmtDateLong(arr),
         durMin:   s.duration || 0,
         durStr:   fmtMin(s.duration),
-        overnight: s.overnight || false
+        overnight: (arr > dep),
+        // Hidden background — raw SerpAPI datetime strings for this segment
+        rawDepDateTime: (s.departure_airport && s.departure_airport.time) || '',
+        rawArrDateTime: (s.arrival_airport && s.arrival_airport.time) || ''
       };
     })
   };
@@ -1386,27 +1483,55 @@ function removeCustomLine(id) {
 function autoInjectFormalites(allCodes, totalPax) {
   const hasPBM = allCodes.includes('PBM');
   const hasDOM = allCodes.includes('SDQ') || allCodes.includes('PUJ');
+
+  // ── Auto-remove previously injected formality lines that no longer apply ──
+  // Each managed line maps to the condition under which it must REMAIN present.
+  // If the itinerary changed so the condition is false, delete the stale line.
+  const _managedFormalites = {
+    'vfs suriname': hasPBM,                               // PBM-only line
+    'déclaration icf / qr code': hasPBM || hasDOM    // PBM or DR (SDQ/PUJ)
+  };
+  document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
+    const _id = row.id.replace('custom-line-', '');
+    const _nm = (document.getElementById(`cl-name-${_id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
+    if (Object.prototype.hasOwnProperty.call(_managedFormalites, _nm) && !_managedFormalites[_nm]) {
+      try { removeCustomLine(_id); } catch(e) {}
+    }
+  });
+
+  // Keep the quantity of the auto-managed formality lines locked to the current passenger
+  // count, so changing pax (even after a quote was generated, or on a fresh one) updates
+  // the "Récapitulatif tarifaire" line quantities instead of keeping a stale number.
+  document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
+    const _id = row.id.replace('custom-line-', '');
+    const _nm = (document.getElementById(`cl-name-${_id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
+    if (Object.prototype.hasOwnProperty.call(_managedFormalites, _nm)) {
+      const _q = document.getElementById(`cl-qty-${_id}`);
+      if (_q && String(_q.value) !== String(totalPax)) _q.value = totalPax;
+    }
+  });
+
   if (!hasPBM && !hasDOM) return;
 
   // Collect existing designation names to avoid duplicates
   const existing = new Set();
   document.querySelectorAll('[id^="custom-line-"]').forEach(row => {
     const id = row.id.replace('custom-line-', '');
-    const name = document.getElementById(`cl-name-${id}`)?.value?.trim().toLowerCase() || '';
+    const name = (document.getElementById(`cl-name-${id}`)?.value?.trim().toLowerCase() || '').normalize('NFC');
     if (name) existing.add(name);
   });
 
   // PBM: VFS Suriname (Visa/ETA) + ICF declaration
   if (hasPBM) {
-    if (!existing.has('vfs suriname')) {
+    if (!existing.has('vfs suriname'.normalize('NFC'))) {
       addCustomLine('VFS Suriname', 'Visa / ETA', totalPax, 'OFFERT');
     }
-    if (!existing.has('déclaration icf / qr code')) {
+    if (!existing.has('déclaration icf / qr code'.normalize('NFC'))) {
       addCustomLine('Déclaration ICF / QR Code', 'Formalités adm.', totalPax, 'OFFERT');
     }
   } else if (hasDOM) {
     // SDQ/PUJ only (no PBM): ICF/QR Code declaration only
-    if (!existing.has('déclaration icf / qr code')) {
+    if (!existing.has('déclaration icf / qr code'.normalize('NFC'))) {
       addCustomLine('Déclaration ICF / QR Code', 'Formalités adm.', totalPax, 'OFFERT');
     }
   }
@@ -2377,6 +2502,44 @@ function _buildInvoiceItems() {
     return items;
   }
 
+  /* Itemize the single invoice to mirror the Récapitulatif tarifaire — one line per
+     passenger fare plus each custom line, offers and zero-price excluded — but only
+     when those lines add up to the invoice total. If a discount, override or other
+     component makes them diverge, fall back to a single line so the charged total
+     always stays exactly right. */
+  var _offlineNow = _isOfflineMethod(_getPaymentMethodLive());
+  try {
+    var _chk = document.getElementById('inv-diff-check');
+    var _customOverride = !!(_chk && _chk.checked);
+    if (!_customOverride && typeof window._buildPaxInvoiceItems119 === 'function') {
+      var _li = window._buildPaxInvoiceItems119() || [];
+      if (_li.length > 0) {
+        var _sum = _roundMoney(_li.reduce(function(s, x){
+          var q = parseInt(x.quantity) || 1;
+          var lt = (x.total != null) ? x.total : ((parseFloat(x.unitPrice) || 0) * q);
+          return s + _roundMoney(lt);
+        }, 0));
+        if (Math.abs(_sum - total) < 0.01) {
+          return _li.map(function(x){
+            var q = parseInt(x.quantity) || 1;
+            var unit = _roundMoney(parseFloat(x.unitPrice) != null ? parseFloat(x.unitPrice) : 0) || _roundMoney((parseFloat(x.total) || 0) / q);
+            var lt = _roundMoney(x.total != null ? x.total : unit * q);
+            return {
+              description: x.description,
+              quantity: q,
+              unitPrice: unit,
+              amount: lt,
+              amount_value: lt,
+              total: lt,
+              currency: cur,
+              invoice_status: _offlineNow ? 'paid' : 'open'
+            };
+          });
+        }
+      }
+    }
+  } catch(e) {}
+
   return [{
     description: baseDesc,
     quantity: 1,
@@ -2384,7 +2547,7 @@ function _buildInvoiceItems() {
     amount_value: total,
     total: total,
     currency: cur,
-    invoice_status: _isOfflineMethod(_getPaymentMethodLive()) ? 'paid' : 'open'
+    invoice_status: _offlineNow ? 'paid' : 'open'
   }];
 }
 
@@ -2679,14 +2842,20 @@ function _buildInvoicePayload(pw, amountOverride, installmentLabel) {
   } else {
     /* ── Single invoice: use preview articles from _buildInvoiceItems ── */
     const previewItems = _buildInvoiceItems();
-    /* Convert each item's amount to Stripe cents (×100) */
+    /* Convert each item to Stripe cents. When a line carries an explicit quantity and
+       unit price (itemized quote), send cents-per-unit × quantity; otherwise treat the
+       line total as a single unit (legacy lump / installment lines). */
     items = previewItems.map(function(it) {
-      const decimalAmt = _roundMoney(it.total ?? it.amount_value ?? it.amount ?? 0);
+      const q = parseInt(it.quantity) || 1;
+      const lineTotal = _roundMoney(it.total ?? it.amount_value ?? it.amount ?? 0);
+      const unit = (it.unitPrice != null && it.unitPrice !== '')
+        ? _roundMoney(it.unitPrice)
+        : _roundMoney(lineTotal / q);
       return {
         description: it.description || baseDesc,
-        amount: Math.round(decimalAmt * 100),
-        quantity: 1,
-        total: decimalAmt
+        amount: Math.round(unit * 100),
+        quantity: q,
+        total: _roundMoney(unit * q)
       };
     });
   }
@@ -3543,7 +3712,11 @@ function openBilletModal() {
   const nChd     = Math.max(0, parseInt(document.getElementById('pax-enfants')?.value) || 0);
   const nInf     = Math.max(0, parseInt(document.getElementById('pax-bebes')?.value)   || 0);
   const clientName = document.getElementById('pax-name-1')?.value?.trim() || '';
-  const isMC     = tripType === 'multicity';
+  // A10: "Juntar os Segmentos" — em multi-city, colapsa para 1 PNR/billet único.
+  // Quando ligado, o billet é renderizado como modo single (master PNR).
+  const isMcTrip = tripType === 'multicity';
+  const juntarSeg = isMcTrip && typeof window.__readJuntarSeg === 'function' && window.__readJuntarSeg(ref);
+  const isMC     = isMcTrip && !juntarSeg;
 
   // Derive default franchise bagages from quote inputs
   const _bQty = parseInt(document.getElementById('bags-qty')?.value) || 0;
@@ -3776,7 +3949,20 @@ function openBilletModal() {
     }
   }
 
-  let bodyHTML = flightSummaryHTML + mergeOptHTML;
+  // A10.1: checkbox "Joindre les segments" — visível apenas em multi-city
+  let juntarOptHTML = '';
+  if (isMcTrip) {
+    juntarOptHTML = '<div style="margin:-0.4rem 0 1.2rem;padding:0.6rem 1rem;background:rgba(201,162,39,0.07);border:1px solid var(--gold);border-radius:7px;display:flex;align-items:center;gap:0.65rem;">'
+      +'<input type="checkbox" id="bl-juntar-seg"'+(juntarSeg ? ' checked' : '')
+      +' style="width:15px;height:15px;cursor:pointer;accent-color:var(--navy);flex-shrink:0;"'
+      +' onchange="window.__toggleJuntarSeg && window.__toggleJuntarSeg(this)">'
+      +'<label for="bl-juntar-seg" style="font-size:0.72rem;font-weight:600;color:var(--navy);cursor:pointer;user-select:none;">'
+      +'Joindre les segments <span style="font-size:0.64rem;color:var(--navy-faint);font-weight:400;">(un seul PNR / billet / réservation pour tous les tronçons)</span>'
+      +'</label>'
+      +'</div>';
+  }
+
+  let bodyHTML = flightSummaryHTML + juntarOptHTML + mergeOptHTML;
 
   if (!isMC) {
     // ONE-WAY / RETURN: master PNR + flat pax table
@@ -3969,6 +4155,7 @@ function openBilletModal() {
   body.dataset.isReturn    = tripType === 'return' ? '1' : '0';
   body.dataset.isMultiCity = isMC ? '1' : '0';
   body.dataset.legsJson    = JSON.stringify(legs);
+  try { body.dataset.legsRef = ((document.getElementById('booking-ref') || {}).value || '').trim(); } catch (e) {}
 
   // Auto-load last saved données for this dossier
   setTimeout(function() {
@@ -5838,9 +6025,10 @@ function switchDocAnnexeTab(pi) {
 function docAnnexeFileChange(pi, key, input) {
   const file = input.files[0];
   const fn   = file?.name || '';
-  const card = document.getElementById('doc-annexe-card');
-  if (!card._files) card._files = {};
-  card._files[pi + '-' + key] = fn || undefined;
+  // o estado vive em dv-panel-docs (o id legado doc-annexe-card não existe)
+  const card = document.getElementById('dv-panel-docs');
+  if (card && !card._files) card._files = {};
+  if (card) card._files[pi + '-' + key] = fn || undefined;
   const nameEl = document.getElementById('doc-fname-' + pi + '-' + key);
   if (nameEl) nameEl.textContent = fn ? ('\u2713 ' + fn) : '';
   let delBtn = document.getElementById('doc-del-' + pi + '-' + key);
@@ -5864,7 +6052,7 @@ function docAnnexeDeleteFile(pi, key) {
   if (!confirm('Are you sure? This cannot be undone.')) return;
   const input = document.getElementById('doc-file-' + pi + '-' + key);
   if (input) input.value = '';
-  const card = document.getElementById('doc-annexe-card');
+  const card = document.getElementById('dv-panel-docs');
   if (card?._files) delete card._files[pi + '-' + key];
   const nameEl = document.getElementById('doc-fname-' + pi + '-' + key);
   if (nameEl) nameEl.textContent = '';
@@ -6986,7 +7174,7 @@ function addTask(){
   if(dueSel) { dueSel.value=''; }
   renderTasks();
 }
-function toggleTask(id){var t=_tasks.find(function(t){return t.id===id;});if(t){t.done=!t.done;_saveTasks();renderTasks();}}
+function toggleTask(id){var t=_tasks.find(function(t){return t.id===id;});if(t){t.done=!t.done; if(t.done){t.status='completed';} else if((t.status||'').toLowerCase()==='completed'||(t.status||'').toLowerCase()==='done'){t.status='open';} t.updatedAt=new Date().toISOString(); _saveTasks();renderTasks(); if(typeof window._propagateTaskChange==='function') window._propagateTaskChange();}}
 function deleteTask(id){
   _tasks=_tasks.filter(function(t){return t.id!==id;});
   if(typeof _deleteTaskFiles==='function') _deleteTaskFiles(id);
@@ -7240,26 +7428,34 @@ function _dossierSetTripType(v) {
   if (r) { r.checked = true; if (typeof changeTripType === 'function') changeTripType(v); }
 }
 
-// Serialize multi-legs rows
+// Serialize multi-city legs from the live `multiLegs` global (single source of
+// truth). The previous version queried #multi-legs-list / ml-* ids that never
+// existed, so multi-city legs were never saved (R9). `sel` keeps the chosen flight
+// minus its bulky raw SerpAPI payload so selections survive a reopen.
 function _dossierSerializeMultiLegs() {
-  const rows = [];
-  document.querySelectorAll('#multi-legs-list .multi-leg-row').forEach(function(row) {
-    const idx = row.dataset.legIndex;
-    rows.push({
-      dep: (document.getElementById('ml-dep-'+idx)||{}).value || '',
-      arr: (document.getElementById('ml-arr-'+idx)||{}).value || '',
-      date: (document.getElementById('ml-date-'+idx)||{}).value || '',
-      label: (document.getElementById('ml-label-'+idx)||{}).value || ''
-    });
-  });
-  return rows;
+  try {
+    if (typeof multiLegs !== 'undefined' && Array.isArray(multiLegs)) {
+      return multiLegs.map(function (l) {
+        var sel = l.sel ? Object.assign({}, l.sel) : null;
+        if (sel) delete sel.raw;
+        return {
+          id:   l.id,
+          dep:  (document.getElementById('multi-dep-'  + l.id) || {}).value || l.dep  || '',
+          arr:  (document.getElementById('multi-arr-'  + l.id) || {}).value || l.arr  || '',
+          date: (document.getElementById('multi-date-' + l.id) || {}).value || l.date || '',
+          sel:  sel
+        };
+      });
+    }
+  } catch (e) {}
+  return [];
 }
 
 // Serialize custom lines
 function _dossierSerializeCustomLines() {
   const lines = [];
-  document.querySelectorAll('[id^="custom-line-row-"]').forEach(function(row) {
-    const id = row.id.replace('custom-line-row-','');
+  document.querySelectorAll('[id^="custom-line-"]').forEach(function(row) {
+    const id = row.id.replace('custom-line-','');
     lines.push({
       id: id,
       name: (document.getElementById('cl-name-'+id)||{}).value || '',
@@ -7268,7 +7464,16 @@ function _dossierSerializeCustomLines() {
       price:(document.getElementById('cl-price-'+id)||{}).value || ''
     });
   });
-  return lines;
+  /* safety net: collapse exact-duplicate lines (same name/cat/qty/price) so a
+     mis-fire can never grow the list without bound across save/restore cycles */
+  var _seen = {}, _out = [];
+  lines.forEach(function (l) {
+    var sig = (l.name||'').trim().toLowerCase().normalize('NFC') + '|' + (l.cat||'') + '|' + (l.qty||'') + '|' + (l.price||'');
+    if (l.name && _seen[sig]) return;
+    if (l.name) _seen[sig] = true;
+    _out.push(l);
+  });
+  return _out;
 }
 
 // Serialize passenger rows
@@ -7301,6 +7506,17 @@ function _dossierSave(id) {
   data._label = (document.getElementById('booking-ref')||{}).value
              || (document.getElementById('pax-name-1')||{}).value
              || 'Nouveau dossier';
+  // Preserva chaves que não vivem no formulário — senão cada save apagaria o
+  // status canônico/atribuição (deal-status.js) e o snapshot .ticketing (v3.127)
+  try {
+    var _prev = JSON.parse(localStorage.getItem('expatur_dossier_'+id)||'null');
+    if (_prev && typeof _prev === 'object' && !Array.isArray(_prev)) {
+      ['status','statusChangedAt','statusHistory','statusOverride',
+       'createdBy','assignedTo','assignmentHistory','ticketing','issuedAt'].forEach(function(k){
+        if (_prev[k] !== undefined && data[k] === undefined) data[k] = _prev[k];
+      });
+    }
+  } catch(e){}
   try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(data)); } catch(e){}
 }
 
@@ -7326,16 +7542,48 @@ function _dossierLoad(id) {
     data.customLines.forEach(function(cl) {
       if (typeof addCustomLine === 'function') addCustomLine();
       // get last added row id
-      const rows = document.querySelectorAll('[id^="custom-line-row-"]');
+      const rows = document.querySelectorAll('[id^="custom-line-"]');
       if (!rows.length) return;
       const lastRow = rows[rows.length-1];
-      const lid = lastRow.id.replace('custom-line-row-','');
+      const lid = lastRow.id.replace('custom-line-','');
       if (document.getElementById('cl-name-'+lid))  document.getElementById('cl-name-'+lid).value  = cl.name;
       if (document.getElementById('cl-cat-'+lid))   document.getElementById('cl-cat-'+lid).value   = cl.cat;
       if (document.getElementById('cl-qty-'+lid))   document.getElementById('cl-qty-'+lid).value   = cl.qty;
       if (document.getElementById('cl-price-'+lid)) document.getElementById('cl-price-'+lid).value = cl.price;
     });
   }
+  // Restore multi-city legs (R9): rebuild the leg cards + `multiLegs` global from
+  // saved data so reopening a multi-city quote restores its itinerary (legs,
+  // dep/arr/date and the chosen flight per leg). Clear first to avoid a previously
+  // open dossier leaking its legs into this one.
+  try {
+    var _mcWrap = document.getElementById('multicity-legs');
+    if (_mcWrap) _mcWrap.innerHTML = '';
+    if (typeof multiLegs !== 'undefined' && Array.isArray(multiLegs)) multiLegs.length = 0;
+    if (data.tripType === 'multicity' && typeof addMultiLeg === 'function') {
+      var _savedLegs = Array.isArray(data.multiLegs) ? data.multiLegs : [];
+      if (_savedLegs.length) {
+        _savedLegs.forEach(function (ml) {
+          addMultiLeg();
+          var last = multiLegs[multiLegs.length - 1];
+          if (!last) return;
+          var nid = last.id;
+          var dEl = document.getElementById('multi-dep-'  + nid); if (dEl) dEl.value = ml.dep  || '';
+          var aEl = document.getElementById('multi-arr-'  + nid); if (aEl) aEl.value = ml.arr  || '';
+          var tEl = document.getElementById('multi-date-' + nid); if (tEl) tEl.value = ml.date || '';
+          last.dep = ml.dep || ''; last.arr = ml.arr || ''; last.date = ml.date || '';
+          if (ml.sel) last.sel = ml.sel;
+          if (typeof updateMultiLeg === 'function') updateMultiLeg(nid);
+        });
+      } else {
+        addMultiLeg(); // no saved legs → seed one empty leg (matches setTripType)
+      }
+      if (typeof renumberMultiLegs === 'function') renumberMultiLegs();
+      if (typeof syncDateMins === 'function') syncDateMins();
+      if (typeof updateLegTitles === 'function') updateLegTitles();
+      if (typeof _itinWidgetRefreshIfOpen === 'function') _itinWidgetRefreshIfOpen();
+    }
+  } catch (e) { console.warn('[R9] multi-city restore error', e); }
   // Trigger recalc if available
   if (typeof updateRecap === 'function') updateRecap();
   if (typeof updateDevis === 'function') updateDevis();
@@ -7362,7 +7610,7 @@ function _dossierResetUI() {
     else el.value = '';
   });
   // Remove custom lines
-  document.querySelectorAll('[id^="custom-line-row-"]').forEach(function(r){ r.remove(); });
+  document.querySelectorAll('[id^="custom-line-"]').forEach(function(r){ r.remove(); });
   //  Restore tarification defaults 
   var _setVal = function(id, val) {
     var el = document.getElementById(id);
@@ -8042,10 +8290,11 @@ function _generateItinTasks() {
     newTasks.push(_makeAutoTask('Check-in', ciLabel, ciDue, ciHours + 'h avant départ', comment));
   });
 
-  //  Volta Cancelada — triggers: VC in tarification OR CMN→GRU leg OR SDQ/PUJ departure
-  var _vcHasCMNGRU = legs.some(function(lg){ return lg.depCode==='CMN' && lg.arrCode==='GRU'; });
+  //  Volta Cancelada — triggers: VC in tarification OR any leg departing CMN OR SDQ/PUJ departure
+  //  (doc4 §6.2: qualquer trecho partindo de CMN, não apenas CMN→GRU)
+  var _vcHasCMNDep = legs.some(function(lg){ return lg.depCode==='CMN'; });
   var _vcHasSDQPUJ = legs.some(function(lg){ return lg.depCode==='SDQ' || lg.depCode==='PUJ'; });
-  if ((_hasVoltaCancelada() || _vcHasCMNGRU || _vcHasSDQPUJ) && firstLeg.depDate) {
+  if ((_hasVoltaCancelada() || _vcHasCMNDep || _vcHasSDQPUJ) && firstLeg.depDate) {
     var vcAlreadyExists = _tasks.some(function(t){ return t.cat==='Volta Cancelada' && t.auto && /Émitir Volta Cancelada/i.test(t.text); });
     if (!vcAlreadyExists) {
       var vcComment = _blBuildTaskComment(0, firstLeg.airlineCodes || []);
@@ -8126,10 +8375,14 @@ function _autoAddCostRows() {
 
   var added = 0;
 
-  // CMN→GRU + GRU→MCP: add QR Privilege Club + Volta Cancelada
+  // CMN→GRU + GRU→MCP: add QR Privilege Club
   if (hasRoute('CMN', 'GRU') && hasRoute('GRU', 'MCP')) {
     if (!hasIssuer('QR Privilege Club')) { addMilesRowWithValues('QR Privilege Club', null); added++; }
-    if (!hasIssuer('Volta Cancelada'))   { addMilesRowWithValues('Volta Cancelada', null);   added++; }
+  }
+
+  // Qualquer trecho partindo de CMN: add Volta Cancelada (doc4 §6.2)
+  if (routes.some(function(r) { return r.dep === 'CMN'; })) {
+    if (!hasIssuer('Volta Cancelada')) { addMilesRowWithValues('Volta Cancelada', null); added++; }
   }
 
   // SDQ↔PBM (one-way leg): add VISA/E.T.A (taxas=33 EUR) + Volta Cancelada
@@ -8471,9 +8724,14 @@ function _toggleTaskDoneFromPopup() {
   var t = _tasks.find(function(x){ return x.id === _taskDetailId; });
   if (!t) return;
   t.done = !t.done;
+  /* keep status field bidirectional with done (never assume completion is permanent) */
+  if (t.done) { t.status = 'completed'; }
+  else if ((t.status||'').toLowerCase()==='completed' || (t.status||'').toLowerCase()==='done') { t.status = 'open'; }
+  t.updatedAt = new Date().toISOString();
   _saveTasks();
   renderTasks();
   _refreshTaskDoneBtn(_taskDetailId);
+  if (typeof window._propagateTaskChange === 'function') window._propagateTaskChange();
 }
 
 // Update the done-button label/style inside an open popup
@@ -8978,6 +9236,11 @@ function devisIndexDuplicate(id, event) {
   if (!newData.fields) newData.fields = {};
   newData.fields['booking-ref'] = newRef;
   newData._label = newRef;
+  // A cópia é um deal novo: não herda status/atribuição/emissão do original
+  ['status','statusChangedAt','statusHistory','statusOverride',
+   'createdBy','assignedTo','assignmentHistory','ticketing','issuedAt'].forEach(function(k){
+    delete newData[k];
+  });
 
   // Add to list
   var list;
@@ -9336,7 +9599,7 @@ function _onDueCustomInput(inp) {
 var _sidebarOpen = false;
 var _currentSection = 'welcome';
 
-var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vendedores','disponibilidades','tarefas','clientes','financeiro'];
+var SECTION_IDS = ['welcome','quoting','bookings','fornecedores','vols','vendedores','programas','disponibilidades','tarefas','clientes','financeiro'];
 
 /* v3.69 — sidebar is always visible on desktop via CSS.
    sidebarOpen/Close only affect mobile drawer behavior. */
@@ -9423,7 +9686,9 @@ function sidebarGo(section) {
     if (section === 'quoting')          { if (typeof quotingSwitch === 'function') quotingSwitch(_lastQuotingTab || 'vols'); if (typeof _applyBookingTabState === 'function') _applyBookingTabState(); }
     if (section === 'bookings')         { if (typeof bookingsRender === 'function') bookingsRender(); }
     if (section === 'fornecedores')     fornRender();
+    if (section === 'vols')             { if (typeof window.__volsEnsureLoaded === 'function') window.__volsEnsureLoaded(); }
     if (section === 'vendedores')       vendRender();
+    if (section === 'programas')        { if (typeof window.programasRender === 'function') window.programasRender(); }
     if (section === 'disponibilidades') dispRender();
     if (section === 'tarefas')          tarefasRender();
     if (section === 'clientes')         clientsRender();
@@ -15724,6 +15989,42 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
   };
 
   window.deleteTask = function (ref, taskId) {
+    // Backward-compat: inline buttons call deleteTask(id) with a single argument.
+    // Detect that case and resolve which dossier the task belongs to.
+    if (taskId === undefined || taskId === null) {
+      var soleId = ref;
+      try {
+        if (typeof _tpGetAllDossierRefs === 'function' && window.taskStore) {
+          var refs = _tpGetAllDossierRefs() || [];
+          for (var ri = 0; ri < refs.length; ri++) {
+            var list = window.taskStore.getTasksByDossier(refs[ri]) || [];
+            if (list.some(function (t) { return String(t.id) === String(soleId); })) {
+              window.taskStore.deleteTask(refs[ri], soleId);
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+      // Universal sweep across all tasks_v2_* stores (covers standalone / unexpected ref)
+      try {
+        for (var _ki = 0; _ki < localStorage.length; _ki++) {
+          var _k = localStorage.key(_ki);
+          if (!_k || _k.indexOf('tasks_v2_') !== 0) continue;
+          var _arr; try { _arr = JSON.parse(localStorage.getItem(_k) || '[]'); } catch (e) { continue; }
+          if (!Array.isArray(_arr)) continue;
+          var _f = _arr.filter(function (t) { return String(t.id) !== String(soleId); });
+          if (_f.length !== _arr.length) localStorage.setItem(_k, JSON.stringify(_f));
+        }
+      } catch (e) {}
+      // Last resort: old in-memory list
+      try {
+        if (typeof _tasks !== 'undefined') { _tasks = _tasks.filter(function (t) { return String(t.id) !== String(soleId); }); if (typeof _saveTasks === 'function') _saveTasks(); }
+      } catch (e) {}
+      try { if (window.taskStore && typeof window.taskStore.refreshAllTaskUIs === 'function') window.taskStore.refreshAllTaskUIs(); } catch (e) {}
+      if (typeof window.tarefasRender === 'function') window.tarefasRender();
+      if (typeof renderTasks === 'function') renderTasks();
+      return;
+    }
     if (window.taskStore && typeof window.taskStore.deleteTask === 'function') {
       window.taskStore.deleteTask(ref, taskId);
     } else {
@@ -20989,10 +21290,14 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
 
   /* ── Leg data source ─────────────────────────────────────────────────── */
   function _getMilesLegs317() {
-    // Priority 1: live DOM (billet panel rendered)
+    // Priority 1: live DOM (billet panel rendered) — but ONLY if it belongs to the
+    // active quote. The #bl-body cache is shared, so a previously previewed quote
+    // would otherwise leak its flights into this quote's Trecho dropdown.
     try {
       var blBody = document.getElementById('bl-body');
-      if (blBody && blBody.dataset.legsJson) {
+      var _curRef = ((document.getElementById('booking-ref') || {}).value || '').trim();
+      var _domRef = (blBody && blBody.dataset) ? (blBody.dataset.legsRef || '') : '';
+      if (blBody && blBody.dataset.legsJson && (!_domRef || _domRef === _curRef)) {
         var legs = JSON.parse(blBody.dataset.legsJson);
         if (Array.isArray(legs) && legs.length > 0) return legs;
       }
@@ -21135,6 +21440,43 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
           ext:     extEl   ? (extEl.value || '')          : ''
         });
       });
+      /* Preserve real values that momentarily revert during a programmatic
+         rebuild/restore: the supplier <select> can lag an async fournisseur
+         load, the Trecho <select> resets to -1 when the live itinerary isn't
+         ready yet, and inputs can read empty mid-teardown. Rows are matched by
+         INDEX — rids are regenerated on every rebuild, so a rid match (the old
+         approach) never hit and never preserved anything. The supplier guard
+         always applies (its async race also occurs on first load); the Trecho
+         and EXTRA guards apply only while a restore is in flight, so a genuine
+         user clear outside that window is still honoured. */
+      try {
+        var _prevCC = JSON.parse(localStorage.getItem(_ccStorageKey317()) || '[]');
+        var _restoring = !!window._ccRestoringV32;
+        if (Array.isArray(_prevCC) && _prevCC.length) {
+          saved.forEach(function (nr, _i) {
+            var pr = _prevCC[_i]; if (!pr) return;
+            var _nf = String(nr.forn || '');
+            if (_nf === '' || _nf.indexOf('lectionner') >= 0) {
+              var _ofr = String(pr.forn || '');
+              if (_ofr && _ofr.indexOf('lectionner') < 0) nr.forn = pr.forn;
+            }
+            if (_restoring) {
+              if ((nr.leg_idx == null || nr.leg_idx < 0) && pr.leg_idx != null && pr.leg_idx >= 0) nr.leg_idx = pr.leg_idx;
+              if ((nr.ext == null || nr.ext === '') && pr.ext != null && pr.ext !== '') nr.ext = pr.ext;
+            }
+          });
+        }
+      } catch (e) {}
+      /* CRITICAL: never overwrite stored cost rows with an empty array. The
+         widget may not be rendered right now (e.g. a price edit on another tab
+         triggers a save) — writing [] here would clobber real data locally AND
+         on the server. Only persist when we actually collected rows, OR when no
+         data exists yet for this key. */
+      if (saved.length === 0) {
+        var _existing = null;
+        try { _existing = localStorage.getItem(_ccStorageKey317()); } catch (e) {}
+        if (_existing && _existing !== '[]' && _existing !== 'null') return; /* preserve */
+      }
       localStorage.setItem(_ccStorageKey317(), JSON.stringify(saved));
     } catch(e) { console.warn('[v3.17] saveCCRows error', e); }
   }
@@ -21142,6 +21484,12 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
   /* ── Restore CC row state (populate leg selects on existing rows) ─────── */
   function _restoreCCRows317() {
     try {
+      /* Mark a restore in flight so _saveCCRows317 preserves Trecho/EXTRA that
+         momentarily revert while selects/itinerary settle (cleared after 700ms,
+         each restore call refreshes the timer). */
+      window._ccRestoringV32 = true;
+      try { clearTimeout(window._ccRestoreClrT); } catch (e) {}
+      window._ccRestoreClrT = setTimeout(function () { window._ccRestoringV32 = false; }, 700);
       var saved = JSON.parse(localStorage.getItem(_ccStorageKey317()) || 'null');
       var container = document.getElementById('miles-rows');
       if (!container) { _injectLegHeader317(); return; }
@@ -21160,13 +21508,42 @@ console.log('[BRLPatch v3.3] OK — FX cache · post-render normalization · KPI
         }
       });
 
-      // Then restore saved selections
+      // Then restore saved values + leg selections.
+      // Rows are matched by INDEX (rids are regenerated on every load), and any
+      // missing rows are added so manually-entered rows reappear too.
       if (Array.isArray(saved)) {
-        saved.forEach(function(rowData) {
-          if (!rowData.rid) return;
-          _populateLegSel317(rowData.rid,
-            (rowData.leg_idx >= 0) ? rowData.leg_idx : undefined);
+        try {
+          while (container.querySelectorAll('.miles-row-wrap').length < saved.length
+                 && typeof addMilesRow === 'function') { addMilesRow(); }
+        } catch (_e0) {}
+        var _cur = container.querySelectorAll('.miles-row-wrap');
+        saved.forEach(function(rowData, _i) {
+          var _rowEl = _cur[_i];
+          var _rid = _rowEl ? (_rowEl.id || '').replace('miles-row-', '').trim() : rowData.rid;
+          if (_rowEl && _rid) {
+            try {
+              var _sel = document.getElementById('mc-sel-' + _rid);
+              if (_sel && rowData.prog != null && rowData.prog !== '') {
+                _sel.value = rowData.prog;
+                if (typeof onMilesIssuerChange === 'function') { try { onMilesIssuerChange(_rid); } catch (_e1) {} }
+              }
+              var _forn = document.getElementById('mc-forn-' + _rid);
+              if (_forn && rowData.forn != null && rowData.forn !== '' && String(rowData.forn).indexOf('lectionner') < 0) {
+                var _fh = false;
+                for (var _fo = 0; _fo < _forn.options.length; _fo++) { if (_forn.options[_fo].value === rowData.forn) { _fh = true; break; } }
+                if (!_fh) { var _fopt = document.createElement('option'); _fopt.value = rowData.forn; _fopt.textContent = rowData.forn; _forn.appendChild(_fopt); }
+                _forn.value = rowData.forn;
+              }
+              var _vol  = document.getElementById('mc-vol-'  + _rid); if (_vol  && rowData.vol) _vol.value  = rowData.vol;
+              var _cpm  = document.getElementById('mc-cpm-'  + _rid); if (_cpm  && rowData.cpm) _cpm.value  = rowData.cpm;
+              var _fee  = document.getElementById('mc-fee-'  + _rid); if (_fee  && rowData.fee != null && rowData.fee !== '') { _fee.readOnly = false; _fee.value = rowData.fee; }
+              var _ext  = document.getElementById('mc-ext-'  + _rid); if (_ext  && rowData.ext != null) _ext.value = rowData.ext;
+              if (typeof calcMilesRow === 'function') { try { calcMilesRow(_rid); } catch (_e2) {} }
+            } catch (_e3) {}
+          }
+          _populateLegSel317(_rid, (rowData.leg_idx >= 0) ? rowData.leg_idx : undefined);
         });
+        if (typeof calcMilesTotal === 'function') { try { calcMilesTotal(); } catch (_e4) {} }
       } else {
         // No saved data — still populate options if billet is available
         container.querySelectorAll('.miles-row-wrap').forEach(function(rowEl) {
@@ -58310,6 +58687,40 @@ function _canIssueTicketsAgainstInvoices() {
       } catch(e) {}
     }
 
+    /* Exclude passenger items that are offers / price 0 (not charged on Stripe). */
+    items = items.filter(function(it){ return (parseFloat(it.unitPrice) || parseFloat(it.total) || 0) > 0; });
+
+    /* Append the custom invoice lines from the Récapitulatif tarifaire, keeping the
+       exact name / quantity / unit price, and skipping offers and zero-price lines. */
+    try {
+      if (typeof getCustomLines === 'function') {
+        var _seenCL119 = {};
+        getCustomLines().forEach(function(cl){
+          if (!cl || cl.isOffert) return;
+          var price = parseFloat(cl.price) || 0;
+          var qty = parseInt(cl.qty) || 1;
+          if (price <= 0) return;
+          /* Guard against duplicate custom lines (sync round-trips can re-inject
+             the same formality line with a different Unicode form). Dedup by
+             normalized name + price + qty so the invoice never doubles a line. */
+          var _sigCL = String(cl.name || '').normalize('NFC').trim().toLowerCase() + '|' + price + '|' + qty;
+          if (_seenCL119[_sigCL]) return;
+          _seenCL119[_sigCL] = 1;
+          items.push({
+            description: cl.name,
+            quantity: qty,
+            unitPrice: price,
+            amount: price,
+            amount_value: price,
+            total: price * qty,
+            currency: cur,
+            isCustomLine: true,
+            invoice_status: 'open'
+          });
+        });
+      }
+    } catch(e) {}
+
     return items;
   }
 
@@ -61761,12 +62172,17 @@ function _canIssueTicketsAgainstInvoices() {
   window.__V3128_INSTALLED__ = true;
 
   // ---- Constants & helpers (mirrored — v3.127 closures aren't reachable) --
-  var STATUSES = (window.STATUSES_V127 && window.STATUSES_V127.length)
-                  ? window.STATUSES_V127.slice()
-                  : ['devis','invoiced','ticketing','ticketed'];
-  var STATUS_LABELS = window.STATUS_LABELS_V127 || {
-    devis:'Devis', invoiced:'Facturé', ticketing:'En émission', ticketed:'Émis'
-  };
+  // Fase 3 (spec 3.1): colunas = vocabulário canônico de deal-status.js
+  var STATUSES = ['quote','awaiting_payment','ticketing','ticketed'];
+  function STATUS_LABEL(s){
+    if (window.DEAL_STATUS && typeof window.DEAL_STATUS.label === 'function') {
+      return window.DEAL_STATUS.label(s);
+    }
+    return ({ quote:'Quote', awaiting_payment:'En attente de paiement',
+              ticketing:'En émission', ticketed:'Émis' })[s] || s;
+  }
+  var _LEGACY_TO_CANON = { devis:'quote', invoiced:'awaiting_payment',
+                           ticketing:'ticketing', ticketed:'ticketed' };
 
   function _esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
@@ -61903,12 +62319,84 @@ function _canIssueTicketsAgainstInvoices() {
     return out;
   }
 
+  // ---- Fase 3: trechos, rota (A4), PNR e companhia (A8) -------------------
+  function _billetOf(d, id){
+    var ref = d.fields && d.fields['booking-ref'];
+    return (ref && _readJSON('expatur_billet_' + String(ref).replace(/[^a-zA-Z0-9]/g,'_'), null))
+        || (d.ticketing && d.ticketing.billet)
+        || _readJSON('expatur_billet_'+id, null) || {};
+  }
+
+  // A4.2: rota calculada dinamicamente dos trechos do deal (sem campo manual)
+  function _legsOf(d){
+    var f = d.fields || {};
+    var tt = d.tripType || 'oneway';
+    var legs = [];
+    if (f['dep1'] || f['arr1']) {
+      legs.push({ dep: f['dep1']||'', arr: f['arr1']||'' });
+      if (tt === 'return' && (f['dep2'] || f['arr2'])) legs.push({ dep: f['dep2']||'', arr: f['arr2']||'' });
+      if (tt === 'multicity' && Array.isArray(d.multiLegs)) {
+        d.multiLegs.forEach(function(ml){
+          if (ml && (ml.dep || ml.arr)) legs.push({ dep: ml.dep||'', arr: ml.arr||'' });
+        });
+      }
+      return legs;
+    }
+    return _extractSegments(d).map(function(s){ return { dep: _iata(s,'from'), arr: _iata(s,'to') }; });
+  }
+
+  // A4: trecho simples "DEP → ARR"; multicidade trecho a trecho separada por
+  // ";", truncada em 2 trechos + "…"
+  function _routeStr(legs, tt){
+    if (!legs.length) return '';
+    if (tt === 'multicity' || legs.length > 2) {
+      var parts = legs.map(function(l){ return (l.dep||'?') + ' → ' + (l.arr||'?'); });
+      return parts.slice(0,2).join('; ') + (parts.length > 2 ? '; …' : '');
+    }
+    return (legs[0].dep||'?') + ' → ' + (legs[0].arr||'?');
+  }
+
+  function _pnrOf(bil){
+    if (bil.masterPnr) return bil.masterPnr;
+    var pnr = '';
+    if (Array.isArray(bil.legs)) bil.legs.some(function(l){ if (l && l.pnr) { pnr = l.pnr; return true; } });
+    if (!pnr && Array.isArray(bil.pax)) bil.pax.some(function(p){ if (p && p.pnr) { pnr = p.pnr; return true; } });
+    return pnr;
+  }
+
+  function _airlineOf(bil){
+    var name = '', code = '';
+    var legs = Array.isArray(bil.legs) ? bil.legs : [];
+    for (var i = 0; i < legs.length && !code; i++) {
+      var l = legs[i] || {};
+      if (!name && l.airline) name = String(l.airline);
+      var raw = String(l.airline || l.fn || '').trim().toUpperCase();
+      if (!raw) continue;
+      if (/^[A-Z0-9]{2}$/.test(raw)) code = raw;
+      else if (typeof window.parseFlightDesignator === 'function') {
+        var p = window.parseFlightDesignator(raw);
+        if (p && p.airlineCode) code = p.airlineCode;
+      }
+    }
+    return { code: code, name: name };
+  }
+
+  // A8.2/A8.3: logo via base assets/airlines com placeholder genérico
+  function _logoImg(air){
+    if (typeof window.getAirlineLogoSrc !== 'function') return '';
+    var src = window.getAirlineLogoSrc(air.code, air.name);
+    return '<img class="kb-card-logo" src="' + _esc(src) + '" alt="' + _esc(air.name || air.code || 'Compagnie') + '"'
+      + ' data-airline-code="' + _esc(air.code) + '"'
+      + ' onload="window._onAirlineLogoLoad110&&window._onAirlineLogoLoad110(this)"'
+      + ' onerror="window._onAirlineLogoError110&&window._onAirlineLogoError110(this)"/>';
+  }
+
   // ---- Card data ---------------------------------------------------------
   function _cardData(d){
     if (!d) return null;
     var id = d.__id || d.id;
     var t  = d.ticketing || {};
-    var billet   = t.billet   || _readJSON('expatur_billet_'+id,   null) || {};
+    var billet   = _billetOf(d, id);
     var quote    = _readJSON('expatur_quote_'+id, null) || (d.quote || {});
     var payments = t.payments || _readJSON('expatur_payments_'+id, null) || {};
 
@@ -61933,30 +62421,58 @@ function _canIssueTicketsAgainstInvoices() {
               || quote.totalPrice  || quote.total  || quote.grandTotal
               || d.totalPrice || d.total || d.dealValue || d.amount
               || (payments && (payments.total || payments.grandTotal)) || null;
+    // Fallback: campos clássicos do dossier (pax × preço − desconto)
+    if (amount == null && d.fields) {
+      var f0 = d.fields;
+      var tot = (parseFloat(f0['pax-adultes']||0)||0) * (parseFloat(f0['price-adulte']||0)||0)
+              + (parseFloat(f0['pax-enfants']||0)||0) * (parseFloat(f0['price-enfant']||0)||0)
+              + (parseFloat(f0['pax-bebes']  ||0)||0) * (parseFloat(f0['price-bebe']  ||0)||0);
+      if (tot) amount = Math.max(0, tot - (parseFloat(f0['discount-value']||0)||0));
+    }
 
-    // Payment summary
+    // Payment summary (o histórico real é chaveado pelo booking-ref)
     var paidTot = 0;
     try {
-      var arr = (payments && payments.records) || (Array.isArray(payments) ? payments : []);
-      if (Array.isArray(arr)) arr.forEach(function(r){ var n = Number(r && r.amount); if (isFinite(n)) paidTot += n; });
+      var ref0 = d.fields && d.fields['booking-ref'];
+      var payArr = (ref0 && _readJSON('expatur_payments_' + String(ref0).replace(/[^a-zA-Z0-9]/g,'_'), null))
+                || (payments && payments.records)
+                || (Array.isArray(payments) ? payments : []);
+      if (Array.isArray(payArr)) payArr.forEach(function(r){ var n = Number(r && r.amount); if (isFinite(n)) paidTot += n; });
     } catch(_) {}
     var payState = 'unpaid';
     if (amount != null && paidTot >= Number(amount) - 0.01 && Number(amount) > 0) payState = 'paid';
     else if (paidTot > 0) payState = 'partial';
 
-    // Trip
+    // Trip (Fase 3: trechos do próprio dossier; segments só como fallback)
+    var legs = _legsOf(d);
     var segs = _extractSegments(d);
     var trip = _tripFromSegments(segs);
+    if (legs.length) {
+      trip.dep = legs[0].dep || trip.dep;
+      trip.arr = legs[legs.length-1].arr || trip.arr;
+      var tt0 = d.tripType || (legs.length > 1 ? 'multicity' : 'oneway');
+      trip.kind = tt0 === 'return' ? 'Aller-retour' : (tt0 === 'multicity' ? 'Multi-villes' : 'Aller simple');
+    }
 
-    var status = (typeof window.dossierStatus === 'function')
-                  ? window.dossierStatus(d)
-                  : 'devis';
+    // Fase 2/3: status canônico persistido (deal-status.js)
+    var status;
+    if (window.DEAL_STATUS && typeof window.DEAL_STATUS.get === 'function') {
+      status = window.DEAL_STATUS.get(id);
+    } else {
+      var legacy = (typeof window.dossierStatus === 'function') ? window.dossierStatus(d) : 'devis';
+      status = _LEGACY_TO_CANON[legacy] || 'quote';
+    }
 
     return {
       id: id,
+      ref: (d.fields && d.fields['booking-ref']) || billet.ref || '',
       name: (pname && pname.toUpperCase()) || ('Dossier ' + id),
       amount: amount,
       trip: trip,
+      route: _routeStr(legs, d.tripType || ''),
+      multicity: (d.tripType === 'multicity') || legs.length > 2,
+      pnr: _pnrOf(billet),
+      airline: _airlineOf(billet),
       status: status,
       pills: { frozen: !!t.frozen, issued: !!t.issued, pay: payState },
       updatedAt: d.updatedAt || d.lastEditedAt || t.lastSnapshotAt || null
@@ -61964,7 +62480,7 @@ function _canIssueTicketsAgainstInvoices() {
   }
   window.kanbanCardData = function(id){ return _cardData(_readDossier(id)); };
 
-  // ---- Card render (canonical layout) ------------------------------------
+  // ---- Card render (Fase 3 — spec 3.2/3.3 + A4 + A8) ----------------------
   function _renderCard(c){
     var t = c.trip || {};
     // Pills
@@ -61975,14 +62491,22 @@ function _canIssueTicketsAgainstInvoices() {
     else if (c.pills.pay === 'partial') pills += '<span class="kb-pill partial">Partiel</span>';
     else if (c.amount && c.pills.pay === 'unpaid') pills += '<span class="kb-pill unpaid">Non payé</span>';
 
-    // Deal value: hide for ticketed
+    // 3.2: valor total do deal — sempre visível
     var dealLine = '';
-    if (c.amount != null && c.status !== 'ticketed') {
+    if (c.amount != null) {
       var m = _money(c.amount);
       if (m) dealLine = '<div class="kb-card-deal">' + _esc(m) + '</div>';
     }
 
     var kindLine = t.kind ? '<div class="kb-card-kind">' + _esc(t.kind) + '</div>' : '';
+
+    // 3.3: nº do dossier clicável (sublinhado) — abre o deal no Ticketing
+    var refLine = c.ref
+      ? '<a class="kb-ref-link" href="javascript:void(0)" data-ref-open="' + _esc(c.id) + '" title="Ouvrir dans Ticketing">' + _esc(c.ref) + '</a>'
+      : '<span class="kb-card-id">#' + _esc(c.id) + '</span>';
+
+    // 3.2/A8: logo da companhia (placeholder genérico quando indisponível)
+    var logo = _logoImg(c.airline || {});
 
     // Route block (DEP → ARR)
     var routeBlock = '';
@@ -62001,6 +62525,14 @@ function _canIssueTicketsAgainstInvoices() {
         + '</div>';
     }
 
+    // A4.2: rota multicidade trecho a trecho (truncada em 2 + "…")
+    var routesLine = (c.multicity && c.route)
+      ? '<div class="kb-card-routes">' + _esc(c.route) + '</div>' : '';
+
+    // 3.2: PNR
+    var pnrLine = c.pnr
+      ? '<div class="kb-card-pnr">PNR <strong>' + _esc(c.pnr) + '</strong></div>' : '';
+
     // Dates row
     var dateRow = '';
     if (t.dod || t.dor) {
@@ -62013,18 +62545,20 @@ function _canIssueTicketsAgainstInvoices() {
     return ''
       + '<div class="kb-card" data-v128="1" data-dossier="' + _esc(c.id) + '" data-status="' + c.status + '">'
       +   '<button class="kb-card-more" data-dossier="' + _esc(c.id) + '" title="Actions">⋯</button>'
-      +   '<div class="kb-card-id">#' + _esc(c.id) + '</div>'
+      +   '<div class="kb-card-head">' + refLine + logo + '</div>'
       +   '<div class="kb-card-name">' + _esc(c.name) + '</div>'
       +   dealLine
       +   kindLine
       +   routeBlock
+      +   routesLine
+      +   pnrLine
       +   dateRow
       +   (pills ? '<div class="kb-card-pills">' + pills + '</div>' : '')
       + '</div>';
   }
 
   function _renderColumn(status, cards){
-    var label = STATUS_LABELS[status] || status;
+    var label = STATUS_LABEL(status);
     var inner = cards.length
       ? '<div class="kb-cards">' + cards.map(_renderCard).join('') + '</div>'
       : '<div class="kb-empty">Aucun dossier</div>';
@@ -62076,8 +62610,8 @@ function _canIssueTicketsAgainstInvoices() {
     if (!host) return;
     var dossiers = _allDossiers();
     var cards = dossiers.map(_cardData).filter(Boolean);
-    var byStatus = { devis:[], invoiced:[], ticketing:[], ticketed:[] };
-    cards.forEach(function(c){ (byStatus[c.status] || byStatus.devis).push(c); });
+    var byStatus = { quote:[], awaiting_payment:[], ticketing:[], ticketed:[] };
+    cards.forEach(function(c){ (byStatus[c.status] || byStatus.quote).push(c); });
     Object.keys(byStatus).forEach(function(k){
       byStatus[k].sort(function(a,b){
         var ta = a.updatedAt ? Date.parse(a.updatedAt) : 0;
@@ -62102,6 +62636,14 @@ function _canIssueTicketsAgainstInvoices() {
             // Show a tiny built-in menu
             _openMenuFallback(more, id);
           }
+          return;
+        }
+        // 3.3: nº do dossier abre o deal direto no Ticketing
+        var refLink = ev.target.closest && ev.target.closest('.kb-ref-link');
+        if (refLink) {
+          ev.stopPropagation();
+          var rid = refLink.getAttribute('data-ref-open');
+          if (rid && typeof window.switchDossier === 'function') window.switchDossier(rid);
           return;
         }
         var card = ev.target.closest && ev.target.closest('.kb-card');
@@ -62131,10 +62673,10 @@ function _canIssueTicketsAgainstInvoices() {
     _closeAnyPopover();
     var pop = document.createElement('div');
     pop.className = 'kb-pop';
-    var cur = (typeof window.dossierStatus === 'function') ? window.dossierStatus(id) : 'devis';
+    var cur = (window.DEAL_STATUS && window.DEAL_STATUS.get) ? window.DEAL_STATUS.get(id) : 'quote';
     pop.innerHTML = '<div class="kb-pop-head">Forcer le statut</div>'
       + STATUSES.map(function(s){
-          return '<button data-set="'+s+'">'+_esc(STATUS_LABELS[s]) + (s===cur?'  ✓':'') + '</button>';
+          return '<button data-set="'+s+'">'+_esc(STATUS_LABEL(s)) + (s===cur?'  ✓':'') + '</button>';
         }).join('')
       + '<hr/>'
       + '<button data-act="detail">Ouvrir le détail</button>'
@@ -62152,6 +62694,10 @@ function _canIssueTicketsAgainstInvoices() {
         d = _readDossier(id); if (!d) return;
         d.statusOverride = s;
         try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(d)); } catch(_) {}
+        // registra a transição forçada na timeline canônica (deal-status.js)
+        if (window.DEAL_STATUS && window.DEAL_STATUS.reconcile) {
+          try { window.DEAL_STATUS.reconcile(id, { source:'manual' }); } catch(_) {}
+        }
         if (window.dossierTicketing && window.dossierTicketing.appendRevision) {
           window.dossierTicketing.appendRevision(id, 'statusOverride', { reason:'manual → '+s });
         }
@@ -62163,6 +62709,9 @@ function _canIssueTicketsAgainstInvoices() {
         if (d.statusOverride) {
           delete d.statusOverride;
           try { localStorage.setItem('expatur_dossier_'+id, JSON.stringify(d)); } catch(_) {}
+          if (window.DEAL_STATUS && window.DEAL_STATUS.reconcile) {
+            try { window.DEAL_STATUS.reconcile(id, { source:'manual' }); } catch(_) {}
+          }
         }
         _closeAnyPopover(); kanbanRender(); return;
       }

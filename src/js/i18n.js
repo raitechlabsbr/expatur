@@ -25,6 +25,40 @@ const T = {
   'Main':                       'Menu',
   'Admin':                      'Admin',
   'Gestion utilisateurs':       'Gestão de utilizadores',
+  // ── Permissões / atribuição (Fase 6 — A1/A9) ─────────────────────────────
+  'Assignation':                'Atribuição',
+  'Modules':                    'Módulos',
+  'Visibilité':                 'Visibilidade',
+  'Seuls les miens':            'Somente os meus',
+  'Moi + équipe':               'Eu + equipe',
+  'Tous':                       'Todos',
+  'Lecture seule — seuls les administrateurs gèrent les accès.': 'Somente leitura — apenas administradores gerem os acessos.',
+  'Rôle':                       'Função',
+  'Statut':                     'Estado',
+  'Actions':                    'Ações',
+  'Action réservée aux administrateurs': 'Ação reservada aos administradores',
+  // ── Journal / log geral (Fase 7 — A2) ────────────────────────────────────
+  'Journal — log général':      'Journal — log geral',
+  'Utilisateur (email)':        'Utilizador (email)',
+  'Date':                       'Data',
+  'Utilisateur':                'Utilizador',
+  'Action':                     'Ação',
+  'Module':                     'Módulo',
+  'Entité':                     'Entidade',
+  'Champ':                      'Campo',
+  'Aucune entrée.':             'Nenhuma entrada.',
+  // ── Tarefas Kanban (Fase 8 — 6.2) ────────────────────────────────────────
+  'Liste':                      'Lista',
+  'Kanban':                     'Kanban',
+  'Toutes les catégories':      'Todas as categorias',
+  'Effacer le filtre':          'Limpar filtro',
+  'Effacer':                    'Limpar',
+  'Filtrer':                    'Filtrar',
+  // ── Cliente / multi-city (Fase 9 — A6/A10) ───────────────────────────────
+  '+ Créer un nouveau client':  '+ Criar novo cliente',
+  'Joindre les segments':       'Juntar os segmentos',
+  // ── Disponibilidade B2B (Fase 8 — 7.1) ───────────────────────────────────
+  'Ouvrir dans un nouvel onglet ↗': 'Abrir em nova aba ↗',
   'Déconnexion':                'Desconectar',
   'Expatur Backoffice · v2026': 'Expatur Backoffice · v2026',
   'Bienvenu(e)':                'Bem-vindo(a)',
@@ -39,9 +73,30 @@ const T = {
   'Tâches':                     'Tarefas',
   'Finance':                    'Finanças',
 
+  // ── Status canônico do deal (Fase 2/3 — spec 1.1/3.1) ─────────────────────
+  'Quote':                      'Cotação',
+  'En attente de paiement':     'Aguardando Pagamento',
+  'En émission':                'Em Emissão',
+  'Émis':                       'Emitido',
+  'Forcer le statut':           'Forçar o status',
+  'Aucun dossier':              'Nenhum dossiê',
+  'Timeline & Commentaires':    'Linha do tempo & Comentários',
+  'Timeline du statut':         'Linha do tempo do status',
+  'Commentaires':               'Comentários',
+  'Envoyer':                    'Enviar',
+  'Aucune transition enregistrée.': 'Nenhuma transição registrada.',
+  'Aucun commentaire.':         'Nenhum comentário.',
+
+  // ── Auto-save (Fase 4 — spec 2.1) ──────────────────────────────────────────
+  'Enregistrement…':            'Salvando…',
+  'Enregistré':                 'Salvo',
+  'Erreur d’enregistrement':    'Erro ao salvar',
+
   // ── Itinéraire / Trip type ─────────────────────────────────────────────────
   'Aller simple':               'Só ida',
   'Aller-Retour':               'Ida e volta',
+  'Aller-retour':               'Ida e volta',
+  'Multi-villes':               'Multi-destinos',
   'Multi-destinations':         'Multi-destinos',
   'VOL ALLER':                  'VOO IDA',
   'Vol Aller':                  'Voo Ida',
@@ -417,6 +472,7 @@ function _startObserver() {
 export function setLanguage(lang) {
   if (lang !== 'fr' && lang !== 'pt') return;
   currentLang = lang;
+  window.currentLang = lang;   // lido por deal-status.js (labels canônicos)
   localStorage.setItem('expatur_lang', lang);
 
   // Actualizar botões do selector
@@ -441,6 +497,7 @@ export function setLanguage(lang) {
 
 // Expor globalmente para os onclick no HTML
 window.setLanguage = setLanguage;
+window.currentLang = currentLang;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 export function initI18n() {

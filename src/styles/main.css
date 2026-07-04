@@ -1577,6 +1577,17 @@ textarea.db-input{resize:vertical;min-height:76px;}
 .kb-card[data-v128="1"] .kb-card-meta,
 .kb-card[data-v128="1"] .kb-card-amount { display:none; }
 
+/* Fase 3 — card completo (spec 3.2/3.3 + A4 + A8) */
+.kb-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-right:22px; }
+.kb-ref-link { font-family:'Courier New',monospace; font-size:0.78rem; font-weight:700; letter-spacing:0.05em;
+  color:var(--navy,#06203B); text-decoration:underline; text-underline-offset:2px;
+  text-decoration-color:rgba(6,32,59,0.35); cursor:pointer; }
+.kb-ref-link:hover { color:var(--gold,#C9A227); text-decoration-color:var(--gold,#C9A227); }
+.kb-card-logo { height:18px; max-width:64px; object-fit:contain; flex-shrink:0; }
+.kb-card-routes { font:600 11px/1.3 'Outfit',sans-serif; color:#4a6075; margin:2px 0 4px; letter-spacing:.03em; }
+.kb-card-pnr { font:600 11px/1.2 'Outfit',sans-serif; color:#4a6075; margin:2px 0 4px; }
+.kb-card-pnr strong { font-family:'Courier New',monospace; color:var(--navy,#06203B); letter-spacing:.08em; }
+
 .v130-save-deal-btn{
   display:inline-flex; align-items:center; gap:0.4rem;
   background:var(--navy,#06203B); color:#fff; border:none;

@@ -141,7 +141,9 @@
     <button class="sidebar-item" id="snav-quoting" onclick="sidebarGo('quoting')">Ticketing</button>
     <button class="sidebar-item" id="snav-bookings" onclick="sidebarGo('bookings')">Bookings</button>
     <button class="sidebar-item" id="snav-fornecedores" onclick="sidebarGo('fornecedores')">Fornecedores</button>
+    <button class="sidebar-item" id="snav-vols" onclick="sidebarGo('vols')">Vols (Departures)</button>
     <button class="sidebar-item" id="snav-vendedores" onclick="sidebarGo('vendedores')">Vendedores</button>
+    <button class="sidebar-item" id="snav-programas" onclick="sidebarGo('programas')">Programas</button>
     <button class="sidebar-item" id="snav-disponibilidades" onclick="sidebarGo('disponibilidades')">Disponibilidades</button>
     <button class="sidebar-item" id="snav-tarefas" onclick="sidebarGo('tarefas')">Tarefas</button>
     <button class="sidebar-item" id="snav-clientes" onclick="sidebarGo('clientes')">Clientes</button>
@@ -249,6 +251,106 @@
   </div>
 </div>
 
+
+<div class="section-page" id="section-programas">
+  <div class="section-page-header" style="flex-direction:row;align-items:center;justify-content:space-between;padding-top:1rem;padding-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:0.85rem;">
+      <button class="sidebar-open-btn" onclick="sidebarOpen()" title="Ouvrir le menu" style="background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;display:flex;align-items:center;opacity:0.88;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.88'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 115.14 151.58" height="36" aria-label="Expatur" style="display:block;"><path style="fill:#06203b" d="M100.69,12.52C92.45,4.76,81.35,0,69.15,0h-23.15c-12.96,0-24.65,5.35-33.02,13.96C4.94,22.25,0,33.54,0,45.99v59.59c0,25.41,20.59,46,46,46h23.15c25.41,0,46-20.59,46-46v-59.59c0-13.19-5.56-25.09-14.46-33.47ZM105.75,105.58c0,20.17-16.42,36.59-36.6,36.59h-23.15c-20.18,0-36.6-16.42-36.6-36.59v-59.59c0-9.57,3.68-18.62,10.33-25.48,6.97-7.17,16.29-11.12,26.28-11.12h23.15c9.36,0,18.28,3.54,25.1,9.96,7.42,6.99,11.5,16.45,11.5,26.64v59.59Z"/><g><path style="fill:#d80505" d="M84.81,107.59c-.07.28-.15.57-.24.84-.21.65-.45,1.3-.72,1.92-1.91,4.33-5.43,7.87-9.86,9.74-.61.26-1.24.48-1.88.68-1.06.32-2.15.54-3.25.67-.71.08-1.42.13-2.15.13h-18.15c-3.46,0-6.71-.95-9.49-2.6-.31-.18-.61-.37-.91-.57l46.65-10.81Z"/><path style="fill:#d80505" d="M85.43,69.76v20.3l-52.56,22.95c-.54-.83-1.02-1.71-1.42-2.63-.54-1.2-.94-2.47-1.21-3.8l55.19-36.83Z"/><path style="fill:#d80505" d="M74.8,54.42l-44.94,42.67v-13.8l19.6-26.01c2.69.56,5.46.85,8.32.85,6.08,0,11.85-1.33,17.03-3.72Z"/></g><path style="fill:#06203b" d="M89.21,23.9c-.17-.16-.35-.32-.54-.47-.64-.57-1.34-1.12-2.03-1.63-4.92-3.62-11.01-5.75-17.59-5.75h-22.38c-.87,0-1.75.04-2.61.12-2.98.25-5.85.96-8.51,2.03-3.81,1.53-7.22,3.83-10.05,6.71-1.62,1.63-3.05,3.46-4.26,5.44-2.73,4.5-4.32,9.8-4.32,15.46v59.91c0,1.58.12,3.15.36,4.67.32,1.99.83,3.91,1.53,5.76.48,1.27,1.03,2.51,1.66,3.7.55.99,1.13,1.93,1.76,2.85.6.86,1.25,1.7,1.94,2.5.72.83,1.49,1.63,2.3,2.37.97.91,2.01,1.74,3.09,2.52,4.84,3.4,10.73,5.41,17.1,5.41h22.38c2.99,0,5.88-.46,8.6-1.27,3.94-1.19,7.54-3.16,10.6-5.75.16-.14.32-.29.48-.43,4.17-3.67,7.3-8.48,8.9-13.96.31-1.03.55-2.1.74-3.17.16-.91.28-1.82.35-2.73.08-.81.11-1.63.11-2.46v-60.26c-.1-8.53-3.8-16.19-9.62-21.56Z"/></svg>
+      </button>
+      <div class="section-page-title">Programas</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;flex-shrink:0;">
+      <div style="text-align:right;border-right:1px solid var(--border);padding-right:1.25rem;">
+        <div class="page-full-date" style="font-size:0.78rem;color:var(--navy-soft);font-weight:500;letter-spacing:0.02em;white-space:nowrap;"></div>
+      </div>
+      <div style="text-align:center;"><div style="font-size:0.48rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.2rem;">São Paulo</div><div data-clock-tz="America/Sao_Paulo" style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--red);line-height:1;"></div></div>
+      <div style="text-align:center;"><div style="font-size:0.48rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.2rem;">Paris</div><div data-clock-tz="Europe/Paris" style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);line-height:1;"></div></div>
+      <div style="text-align:center;"><div style="font-size:0.48rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.2rem;">Atlanta</div><div data-clock-tz="America/New_York" style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);line-height:1;"></div></div><div style="text-align:center;"><div style="font-size:0.48rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.2rem;">Houston</div><div data-clock-tz="America/Chicago" style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);line-height:1;"></div></div>
+    </div>
+  </div>
+  <div class="section-page-body">
+    <div id="prog-db-hint" style="display:none;background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.4);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.74rem;color:#92400e;margin-bottom:0.9rem;">
+      ⚠ Tabela <strong>programs</strong> não encontrada no Supabase — aplique a migration <code>supabase/migrations/001_programs.sql</code> no SQL Editor. Usando lista local temporária.
+    </div>
+    <div id="prog-dashboard" style="background:#fff;border:1px solid rgba(6,32,59,0.1);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;"></div>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+      <input class="db-search" type="text" id="prog-search" placeholder="🔍 Pesquisar programa…" oninput="programasSearch()" style="flex:1;min-width:200px;">
+      <button class="btn btn-navy btn-sm" onclick="programasNew()">+ Novo programa</button>
+    </div>
+    <div id="prog-form-wrap" style="display:none;background:#fff;border:1.5px solid var(--gold,#B69249);border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:0.9rem;">
+      <div id="prog-f-title" style="font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);margin-bottom:0.6rem;">Novo programa</div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:2;min-width:180px;"><label style="font-size:0.62rem;font-weight:700;color:var(--navy-faint);display:block;margin-bottom:0.25rem;">NOME DO PROGRAMA</label><input class="db-input" type="text" id="prog-f-name" placeholder="Ex: Smiles"></div>
+        <div style="flex:1;min-width:90px;"><label style="font-size:0.62rem;font-weight:700;color:var(--navy-faint);display:block;margin-bottom:0.25rem;">C.P.M (R$)</label><input class="db-input" type="number" id="prog-f-cpm" step="0.01" placeholder="—"></div>
+        <div style="flex:1;min-width:90px;"><label style="font-size:0.62rem;font-weight:700;color:var(--navy-faint);display:block;margin-bottom:0.25rem;">TAXAS (R$)</label><input class="db-input" type="number" id="prog-f-fee" step="0.01" placeholder="—"></div>
+        <div style="flex:1;min-width:90px;"><label style="font-size:0.62rem;font-weight:700;color:var(--navy-faint);display:block;margin-bottom:0.25rem;">EXTRA (R$)</label><input class="db-input" type="number" id="prog-f-extra" step="0.01" placeholder="—"></div>
+        <button class="btn btn-gold btn-sm" onclick="programasSave()">Salvar</button>
+        <button class="btn btn-sm" style="background:none;border:1px solid rgba(6,32,59,0.2);border-radius:6px;cursor:pointer;" onclick="programasFormClose()">Cancelar</button>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid rgba(6,32,59,0.1);border-radius:10px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+        <thead><tr style="border-bottom:2px solid rgba(6,32,59,0.1);">
+          <th class="prog-th" onclick="programasSort('name')" style="text-align:left;padding:0.6rem 0.8rem;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(6,32,59,0.5);">Nome do Programa ↕</th>
+          <th class="prog-th" onclick="programasSort('count')" style="text-align:right;padding:0.6rem 0.8rem;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(6,32,59,0.5);">Qtd. de Passagens Emitidas ↕</th>
+          <th class="prog-th" onclick="programasSort('miles')" style="text-align:right;padding:0.6rem 0.8rem;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(6,32,59,0.5);">Volume Total de Milhas ↕</th>
+          <th style="width:90px;"></th>
+        </tr></thead>
+        <tbody id="prog-table-body"><tr><td colspan="4" style="text-align:center;padding:1.2rem;color:rgba(6,32,59,0.4);">Carregando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer de detalhe do programa (A5.8) -->
+<div id="prog-detail">
+  <div class="pd-head">
+    <button onclick="programasCloseDetail()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;font-size:0.72rem;">← Retour</button>
+    <div style="flex:1;min-width:0;">
+      <div id="prog-detail-title" style="font-weight:800;font-size:1rem;"></div>
+      <div id="prog-detail-sub" style="font-size:0.68rem;opacity:0.75;"></div>
+    </div>
+  </div>
+  <div style="padding:0.8rem 1.1rem;display:flex;gap:0.6rem;align-items:flex-end;border-bottom:1px solid rgba(6,32,59,0.08);">
+    <div><label style="font-size:0.6rem;font-weight:700;color:rgba(6,32,59,0.5);display:block;">DE</label><input class="db-input" type="date" id="prog-det-from" onchange="programasDetailFilter()"></div>
+    <div><label style="font-size:0.6rem;font-weight:700;color:rgba(6,32,59,0.5);display:block;">ATÉ</label><input class="db-input" type="date" id="prog-det-to" onchange="programasDetailFilter()"></div>
+  </div>
+  <div style="flex:1;overflow:auto;padding:0.4rem 0;">
+    <table>
+      <thead><tr><th>Dossier</th><th style="text-align:right;">Volume</th><th>PNR</th><th>Fournisseur</th><th style="text-align:right;">Sous-total</th><th>Émission</th><th>Vendeur</th></tr></thead>
+      <tbody id="prog-detail-body"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="section-page" id="section-vols">
+  <div class="section-page-header" style="flex-direction:row;align-items:center;justify-content:space-between;padding-top:1rem;padding-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:0.85rem;">
+      <button class="sidebar-open-btn" onclick="sidebarOpen()" title="Ouvrir le menu" style="background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;display:flex;align-items:center;opacity:0.88;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="26" width="26" fill="none" stroke="#06203b" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <div class="section-page-title">Vols &mdash; Departures</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;flex-shrink:0;">
+      <span id="vols-count" style="font-size:0.78rem;color:var(--navy-soft);font-weight:600;white-space:nowrap;"></span>
+      <button class="btn btn-sm" onclick="window._volsRowAdd&&window._volsRowAdd();" style="background:#e8f5e9;color:#15803d;border:1px solid #bbe5bf;" title="Ajouter un vol">+ Ajouter</button>
+      <button class="btn btn-sm" onclick="window.volsLoad&&window.volsLoad();" style="background:#eef2f7;color:#06203b;border:1px solid var(--border);" title="Recharger depuis le serveur">&#8635; Rafra&icirc;chir</button>
+      <button class="btn btn-sm" onclick="window._volsClearAll&&window._volsClearAll();" style="background:#fce8e8;color:#b91c1c;border:1px solid #f5c2c2;" title="Vider la liste partag&eacute;e">&#128465; Tout effacer</button>
+    </div>
+  </div>
+  <div class="section-page-body">
+    <div style="font-size:0.78rem;color:var(--navy-soft);margin-bottom:0.75rem;">Liste partag&eacute;e des d&eacute;parts. La suppression retire le vol pour tous les postes.</div>
+    <div class="db-table-wrap">
+      <table class="db-table">
+        <thead><tr>
+          <th>Date</th><th>Vol</th><th>De</th><th>D&eacute;part</th><th>Arriv&eacute;e</th><th>&Agrave;</th><th>PNR</th><th>Client</th>
+          <th style="width:70px;text-align:center;">Action</th>
+        </tr></thead>
+        <tbody id="vols-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <div class="section-page" id="section-fornecedores">
   <div class="section-page-header" style="flex-direction:row;align-items:center;justify-content:space-between;padding-top:1rem;padding-bottom:1rem;">
@@ -518,10 +620,21 @@
     </div>
   </div>
   <div class="section-page-body">
-    <p style="font-size:0.82rem;color:var(--navy-soft);margin-bottom:1.25rem;">Clique num dia para alternar disponibilidade. 🟢 = disponível &nbsp;🔴 = indisponível.</p>
-    <div class="disp-agents-grid" id="disp-agents-grid">
-      
+    <!-- 7.1: página B2B embutida (www.expaturtravel.com/b2b) + fallback externo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.85rem;">
+      <p style="font-size:0.82rem;color:var(--navy-soft);margin:0;">Disponibilités B2B — <strong>expaturtravel.com/b2b</strong>.</p>
+      <a href="https://www.expaturtravel.com/b2b" target="_blank" rel="noopener" class="btn btn-navy btn-sm" style="white-space:nowrap;">Ouvrir dans un nouvel onglet ↗</a>
     </div>
+    <div id="b2b-embed-wrap" style="position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;height:calc(100vh - 220px);min-height:480px;">
+      <iframe id="b2b-iframe" src="https://www.expaturtravel.com/b2b" title="Disponibilités B2B"
+        style="width:100%;height:100%;border:0;display:block;" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div id="b2b-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:0.85rem;text-align:center;padding:2rem;background:#fff;">
+        <p style="font-size:0.85rem;color:var(--navy-soft);max-width:420px;margin:0;">La page B2B ne peut pas être affichée ici (restriction du site). Ouvrez-la dans un nouvel onglet.</p>
+        <a href="https://www.expaturtravel.com/b2b" target="_blank" rel="noopener" class="btn btn-gold btn-sm">Ouvrir expaturtravel.com/b2b ↗</a>
+      </div>
+    </div>
+    <div class="disp-agents-grid" id="disp-agents-grid" style="display:none;"></div>
   </div>
 </div>
 
@@ -1562,8 +1675,8 @@
       <button id="cli-scan-apply-btn" class="scan-apply-btn" disabled onclick="cliApplyScanData()" style="margin-top:0.85rem;">&#10003; Appliquer au client</button>
     </div>
     
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:0.5rem;">
-      
+    <div id="cli-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:0.5rem;">
+
       <div>
         <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--navy-faint);margin-bottom:0.9rem;padding-bottom:0.5rem;border-bottom:1px solid var(--light);">Identité</div>
         <div class="row">
@@ -1618,7 +1731,7 @@
       </div>
     </div>
     
-    <div style="margin-top:1.25rem;">
+    <div id="cli-form-notes" style="margin-top:1.25rem;">
       <label>Notes client</label>
       <textarea id="cli-notes" style="width:100%;background:var(--light);border:1px solid rgba(6,32,59,0.2);border-radius:4px;color:var(--navy);padding:0.58rem 0.8rem;font-size:0.88rem;font-family:inherit;outline:none;resize:vertical;min-height:72px;" placeholder="Préférences, allergies, informations particulières…"></textarea>
     </div>
