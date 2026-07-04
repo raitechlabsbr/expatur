@@ -111,12 +111,17 @@ function _classLabel(cls) {
   return cls;
 }
 
-// Versão LEVE de _cardCity (monólito ~5997 usa IATA_CITY_EN/SERP_CITY/CSV —
-// mapas que não existem na plataforma). Aqui derivamos a cidade só a partir
-// do nome do aeroporto que o SerpAPI já retorna na leg (depName/arrName):
-// corta no primeiro marcador de sufixo/hífen e remove acentos. Ex.:
-// "Paris Charles de Gaulle Airport" → "Paris"; "Montréal-Pierre Elliott
-// Trudeau International Airport" → "Montreal". Sem nome, cai no código IATA.
+// Versão LEVE de _cardCity (o monólito ~5997 usa os mapas IATA_CITY_EN/
+// SERP_CITY/CSV, que não existem na plataforma — decisão: não portá-los).
+// Aqui limpamos só o nome do aeroporto que o SerpAPI já traz na leg
+// (depName/arrName): cortamos no 1º marcador de sufixo/hífen/parêntese e
+// removemos acentos. Isso remove o descritor final ("... Airport"/
+// "... International") e reduz nomes com hífen. Ex.: "Montréal-Pierre Elliott
+// Trudeau International Airport" → "Montreal". LIMITAÇÃO conhecida: para hubs
+// cujo nome do aeroporto tem várias palavras SEM hífen/"International" antes
+// do "Airport" (CDG, JFK, LHR…), sobra o descritor — "Paris Charles de Gaulle
+// Airport" → "Paris Charles de Gaulle" (não "Paris"). Parity exata exigiria
+// portar o mapa IATA_CITY_EN (backlog). Sem nome, cai no código IATA.
 function _cardCity(code, serpName) {
   var c = (code||'').toUpperCase();
   if (!serpName) return c;
