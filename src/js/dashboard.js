@@ -159,6 +159,50 @@ function _renderFlights() {
   const host = document.getElementById('welcome-flights-week');
   if (!host) return;
 
+  // Convergência (spec §6): se o board Vols já carregou, o widget lê dele
+  // (fonte única). Semana corrente lun→dim, agrupada como hoje.
+  const board = Array.isArray(window._volsRows) ? window._volsRows : null;
+  if (board) {
+    const t0b = _d0();
+    const dowb = (t0b.getDay() + 6) % 7;
+    const weekStartB = _addDays(t0b, -dowb), weekEndB = _addDays(weekStartB, 6);
+    const yestB = _addDays(t0b, -1), tomB = _addDays(t0b, 1);
+    const bk = { hier: [], aujourd_hui: [], demain: [], prochains: [] };
+    board.forEach((r) => {
+      const dt = (window._volsParseDate ? window._volsParseDate(r.flight_date) : new Date(r.flight_date));
+      if (!dt || isNaN(dt.getTime())) return;
+      if (dt.getTime() < weekStartB.getTime() || dt.getTime() > weekEndB.getTime()) return;
+      const f = { ref: r.dossier_ref || r.pnr || '', pax: r.client || r.dossier_ref || '—',
+        dep: r.dep_code, arr: r.arr_code, date: dt, pnr: r.pnr, airline: '', airlineCode: '' };
+      const t = dt.getTime();
+      if (t === yestB.getTime()) bk.hier.push(f);
+      else if (t === t0b.getTime()) bk.aujourd_hui.push(f);
+      else if (t === tomB.getTime()) bk.demain.push(f);
+      else bk.prochains.push(f);
+    });
+    const cardB = (f) =>
+      '<div data-dossier-ref="' + _esc(f.ref) + '" style="padding:0.45rem 0.5rem;border-bottom:1px solid rgba(6,32,59,0.07);font-size:0.74rem;cursor:pointer;">'
+      + '<div style="font-weight:600;color:var(--navy);font-size:0.76rem;">' + _esc(f.dep) + ' → ' + _esc(f.arr) + '</div>'
+      + '<div style="font-size:0.66rem;color:var(--navy-soft);margin-top:2px;">' + _fmtDate(f.date) + '</div>'
+      + '<div style="font-size:0.66rem;color:var(--navy-soft);font-family:monospace;">PNR ' + _esc(f.pnr || '—') + ' · ' + _esc(f.pax) + '</div>'
+      + '</div>';
+    const colB = (label, flights, accent) =>
+      '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;min-height:80px;">'
+      + '<div style="padding:0.35rem 0.5rem;background:' + accent + ';font-size:0.55rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#fff;">'
+      + label + ' <span style="opacity:0.7;font-size:0.65em;">(' + flights.length + ')</span></div>'
+      + (flights.length === 0
+          ? '<div style="padding:0.7rem 0.5rem;font-size:0.72rem;color:var(--navy-faint);font-style:italic;">—</div>'
+          : flights.sort((a, b) => a.date - b.date).map(cardB).join(''))
+      + '</div>';
+    host.innerHTML =
+      colB('Hier', bk.hier, '#8a9db5') +
+      colB("Aujourd'hui", bk.aujourd_hui, '#d80505') +
+      colB('Demain', bk.demain, '#06203b') +
+      colB('Prochains jours', bk.prochains, '#b69249');
+    return;   // fonte única: não cair na derivação por bookings
+  }
+  // (abaixo: derivação legada por bookings — fallback enquanto o board não carregou)
+
   // semana corrente: segunda → domingo
   const t0 = _d0();
   const dow = (t0.getDay() + 6) % 7; // 0 = lundi
