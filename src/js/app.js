@@ -4247,6 +4247,17 @@ function closeBilletModal() {
 function blSyncPnr(value) {
   const v = value.toUpperCase();
   document.querySelectorAll('.bl-pax-pnr').forEach(function(el){ el.value = v; });
+  // Interconnect with COMMS "Référence (PNR)" — keep cm-ref in sync with the
+  // ticketing master PNR. Guard against feedback loops via _pnrSyncing.
+  if (!window._pnrSyncing) {
+    var cm = document.getElementById('cm-ref');
+    if (cm && cm.value !== v) {
+      window._pnrSyncing = true;
+      cm.value = v;
+      try { if (typeof _commsRender === 'function') _commsRender(); } catch(e){}
+      window._pnrSyncing = false;
+    }
+  }
 }
 
 // GRU baggage warning: auto-triggered when a leg arrives at GRU
@@ -8011,8 +8022,11 @@ function _blGetAllLegs() {
       });
     }
     var legSegs = (sel && sel.segments && sel.segments.length) ? sel.segments : [];
+    // SerpAPI airport names (used for the FR email template, below the IATA code)
+    var depName = (sel && sel.depName) || (legSegs[0] && legSegs[0].depName) || '';
+    var arrName = (sel && sel.arrName) || (legSegs.length ? (legSegs[legSegs.length-1].arrName||'') : '') || '';
     if (depCode || arrCode) {
-      legs.push({ depCode: depCode, arrCode: arrCode, depDate: depDate, depTime: depTime, fn: fn, airlineCodes: aCodes, segments: legSegs, arrTime: (sel && sel.arrTime) || '' });
+      legs.push({ depCode: depCode, arrCode: arrCode, depDate: depDate, depTime: depTime, fn: fn, airlineCodes: aCodes, segments: legSegs, arrTime: (sel && sel.arrTime) || '', depName: depName, arrName: arrName, durMin: (sel && sel.durMin) || 0, durStr: (sel && sel.durStr) || '', totalDuration: (sel && (sel.durMin || (sel.raw && sel.raw.total_duration))) || 0, layovers: (sel && sel.layovers) || [], stops: (sel && typeof sel.stops === 'number') ? sel.stops : (legSegs.length > 1 ? legSegs.length - 1 : 0), raw: (sel && sel.raw) || null, arrDate: (sel && sel.arrDate) || '', overnight: !!(sel && sel.overnight), rawDepDateTime: (sel && sel.rawDepDateTime) || '', rawArrDateTime: (sel && sel.rawArrDateTime) || '' });
     }
   }
 
