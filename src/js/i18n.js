@@ -13,7 +13,24 @@ export let currentLang = localStorage.getItem('expatur_lang') || 'fr';
 // ── Dicionário de traduções FR → PT-BR ────────────────────────────────────────
 const T = {
   // ── Sidebar ────────────────────────────────────────────────────────────────
+  // Base FR (HTML) → PT-BR. A sidebar usa termos FR corretos como base.
   'Accueil':                    'Início',
+  'Devis':                      'Orçamentos',
+  'Billetterie':                'Bilhetagem',
+  'Réservations':               'Reservas',
+  'Vols (Départs)':             'Voos (Partidas)',
+  'Fournisseurs':               'Fornecedores',
+  'Vendeurs':                   'Vendedores',
+  'Disponibilités':             'Disponibilidades',
+  'Tâches':                     'Tarefas',
+  'Clients':                    'Clientes',
+  'Finances':                   'Financeiro',
+  'Programmes':                 'Programas',
+  'Main':                       'Menu',
+  'Admin':                      'Admin',
+  'Gestion utilisateurs':       'Gestão de usuários',
+  // Termos legados ainda em uso noutras telas (títulos de seção, botões da home):
+  // mantidos para não quebrar a tradução PT fora da sidebar.
   'Ticketing':                  'Emissão',
   'Bookings':                   'Reservas',
   'Fornecedores':               'Fornecedores',
@@ -22,9 +39,6 @@ const T = {
   'Tarefas':                    'Tarefas',
   'Clientes':                   'Clientes',
   'Financeiro':                 'Financeiro',
-  'Main':                       'Menu',
-  'Admin':                      'Admin',
-  'Gestion utilisateurs':       'Gestão de utilizadores',
   // ── Permissões / atribuição (Fase 6 — A1/A9) ─────────────────────────────
   'Assignation':                'Atribuição',
   'Modules':                    'Módulos',
